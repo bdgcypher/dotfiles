@@ -1,0 +1,14 @@
+# Ignore OS-generated files
+.DS_Store
+Thumbs.db
+
+# Ignore Waybar logs or temp files
+waybar/*.log
+
+# Ignore any local creds or SSH keys if you stow them later
+*.pem
+*.key
+id_rsa*
+
+# Ignore Walker's cache if it's inside the config folder
+walker/cache/

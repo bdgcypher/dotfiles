@@ -1,0 +1,29 @@
+# --- Basic UI & Behavior ---
+--ignore-errors
+--no-warnings
+--console-title
+
+# --- Audio Quality Settings ---
+--extract-audio
+--audio-format mp3
+--audio-quality 0
+
+# --- Metadata & Art ---
+--add-metadata
+--embed-thumbnail
+--convert-thumbnails jpg
+
+# --- File Organization ---
+# This saves files as "Artist - Title.mp3" in your current folder
+--output "[%(playlist_index)02d] %(artist,uploader)s - %(title)s.%(ext)s"
+
+# --- Anti-Ban / Throttling Protection ---
+--sleep-requests 1
+--sleep-interval 5
+--max-sleep-interval 30
+
+# --- Caching ---
+--cache-dir ~/.cache/yt-dlp
+
+# --- Archive ---
+--download-archive ~/.cache/yt-dlp/archive.txt
