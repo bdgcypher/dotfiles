@@ -1,0 +1,4 @@
+servers:
+- name: BenAndTayNAS
+  quick_connect: true
+  url: https://jellyfin.bengoddard.org

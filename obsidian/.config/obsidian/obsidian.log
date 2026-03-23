@@ -1,0 +1,38 @@
+2026-02-17 17:17:33 Loading main app package /usr/lib/obsidian/obsidian.asar
+2026-02-17 17:17:33 Checking for update using Github
+2026-02-17 17:17:34 Success.
+2026-02-17 17:17:34 Latest version is 1.11.7
+2026-02-17 17:17:34 Downloading update from https://github.com/obsidianmd/obsidian-releases/releases/download/v1.11.7/obsidian-1.11.7.asar.gz
+2026-02-17 17:17:37 Verifying hash & signature. Size= 8773752
+2026-02-17 17:17:37 Saving file
+2026-02-17 17:17:37 Update complete.
+2026-02-17 18:23:38 Loading updated app package /home/benjamingoddard/.config/obsidian/obsidian-1.11.7.asar
+2026-02-17 18:23:38 Checking for update using Github
+2026-02-17 18:23:38 Success.
+2026-02-17 18:23:38 Latest version is 1.11.7
+2026-02-17 18:23:38 App is up to date.
+2026-02-17 18:24:25 Loading updated app package /home/benjamingoddard/.config/obsidian/obsidian-1.11.7.asar
+2026-02-17 18:24:25 Checking for update using Github
+2026-02-17 18:24:25 Success.
+2026-02-17 18:24:25 Latest version is 1.11.7
+2026-02-17 18:24:25 App is up to date.
+2026-02-17 21:16:24 Loading updated app package /home/benjamingoddard/.config/obsidian/obsidian-1.11.7.asar
+2026-02-17 21:16:24 Checking for update using Github
+2026-02-17 21:16:24 Success.
+2026-02-17 21:16:24 Latest version is 1.11.7
+2026-02-17 21:16:24 App is up to date.
+2026-02-19 19:32:23 Loading updated app package /home/benjamingoddard/.config/obsidian/obsidian-1.11.7.asar
+2026-02-19 19:32:23 Checking for update using Github
+2026-02-19 19:32:23 Success.
+2026-02-19 19:32:23 Latest version is 1.11.7
+2026-02-19 19:32:23 App is up to date.
+2026-02-19 19:34:03 Loading updated app package /home/benjamingoddard/.config/obsidian/obsidian-1.11.7.asar
+2026-02-19 19:34:03 Checking for update using Github
+2026-02-19 19:34:03 Success.
+2026-02-19 19:34:03 Latest version is 1.11.7
+2026-02-19 19:34:03 App is up to date.
+2026-02-19 19:40:09 Loading updated app package /home/benjamingoddard/.config/obsidian/obsidian-1.11.7.asar
+2026-02-19 19:40:09 Checking for update using Github
+2026-02-19 19:40:09 Success.
+2026-02-19 19:40:09 Latest version is 1.11.7
+2026-02-19 19:40:09 App is up to date.

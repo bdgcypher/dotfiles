@@ -1,0 +1,6 @@
+2026/03/17-22:10:05.684 d80a9 Reusing MANIFEST /home/benjamingoddard/.config/chromium/Default/IndexedDB/https_messages.google.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/03/17-22:10:05.684 d80a9 Recovering log #11
+2026/03/17-22:10:05.711 d80a9 Reusing old log /home/benjamingoddard/.config/chromium/Default/IndexedDB/https_messages.google.com_0.indexeddb.leveldb/000011.log 
+2026/03/17-22:10:12.713 d80a9 Level-0 table #16: started
+2026/03/17-22:10:12.739 d80a9 Level-0 table #16: 3381070 bytes OK
+2026/03/17-22:10:12.752 d80a9 Delete type=0 #11
