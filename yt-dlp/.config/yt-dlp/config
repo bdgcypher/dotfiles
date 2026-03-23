@@ -26,4 +26,4 @@
 --cache-dir ~/.cache/yt-dlp
 
 # --- Archive ---
---download-archive ~/.cache/yt-dlp/archive.txt
+--download-archive ~/.config/yt-dlp/archive.txt
