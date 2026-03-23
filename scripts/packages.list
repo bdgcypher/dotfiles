@@ -137,7 +137,7 @@ qt5-wayland
 resvg
 ripgrep
 ruby
-rust
+rustup
 satty
 sddm
 slack-desktop
