@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+# Load colors
+source "$HOME/.local/bin/fzf-colors"
+
+# 1. Capture the orphan list
+list=$(yay -Qtdq)
+
+if [ -z "$list" ]; then
+  echo -e "\033[0;32mNo orphan packages found. Your system is clean!\033[0m"
+  sleep 2
+  exit 0
+fi
+
+# 2. Run fzf to double-check what's being removed
+pkgs=$(echo "$list" | fzf --multi \
+  --header "Remove Orphans (Space: Select)" \
+  --preview "yay -Qi {1}" \
+  --preview-window=down:55% \
+  --layout=reverse \
+  --bind "ctrl-j:down,ctrl-k:up,space:toggle")
+
+# 3. Check if you cancelled the selection
+if [ -z "$pkgs" ]; then
+  echo "No packages selected for removal. Exiting..."
+  sleep 1
+  exit 0
+fi
+
+# 4. Cleanup and check for success
+if echo "$pkgs" | xargs -ro yay -Rns; then
+  # Green text for success
+  echo -e "\n\033[0;32mOrphan cleanup completed successfully!\033[0m"
+
+  echo "Press any key to close..."
+  read -n 1
+else
+  # Red text for failure
+  echo -e "\n\033[0;31mError: Orphan cleanup failed.\033[0m"
+
+  echo "Press any key to close..."
+  read -n 1
+fi

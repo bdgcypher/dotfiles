@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Exit if no URL provided
+if [ -z "$1" ]; then
+  echo "Usage: dl-audio <URL>"
+  exit 1
+fi
+
+# Ensure target directory exists
+TARGET_DIR="$HOME/Music/downloads"
+mkdir -p "$TARGET_DIR"
+
+yt-dlp \
+  --extract-audio \
+  --audio-format mp3 \
+  --audio-quality 0 \
+  --paths "$TARGET_DIR" \
+  --output "[%(playlist_index)02d] %(artist,uploader)s - %(title)s.%(ext)s" \
+  "$1"

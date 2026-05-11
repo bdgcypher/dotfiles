@@ -1,6 +1,7 @@
 {
+    "name": "Untitled",
     "DesktopAudioDevice1": {
-        "prev_ver": 536870916,
+        "prev_ver": 536936448,
         "name": "Desktop Audio",
         "uuid": "05fd4984-5112-4e88-b055-9dd1bc196096",
         "id": "pulse_output_capture",
@@ -31,7 +32,7 @@
         "private_settings": {}
     },
     "AuxAudioDevice1": {
-        "prev_ver": 536870916,
+        "prev_ver": 536936448,
         "name": "Mic/Aux",
         "uuid": "34beffd2-b1b9-40dc-a451-bcccad91f791",
         "id": "pulse_input_capture",
@@ -61,17 +62,9 @@
         "monitoring_type": 0,
         "private_settings": {}
     },
-    "current_scene": "Scene",
-    "current_program_scene": "Scene",
-    "scene_order": [
-        {
-            "name": "Scene"
-        }
-    ],
-    "name": "Untitled",
     "sources": [
         {
-            "prev_ver": 536870916,
+            "prev_ver": 536936448,
             "name": "Scene",
             "uuid": "069bd3f6-9bfa-4360-a253-17f404960d5d",
             "id": "scene",
@@ -103,6 +96,17 @@
         }
     ],
     "groups": [],
+    "scene_order": [
+        {
+            "name": "Scene"
+        }
+    ],
+    "current_scene": "Scene",
+    "current_program_scene": "Scene",
+    "canvases": [],
+    "current_transition": "Fade",
+    "transition_duration": 300,
+    "transitions": [],
     "quick_transitions": [
         {
             "name": "Cut",
@@ -126,14 +130,10 @@
             "fade_to_black": true
         }
     ],
-    "transitions": [],
     "saved_projectors": [],
-    "canvases": [],
-    "current_transition": "Fade",
-    "transition_duration": 300,
     "preview_locked": false,
     "scaling_enabled": false,
-    "scaling_level": -8,
+    "scaling_level": -12,
     "scaling_off_x": 0.0,
     "scaling_off_y": 0.0,
     "modules": {

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# Loads pywal16 colors into fzf variables
+if [ -f "$HOME/.cache/wal/colors.sh" ]; then
+  . "$HOME/.cache/wal/colors.sh"
+  export FZF_DEFAULT_OPTS="--layout=reverse --height=95% \
+    --color=fg:$color7,bg:$color0,hl:$color1 \
+    --color=fg+:$color15,bg+:$color8,hl+:$color7 \
+    --color=info:$color2,prompt:$color4,pointer:$color1 \
+    --color=marker:$color2,spinner:$color1,header:$color4"
+fi

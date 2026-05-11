@@ -1,14 +1,27 @@
-# Ignore OS-generated files
-.DS_Store
-Thumbs.db
+# App Caches
+**/Cache**
+**/CacheStorage**
+**/Code Cache**
+**/GPUCache**
+**/DawnGraphiteCache**
+**/DawnWebGPUCache**
+**/Local Storage**
+**/Session Storage**
+**/Shared Dictionary**
+**/databases**
+**/blob_storage**
+**/logs**
+*.log
+*.bak
+*.sqlite-wal
+*.sqlite-shm
 
-# Ignore Waybar logs or temp files
-waybar/*.log
+# App Specific
+bitwarden/.config/Bitwarden/
+vesktop/.config/vesktop/sessionData/
+chromium/.config/chromium/
 
-# Ignore any local creds or SSH keys if you stow them later
-*.pem
-*.key
-id_rsa*
-
-# Ignore Walker's cache if it's inside the config folder
-walker/cache/
+# System
+system_snapshot.txt
+pkglist.txt
+aur_pkglist.txt

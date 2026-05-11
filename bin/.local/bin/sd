@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Silent shutdown
+systemctl poweroff --no-wall

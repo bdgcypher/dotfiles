@@ -1,0 +1,4 @@
+# PSM Certificate Override Settings file
+# This is a generated file!  Do not edit.
+127.0.0.1:8384:	OID.2.16.840.1.101.3.4.2.1	EF:18:52:E1:0A:CE:D7:25:FF:37:37:F3:59:34:D5:70:BB:83:06:EE:F8:BE:5A:13:1C:74:5F:AC:B8:BE:8E:D8	
+cascade.suu.edu:443:	OID.2.16.840.1.101.3.4.2.1	C0:FF:5E:58:2E:30:04:D9:39:94:C1:86:72:F9:8D:9E:5F:C3:D1:BA:D9:A6:78:92:B2:B3:27:4B:44:3B:32:CC	

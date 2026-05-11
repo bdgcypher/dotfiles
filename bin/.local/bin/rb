@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# Silent reboot
+systemctl reboot --no-wall

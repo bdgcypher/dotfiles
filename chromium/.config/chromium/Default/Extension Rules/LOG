@@ -1,3 +1,2 @@
-2026/03/20-12:04:04.752 133f Reusing MANIFEST /home/benjamingoddard/.config/chromium/Default/Extension Rules/MANIFEST-000001
-2026/03/20-12:04:04.753 133f Recovering log #3
-2026/03/20-12:04:04.753 133f Reusing old log /home/benjamingoddard/.config/chromium/Default/Extension Rules/000003.log 
+2026/03/27-16:59:47.984 7fe Creating DB /home/benjamingoddard/.config/chromium/Default/Extension Rules since it was missing.
+2026/03/27-16:59:47.993 7fe Reusing MANIFEST /home/benjamingoddard/.config/chromium/Default/Extension Rules/MANIFEST-000001

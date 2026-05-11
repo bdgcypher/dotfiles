@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Exit if no URL provided
+if [ -z "$1" ]; then
+  echo "Usage: dl-video <URL>"
+  exit 1
+fi
+
+# Ensure target directory exists
+TARGET_DIR="$HOME/Videos/downloads"
+mkdir -p "$TARGET_DIR"
+
+yt-dlp \
+  -f "bestvideo[height<=1080]+bestaudio/best" \
+  --merge-output-format mp4 \
+  --paths "$TARGET_DIR" \
+  --output "%(title)s.%(ext)s" \
+  "$1"

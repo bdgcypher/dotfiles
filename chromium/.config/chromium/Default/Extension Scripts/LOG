@@ -1,3 +1,2 @@
-2026/03/20-12:04:04.643 133f Reusing MANIFEST /home/benjamingoddard/.config/chromium/Default/Extension Scripts/MANIFEST-000001
-2026/03/20-12:04:04.643 133f Recovering log #3
-2026/03/20-12:04:04.644 133f Reusing old log /home/benjamingoddard/.config/chromium/Default/Extension Scripts/000003.log 
+2026/03/27-16:59:47.994 7fe Creating DB /home/benjamingoddard/.config/chromium/Default/Extension Scripts since it was missing.
+2026/03/27-16:59:48.004 7fe Reusing MANIFEST /home/benjamingoddard/.config/chromium/Default/Extension Scripts/MANIFEST-000001

@@ -1,0 +1,123 @@
+/* Obsidian Pywal16 Snippet */
+
+.theme-dark, .theme-light {
+    /* Pywal Raw Colors */
+    --wal-bg: {background};
+    --wal-fg: {foreground};
+    --wal-cursor: {cursor};
+    --wal-color0: {color0};
+    --wal-color1: {color1};
+    --wal-color2: {color2};
+    --wal-color3: {color3};
+    --wal-color4: {color4};
+    --wal-color5: {color5};
+    --wal-color6: {color6};
+    --wal-color7: {color7};
+    --wal-color8: {color8};
+    --wal-color9: {color9};
+    --wal-color10: {color10};
+    --wal-color11: {color11};
+    --wal-color12: {color12};
+    --wal-color13: {color13};
+    --wal-color14: {color14};
+    --wal-color15: {color15};
+
+    /* Overriding Obsidian UI */
+    --background-primary: var(--wal-bg);
+    --background-primary-alt: var(--wal-color0);
+    --background-secondary: var(--wal-color0);
+    --background-secondary-alt: var(--wal-bg);
+    
+    --text-normal: var(--wal-fg);
+    --text-muted: var(--wal-color7);
+    --text-faint: var(--wal-color8);
+    
+    --interactive-accent: var(--wal-color4);
+    --interactive-accent-hover: var(--wal-color5);
+    
+    --titlebar-background: var(--wal-color0);
+    --status-bar-background: var(--wal-color0);
+    
+    /* Scrollbars & Borders */
+    --scrollbar-active-thumb-bg: var(--wal-color4);
+    --divider-color: var(--wal-color8);
+
+    /* Headings (Using pywal colors 1 through 6) */
+    --h1-color: {color1} !important;
+    --h2-color: {color2} !important;
+    --h3-color: {color3} !important;
+    --h4-color: {color4} !important;
+    --h5-color: {color5} !important;
+    --h6-color: {color6} !important;
+
+    /* Links */
+    --link-color: {color4} !important;
+    --link-color-hover: {color5} !important;
+    --link-external-color: {color4} !important;
+    --link-external-color-hover: {color5} !important;
+
+}
+
+/* File Explorer++ Pin Icon Override */
+.nav-file-title.is-pinned .nav-file-tag,
+.nav-folder-title.is-pinned .nav-folder-tag,
+.file-explorer-plus-pin,
+[class*="pin"] { 
+    color: var(--wal-color4) !important;
+    fill: var(--wal-bg) !important; /* Some plugins use SVG fill instead of color */
+}
+
+/* If it uses an opacity filter (common for 'ghostly' icons) */
+.is-pinned img, 
+.is-pinned svg {
+    filter: drop-shadow(0 0 0 var(--wal-color4)) !important;
+    color: var(--wal-color4) !important;
+}
+
+/* Universal Table Header Override */
+th, 
+.dataview.table-view-thead th,
+.table-view-th,
+.dataview.table-view-thead tr th span {
+    color: var(--wal-color2) !important;
+}
+
+/* Fix for the sort arrows in Dataview */
+.dataview.table-view-thead th::after,
+.table-view-column-sort-indicator {
+    color: var(--wal-color4) !important;
+}
+
+/* The horizontal line under the headers */
+thead {
+    border-bottom: 2px solid var(--wal-color4) !important;
+}
+
+/* Ensure the text is readable if there's a weird background */
+th {
+    background-color: transparent !important;
+}
+
+/* Dataview Table Header Styling */
+.dataview.table-view-thead tr th {
+    color: var(--wal-color2) !important;
+    font-weight: bold;
+    border-bottom: 2px solid var(--wal-color8) !important;
+}
+
+/* Optional: Style the 'Created' or other metadata column headers slightly differently */
+.dataview.table-view-thead th {
+    color: var(--wal-color2) !important;
+}
+
+/* Fix for Dataview empty state or search text */
+.dataview.error-attributes {
+    color: var(--wal-color3) !important;
+}
+
+/* Plain Text Target for Live Preview Mode */
+.markdown-source-view.is-live-preview .cm-line:not(.HyperMD-header) {
+    color: var(--wal-fg) !important;
+}
+
+

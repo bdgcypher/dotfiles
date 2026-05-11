@@ -1,27 +1,56 @@
 #!/bin/bash
 
-# Omarchy to Custom Arch Installation Script
-# This script installs all necessary packages and stows configurations.
+# install.sh - Main entry point for dotfiles installation
 
 set -e
 
 SCRIPTS_DIR="$(dirname "$(realpath "$0")")/scripts"
 
-echo "Starting installation..."
-
-# Make scripts executable
+# Ensure scripts are executable
 chmod +x "$SCRIPTS_DIR"/*.sh
 
-# Run package installation
-echo "--- Installing Packages ---"
-"$SCRIPTS_DIR/install_packages.sh"
+echo "=========================================="
+echo "   Arch Linux Dotfiles Installation System    "
+echo "=========================================="
+echo ""
+echo "Please select an installation mode:"
+echo "1) Full Install (Packages, Services, Stow)"
+echo "2) Update Only (Packages, Stow)"
+echo "3) System Only (Sudo-level Services)"
+echo "4) Exit"
+echo ""
+read -p "Selection [1-4]: " choice
 
-# Run services setup
-echo "--- Setting Up Services ---"
-"$SCRIPTS_DIR/setup_services.sh"
+case $choice in
+    1)
+        echo "Starting Full Installation..."
+        sudo -v # Early sudo elevation
+        # Keep-alive sudo
+        while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+        
+        "$SCRIPTS_DIR/install_packages.sh"
+        "$SCRIPTS_DIR/setup_services.sh"
+        "$SCRIPTS_DIR/stow_configs.sh"
+        ;;
+    2)
+        echo "Starting Update..."
+        "$SCRIPTS_DIR/install_packages.sh"
+        "$SCRIPTS_DIR/stow_configs.sh"
+        ;;
+    3)
+        echo "Starting System Configuration..."
+        sudo -v
+        "$SCRIPTS_DIR/setup_services.sh"
+        ;;
+    4)
+        echo "Exiting."
+        exit 0
+        ;;
+    *)
+        echo "Invalid selection. Exiting."
+        exit 1
+        ;;
+esac
 
-# Run configuration stowing
-echo "--- Stowing Configurations ---"
-"$SCRIPTS_DIR/stow_configs.sh"
-
-echo "Installation finished! Please reboot to apply all changes."
+echo ""
+echo "Done! If system hooks or bootloaders were changed, please reboot."

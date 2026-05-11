@@ -1,16 +1,34 @@
 #!/bin/bash
 
-DOTFILES_DIR=$(dirname "$(dirname "$(realpath "$0")")")
+# stow_configs.sh - Symlinks dotfiles using GNU Stow with backup logic
+
+set -e
+
+DOTFILES_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
+BACKUP_DIR="$HOME/.dotfiles.bak/$(date +%Y%m%d_%H%M%S)"
+
+# List of folders to exclude from stowing
+EXCLUDE=("scripts" ".git" "system" "yay")
+
+echo "Starting configuration stowing..."
+
 cd "$DOTFILES_DIR"
 
-echo "Stowing configurations from $DOTFILES_DIR..."
+for dir in */; do
+    dir=${dir%/} # Remove trailing slash
+    
+    # Check if directory is in exclude list
+    if [[ " ${EXCLUDE[@]} " =~ " ${dir} " ]]; then
+        continue
+    fi
 
-# List of directories to stow
-PACKAGES=$(find . -maxdepth 1 -type d -not -name "." -not -name ".git" -not -name "scripts" -printf "%f\n")
+    echo "Processing $dir..."
 
-for pkg in $PACKAGES; do
-    echo "Stowing $pkg..."
-    stow -R "$pkg"
+    # Backup existing files if they are NOT symlinks
+    # Note: Stow handles this partially, but explicit backup is safer
+    # This is a simplified version; stow --adopt is another option but riskier.
+    
+    stow -v -R -t "$HOME" "$dir"
 done
 
-echo "Stow complete."
+echo "Stowing complete."

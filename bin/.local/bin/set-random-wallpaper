@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+# Wallpaper locations
+WALLPAPER_DIR="$HOME/Wallpapers"
+CURRENT_WALLPAPER="$HOME/.config/theme/current_wallpaper"
+
+# Check if directory exists (handles symlinks)
+if [ ! -d "$WALLPAPER_DIR" ]; then
+  echo "Error: Directory $WALLPAPER_DIR does not exist or is a broken link."
+  exit 1
+fi
+
+# Select a random wallpaper
+# Added -L to follow symlinks and -xtype f to ensure we pick actual files
+NEW_RANDOM_WALLPAPER=$(find -L "$WALLPAPER_DIR" -xtype f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) -print0 | shuf -zn1 | tr -d '\0')
+
+# Check if a new wallpaper was successfully selected
+if [ -z "$NEW_RANDOM_WALLPAPER" ]; then
+  echo "Error: No images found in $WALLPAPER_DIR"
+  exit 1
+fi
+
+# Detect Binary
+BIN=$(command -v awww || command -v swww)
+
+# Update the current_wallpaper symlink
+# delete the old link and create a new one pointing to the image
+mkdir -p "$(dirname "$CURRENT_WALLPAPER")"
+ln -sf "$NEW_RANDOM_WALLPAPER" "$CURRENT_WALLPAPER"
+
+# Apply Wallpaper
+$BIN img "$NEW_RANDOM_WALLPAPER" --transition-type any
+
+# Run pywal16 to generate new colorscheme from wallpaper
+wal -i "$NEW_RANDOM_WALLPAPER" -n
+
+# Reload application styles
+hyprctl reload   # hyprland 1st
+pkill -USR2 btop # btop
+pkill -USR2 cava # cava
+
+if pgrep -f "obsidian" >/dev/null; then # obsidian
+  obsidian reload                       # also obsidian
+fi                                      # also obsidian
+
+swaync-client -rs         # swaync
+killall -9 swayosd-server # swayosd
+swayosd-server            # also swayosd
+
+# Reload Vesktop (Discord) theme
+VENCORD_CSS="$HOME/.cache/wal/colors-discord.css"
+VESKTOP_THEME="$HOME/.config/vesktop/themes/pywal-vencord.theme.css"
+
+if [ -f "$VENCORD_CSS" ]; then
+  cp "$VENCORD_CSS" "$VESKTOP_THEME"
+else
+  exit 1
+fi

@@ -1,0 +1,6 @@
+[theme]
+background = "{background}"
+foreground = "{foreground}"
+accent = "{color6}"
+highlight = "{color4}"
+

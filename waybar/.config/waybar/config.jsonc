@@ -1,12 +1,13 @@
 {
   "reload_style_on_change": true,
   "layer": "top",
+  "exclusive": false,
   "position": "top",
   "spacing": 8,
   "height": 26,
   "margin": "6 12 0 12",
-  "modules-left": ["custom/omarchy", "hyprland/workspaces"],
-  "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screenrecording-indicator", "custom/idle-indicator", "custom/notification-silencing-indicator"],
+  "modules-left": ["custom/menu", "hyprland/workspaces"],
+  "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screenrecording-indicator"],
   "modules-right": [
     "group/tray-expander",
     "bluetooth",
@@ -14,6 +15,7 @@
     "pulseaudio",
     "memory",
     "cpu",
+    "custom/notification",
     "battery"
   ],
   "hyprland/workspaces": {
@@ -37,11 +39,11 @@
       "1": [],
     }
   },
-  "custom/omarchy": {
-    "format": "<span font='omarchy'>\ue900</span>",
-    "on-click": "omarchy-menu",
+  "custom/menu": {
+    "format": "󱗼",
+    "on-click": "",
     "on-click-right": "xdg-terminal-exec",
-    "tooltip-format": "Omarchy Menu\n\nSuper + Alt + Space"
+    "tooltip-format": "Menu\n\nSuper + Space"
   },
   "custom/update": {
     "format": "",
@@ -79,7 +81,7 @@
     "tooltip-format-disconnected": "Disconnected",
     "interval": 3,
     "spacing": 1,
-    "on-click": "xdg-terminal-exec --app-id=org.omarchy.Gazelle -e gazelle"
+    "on-click": "ghostty --class=org.arch.Gazelle -e gazelle"
   },
   "battery": {
     "format": "{icon} {capacity}%",
@@ -152,17 +154,25 @@
     "on-click-right": "omarchy-voxtype-config",
     "on-click": "omarchy-voxtype-model"
   },
-  "custom/idle-indicator": {
-    "on-click": "omarchy-toggle-idle",
-    "exec": "$OMARCHY_PATH/default/waybar/indicators/idle.sh",
-    "signal": 9,
-    "return-type": "json"
-  },
-  "custom/notification-silencing-indicator": {
-    "on-click": "omarchy-toggle-notification-silencing",
-    "exec": "$OMARCHY_PATH/default/waybar/indicators/notification-silencing.sh",
-    "signal": 10,
-    "return-type": "json"
+  "custom/notification": {
+    "tooltip": true,
+    "format": "{icon}",
+    "format-icons": {
+      "notification": "󱅫",
+      "none": "󰂜",
+      "dnd-notification": "󰂠",
+      "dnd-none": "󰪓",
+      "inhibited-notification": "󰂛",
+      "inhibited-none": "󰪑",
+      "dnd-inhibited-notification": "󰂛",
+      "dnd-inhibited-none": "󰪑"
+    },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
   },
   "tray": {
     "icon-size": 12,

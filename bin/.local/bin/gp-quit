@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Check if openconnect is running
+if pgrep -x "openconnect" >/dev/null; then
+  # SIGTERM allows openconnect to clean up DNS and routes properly before disconnecting
+  sudo pkill -SIGTERM openconnect
+
+  # Send disconnect notification
+  notify-send "Global Protect" "VPN Disconnected" \
+    --icon=network-error \
+    --hint=int:transient:1 \
+    -t 2300
+else
+  # Send no VPN notification
+  notify-send "Global Protect" "No VPN Active" \
+    --icon=network-error \
+    --urgency=low \
+    --hint=int:transient:1 \
+    -t 2300
+fi

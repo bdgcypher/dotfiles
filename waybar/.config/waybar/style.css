@@ -1,4 +1,4 @@
-@import "../omarchy/current/theme/waybar.css";
+@import "../../.cache/wal/colors-waybar.css";
 
 * {
   color: @foreground;
@@ -10,7 +10,7 @@
 
 #waybar {
   background-color: @background;
-  border: .6px solid @foreground;
+  border: 1.2px solid #444444;
   border-radius: 8px;
   opacity: 0.9;
 }
@@ -37,7 +37,7 @@
 #cpu,
 #battery,
 #pulseaudio,
-#custom-omarchy,
+#custom-menu,
 
 #custom-update {
   min-width: 12px;
@@ -76,13 +76,16 @@ tooltip {
   opacity: 0;
 }
 
-
-#custom-screenrecording-indicator,
-#custom-idle-indicator,
-#custom-notification-silencing-indicator {
+#custom-notification {
   min-width: 12px;
   margin-left: 5px;
-  margin-right: 0;
+  margin-right: 5px;
+}
+
+#custom-screenrecording-indicator {
+  min-width: 12px;
+  margin-left: 5px;
+  margin-right: 5px;
   font-size: 10px;
   padding-bottom: 1px;
 }
@@ -100,7 +103,6 @@ tooltip {
   color: #a55555;
 }
 
-#custom-idle-indicator.active,
-#custom-notification-silencing-indicator.active {
+#custom-notification.active {
   color: #a55555;
 }

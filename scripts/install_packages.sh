@@ -1,26 +1,38 @@
 #!/bin/bash
 
-# Install yay if not present
+# install_packages.sh - Installs official and AUR packages
+
+set -e
+
+DOTFILES_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
+PKGLIST="$DOTFILES_DIR/pkglist.txt"
+AUR_PKGLIST="$DOTFILES_DIR/aur_pkglist.txt"
+
+echo "Checking for AUR helper (yay)..."
 if ! command -v yay &> /dev/null; then
     echo "Installing yay..."
     sudo pacman -S --needed base-devel git
     git clone https://aur.archlinux.org/yay.git /tmp/yay
-    pushd /tmp/yay
+    cd /tmp/yay
     makepkg -si --noconfirm
-    popd
+    cd -
 fi
 
-# Install packages from list
-echo "Installing packages from list..."
-# Pre-remove 'rust' to avoid conflicts with 'rustup' if it's in the list
-if grep -q "^rustup$" "$(dirname "$0")/packages.list"; then
-    sudo pacman -Rs --noconfirm rust || true
+echo "Updating system..."
+sudo pacman -Syu --noconfirm
+
+echo "Installing official packages..."
+if [[ -f "$PKGLIST" ]]; then
+    sudo pacman -S --needed --noconfirm - < "$PKGLIST"
+else
+    echo "Error: $PKGLIST not found."
 fi
 
-yay -S --needed --noconfirm - < $(dirname "$0")/packages.list
-
-# Initialize rustup if installed
-if command -v rustup &> /dev/null; then
-    echo "Initializing rustup with stable toolchain..."
-    rustup default stable
+echo "Installing AUR packages..."
+if [[ -f "$AUR_PKGLIST" ]]; then
+    yay -S --needed --noconfirm - < "$AUR_PKGLIST"
+else
+    echo "Error: $AUR_PKGLIST not found."
 fi
+
+echo "Package installation complete."

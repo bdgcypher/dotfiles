@@ -1,0 +1,64 @@
+theme[main_bg]="{background}"
+theme[main_fg]="{foreground}"
+theme[title]="{color4}"
+theme[hi_fg]="{color1}"
+theme[selected_bg]="{color0}"
+theme[selected_fg]="{color15}"
+theme[inactive_fg]="{color8}"
+
+# --- BOX OUTLINES ---
+theme[cpu_box]="{color3}"
+theme[mem_box]="{color5}"
+theme[net_box]="{color6}"
+theme[proc_box]="{color2}"
+theme[div_line]="{color8}"
+
+# --- PROCESSES SECTION ---
+theme[proc_misc]="{color4}"
+# This ensures the mini-graphs in the process list match your theme
+theme[proc_cpu_start]="{color4}"
+theme[proc_cpu_mid]="{color5}"
+theme[proc_cpu_end]="{color6}"
+
+# --- CPU GRAPH & TEMP ---
+theme[cpu_start]="{color4}"
+theme[cpu_mid]="{color5}"
+theme[cpu_end]="{color6}"
+
+theme[temp_start]="{color2}"
+theme[temp_mid]="{color3}"
+theme[temp_end]="{color1}"
+
+# --- NETWORK GRAPHS ---
+theme[download_start]="{color6}"
+theme[download_mid]="{color4}"
+theme[download_end]="{color12}"
+
+theme[upload_start]="{color5}"
+theme[upload_mid]="{color13}"
+theme[upload_end]="{color1}"
+
+# --- MEMORY & DISK METERS ---
+theme[used_start]="{color1}"
+theme[used_mid]="{color9}"
+theme[used_end]="{color1}"
+
+theme[available_start]="{color3}"
+theme[available_mid]="{color11}"
+theme[available_end]="{color3}"
+
+theme[cached_start]="{color5}"
+theme[cached_mid]="{color13}"
+theme[cached_end]="{color5}"
+
+theme[free_start]="{color2}"
+theme[free_mid]="{color10}"
+theme[free_end]="{color2}"
+
+# --- LEGACY GRAPH KEYS (For older btop versions) ---
+theme[free_graph]="{color2}"
+theme[cached_graph]="{color5}"
+theme[available_graph]="{color3}"
+theme[used_graph]="{color1}"
+theme[download_graph]="{color6}"
+theme[upload_graph]="{color4}"

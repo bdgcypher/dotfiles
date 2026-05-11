@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+# Load colors
+source "$HOME/.local/bin/fzf-colors"
+
+# 1. Capture the selection first
+pkgs=$(yay -Qq | fzf --multi \
+  --header "Remove Packages (Space: Select)" \
+  --preview "yay -Qi {1}" \
+  --preview-window=down:55% \
+  --layout=reverse \
+  --bind "ctrl-j:down,ctrl-k:up,space:toggle")
+
+# 2. Check if the user actually selected anything
+if [ -z "$pkgs" ]; then
+  echo "No packages selected. Exiting..."
+  sleep 1
+  exit 0
+fi
+
+# 3. Run removal and check for success
+if echo "$pkgs" | xargs -ro yay -Rns; then
+  # Green text for success
+  echo -e "\n\033[0;32mPackage removal completed!\033[0m"
+
+  echo "Press any key to close..."
+  read -n 1
+else
+  # Red text for failure
+  echo -e "\n\033[0;31mError: Package removal failed.\033[0m"
+
+  echo "Press any key to close..."
+  read -n 1
+fi

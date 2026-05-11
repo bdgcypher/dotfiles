@@ -1,0 +1,32 @@
+@import "../../.cache/wal/colors-waybar.css";
+@define-color image  @foreground;
+@define-color label  @foreground;
+@define-color progress  @color6;
+
+window {
+  border-radius: 8px;
+  opacity: 0.97;
+  border: 2px solid #444444;
+
+  background-color: @background;
+}
+
+label {
+  font-family: 'JetBrainsMono Nerd Font';
+  font-size: 16px;
+
+  color: @label;
+}
+
+image {
+  color: @image;
+  -gtk-icon-transform: scale(0.7);
+}
+
+progressbar {
+  border-radius: 8;
+}
+
+progress {
+  background-color: @progress;
+}
