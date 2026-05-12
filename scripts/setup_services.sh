@@ -40,6 +40,7 @@ fi
 echo "Configuring SDDM Autologin..."
 sudo mkdir -p /etc/sddm.conf.d
 sudo cp "$SYSTEM_DIR/etc/sddm.conf.d/autologin.conf" /etc/sddm.conf.d/autologin.conf
+sudo systemctl enable sddm.service
 
 # 2. Plymouth Hooks & Theme
 echo "Configuring Plymouth..."
