@@ -107,7 +107,7 @@ resvg
 ripgrep
 satty
 sddm
-slack-desktop-wayland
+slack-desktop
 snapper
 sof-firmware
 speech-dispatcher

@@ -26,8 +26,7 @@ python-pywal16
 python-pywalfox
 python-screeninfo
 python-yapsy-git
-slack-desktop-wayland
-slack-desktop-wayland-debug
+slack-desktop
 unimatrix-git
 vencord
 vesktop
