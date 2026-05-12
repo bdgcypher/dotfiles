@@ -1,6 +1,0 @@
-{"timestamp":372733077,"category":"genai.chatbot","name":"shortcuts_displayed","extra":{"glean_timestamp":"1778557149461","selection":"0","delay":"665481","inputType":""}}
-{"timestamp":372735006,"category":"genai.chatbot","name":"shortcuts_displayed","extra":{"inputType":"","delay":"667410","selection":"0","glean_timestamp":"1778557151389"}}
-{"timestamp":372786468,"category":"pictureinpicture","name":"saw_toggle_toggle","extra":{"glean_timestamp":"1778557209625","firstTime":"false"}}
-{"timestamp":372945957,"category":"pictureinpicture","name":"saw_toggle_toggle","extra":{"firstTime":"false","glean_timestamp":"1778557379314"}}
-{"timestamp":374431681,"category":"pictureinpicture","name":"saw_toggle_toggle","extra":{"firstTime":"false","glean_timestamp":"1778558858387"}}
-{"timestamp":374457335,"category":"pictureinpicture","name":"saw_toggle_toggle","extra":{"firstTime":"false","glean_timestamp":"1778558888499"}}

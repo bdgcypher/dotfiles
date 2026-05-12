@@ -20,6 +20,8 @@
 bitwarden/.config/Bitwarden/
 vesktop/.config/vesktop/sessionData/
 chromium/.config/chromium/
+mozilla/.config/mozilla/firefox/
+.mozilla/
 
 # System
 system_snapshot.txt

@@ -1,5 +1,0 @@
-{"timestamp":699966850,"category":"networking","name":"local_network_access_connection","extra":{"is_secure_context":"true","target_port":"86","glean_timestamp":"1776991920603","load_success":"false","initiator":"bengoddard.org","protocol":"https","top_level_site":"bengoddard.org","target_ip":"192.168.4.93"}}
-{"timestamp":889478165,"category":"networking","name":"local_network_access_connection","extra":{"is_secure_context":"true","top_level_site":"bengoddard.org","glean_timestamp":"1777181431481","target_ip":"192.168.4.93","target_port":"8097","load_success":"false","protocol":"fetch","initiator":"bengoddard.org"}}
-{"timestamp":25024,"category":"glean","name":"restarted","extra":{"glean.startup.date":"2026-05-07T13:50-06:00","glean_timestamp":"1778183419804"},"execution_counter":1}
-{"timestamp":19174,"category":"glean","name":"restarted","extra":{"glean_timestamp":"1778184444935","glean.startup.date":"2026-05-07T14:07-06:00"},"execution_counter":2}
-{"timestamp":348437453,"category":"glean","name":"restarted","extra":{"glean.startup.date":"2026-05-11T14:54-06:00","glean_timestamp":"1778532853837"},"execution_counter":3}
