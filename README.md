@@ -29,7 +29,11 @@ Once configuration is complete, install and reboot.
 After installing a minimal Arch Linux base (via `archinstall`) with `git`, `base-devel`, and `stow` pre-installed:
 
 ```bash
-git clone https://github.com/benjamingoddard/dotfiles.git ~/dotfiles && cd ~/dotfiles && ./install.sh
+git clone https://github.com/bdgcypher/dotfiles.git ~/.dotfiles && cd ~/.dotfiles
+
+chmod +x ./install.sh
+
+install.sh
 ```
 
 ## Features
