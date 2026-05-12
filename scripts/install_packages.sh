@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# install_packages.sh - Installs official and AUR packages
+# install_packages.sh - Robustly installs official and AUR packages
 
 set -e
 
@@ -11,7 +11,7 @@ AUR_PKGLIST="$DOTFILES_DIR/aur_pkglist.txt"
 echo "Checking for AUR helper (yay)..."
 if ! command -v yay &> /dev/null; then
     echo "Installing yay..."
-    sudo pacman -S --needed base-devel git
+    sudo pacman -S --needed --noconfirm base-devel git
     git clone https://aur.archlinux.org/yay.git /tmp/yay
     cd /tmp/yay
     makepkg -si --noconfirm
@@ -19,20 +19,25 @@ if ! command -v yay &> /dev/null; then
 fi
 
 echo "Updating system..."
-sudo pacman -Syu --noconfirm
+yay -Syu --noconfirm
 
-echo "Installing official packages..."
-if [[ -f "$PKGLIST" ]]; then
-    sudo pacman -S --needed --noconfirm - < "$PKGLIST"
-else
-    echo "Error: $PKGLIST not found."
-fi
+# Combine lists and remove duplicates
+echo "Consolidating package lists..."
+COMBINED_LIST=$(cat "$PKGLIST" "$AUR_PKGLIST" | sort -u)
 
-echo "Installing AUR packages..."
-if [[ -f "$AUR_PKGLIST" ]]; then
-    yay -S --needed --noconfirm - < "$AUR_PKGLIST"
+echo "Installing packages..."
+# We use yay for everything because it handles repo vs aur automatically.
+# We try to install in one go first for speed.
+# If it fails, we fall back to a loop to ensure we install as much as possible.
+
+if echo "$COMBINED_LIST" | yay -S --needed --noconfirm -; then
+    echo "All packages installed successfully."
 else
-    echo "Error: $AUR_PKGLIST not found."
+    echo "Bulk installation failed. Retrying packages individually to skip errors..."
+    for pkg in $COMBINED_LIST; do
+        echo "Installing $pkg..."
+        yay -S --needed --noconfirm "$pkg" || echo "Warning: Failed to install $pkg, skipping..."
+    done
 fi
 
 echo "Package installation complete."
