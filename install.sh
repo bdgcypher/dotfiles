@@ -17,9 +17,10 @@ echo "Please select an installation mode:"
 echo "1) Full Install (Packages, Services, Stow)"
 echo "2) Update Only (Packages, Stow)"
 echo "3) System Only (Sudo-level Services)"
-echo "4) Exit"
+echo "4) Audio Setup (Set default output)"
+echo "5) Exit"
 echo ""
-read -p "Selection [1-4]: " choice
+read -p "Selection [1-5]: " choice
 
 case $choice in
     1)
@@ -43,6 +44,9 @@ case $choice in
         "$SCRIPTS_DIR/setup_services.sh"
         ;;
     4)
+        "$SCRIPTS_DIR/setup_audio.sh"
+        ;;
+    5)
         echo "Exiting."
         exit 0
         ;;
