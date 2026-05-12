@@ -2,7 +2,29 @@
 
 Automated Arch Linux configuration and personalization system using GNU Stow.
 
-## Installation (Fresh Arch)
+## Installation (Arch)
+
+Begin with a base Arch Linux ISO. Upon completion, run `archinstall` to begin basic configuration.
+
+### Archinstall Configuration
+
+Before installing dotfiles, configure `archinstall` with the following settings:
+
+- Disk: Btrfs (Default Subvolume Layout)
+- Bootloader: Limine
+- Snapshots: Snapper
+- Hostname: (custom)
+- Swap on zram: Yes
+- Auth: Set root password and default user (with sudo)
+- Network: Network Manager (default backend)
+- Applications: Bluetooth - yes, Audio - Pipewire, Print service - yes
+- Mirrors: US
+- Additional Repositories: multilib
+- Additional Packages: git, base-devel, stow, btrfs-progs
+
+Once configuration is complete, install and reboot.
+
+### Dotfiles Installation
 
 After installing a minimal Arch Linux base (via `archinstall`) with `git`, `base-devel`, and `stow` pre-installed:
 
