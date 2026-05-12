@@ -19,9 +19,3 @@ git clone https://github.com/benjamingoddard/dotfiles.git ~/dotfiles && cd ~/dot
     - Suspend-then-Hibernate (15min delay)
     - Limine Bootloader management
 - **Conflict Management:** Backs up existing configs before stowing.
-
-## Repository Structure
-- `scripts/`: Implementation logic.
-- `system/`: Master templates for `/etc` and `/boot` files.
-- `pkglist.txt` / `aur_pkglist.txt`: Snapshots of current software stack.
-- Folders (`hypr`, `kitty`, etc.): Stowable user configurations.
