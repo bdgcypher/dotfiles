@@ -1,0 +1,1 @@
+1778554816499	SessionStore.LogManager	ERROR	Failed to copy log stream to file: UnknownError: Could not create directory `/home/benjamingoddard/.config/mozilla/firefox/osb15caf.default-release-1774880056489/sessionstore-logs' (NS_ERROR_FAILURE) No traceback available

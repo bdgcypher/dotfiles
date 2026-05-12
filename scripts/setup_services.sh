@@ -21,8 +21,7 @@ else
     echo "Detected ${RAM_MB}MB RAM. Creating ${SWAP_SIZE_MB}MB swap file..."
     
     sudo truncate -s 0 /swapfile
-    sudo chattr +C /swapfile # Disable CoW for Btrfs
-    sudo btrfs property set /swapfile compression none
+    sudo chattr +C /swapfile # Disable CoW for Btrfs (this also disables compression)
     sudo dd if=/dev/zero of=/swapfile bs=1M count=$SWAP_SIZE_MB status=progress
     sudo chmod 600 /swapfile
     sudo mkswap /swapfile
