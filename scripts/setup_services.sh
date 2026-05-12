@@ -36,6 +36,20 @@ else
     echo "To get the offset, run: sudo btrfs inspect-internal map-swapfile -r /swapfile"
 fi
 
+# 0.1 GPU Specific Configuration (NVIDIA)
+if lspci | grep -i "nvidia" &> /dev/null; then
+    echo "NVIDIA GPU detected. Configuring drivers and KMS..."
+    yay -S --needed --noconfirm nvidia-dkms nvidia-utils lib32-nvidia-utils nvidia-settings
+    
+    # Configure KMS Modules
+    if grep -q "nvidia nvidia_modeset nvidia_uvm nvidia_drm" /etc/mkinitcpio.conf; then
+        echo "NVIDIA KMS modules already present in mkinitcpio.conf."
+    else
+        echo "Adding NVIDIA modules to /etc/mkinitcpio.conf..."
+        sudo sed -i 's/^MODULES=(/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
+    fi
+fi
+
 # 1. SDDM Autologin
 echo "Configuring SDDM Autologin..."
 sudo mkdir -p /etc/sddm.conf.d
