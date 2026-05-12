@@ -18,9 +18,10 @@ echo "1) Full Install (Packages, Services, Stow)"
 echo "2) Update Only (Packages, Stow)"
 echo "3) System Only (Sudo-level Services)"
 echo "4) Audio Setup (Set default output)"
-echo "5) Exit"
+echo "5) Timezone Setup (Set system timezone)"
+echo "6) Exit"
 echo ""
-read -p "Selection [1-5]: " choice
+read -p "Selection [1-6]: " choice
 
 case $choice in
     1)
@@ -31,6 +32,7 @@ case $choice in
         
         "$SCRIPTS_DIR/install_packages.sh"
         "$SCRIPTS_DIR/setup_services.sh"
+        "$SCRIPTS_DIR/setup_timezone.sh"
         "$SCRIPTS_DIR/stow_configs.sh"
         ;;
     2)
@@ -47,6 +49,9 @@ case $choice in
         "$SCRIPTS_DIR/setup_audio.sh"
         ;;
     5)
+        "$SCRIPTS_DIR/setup_timezone.sh"
+        ;;
+    6)
         echo "Exiting."
         exit 0
         ;;
