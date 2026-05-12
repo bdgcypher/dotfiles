@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# stow_configs.sh - Symlinks dotfiles using GNU Stow with automated backup logic
+# stow_configs.sh - Symlinks dotfiles using GNU Stow with robust conflict handling
 
 set -e
 
@@ -25,25 +25,24 @@ for dir in */; do
 
     echo "Processing $dir..."
 
-    # Proactive Backup Logic:
-    # Find all files in the dotfile directory and check if they exist in $HOME
-    # If a file exists and is NOT a symlink, move it to the backup directory.
+    # Robust Conflict Handling Logic:
     find "$dir" -type f | while read -r file; do
-        # Calculate target path: remove the top-level directory name and prepend $HOME
         rel_path="${file#$dir/}"
         target="$HOME/$rel_path"
         
-        if [[ -f "$target" || -L "$target" ]]; then
-            if [[ ! -L "$target" ]]; then
-                echo "  Backing up existing file: $rel_path"
-                mkdir -p "$(dirname "$BACKUP_DIR/$rel_path")"
-                mv "$target" "$BACKUP_DIR/$rel_path"
-            fi
-            # If it IS a symlink, stow -R will handle it by replacing it.
+        if [[ -L "$target" ]]; then
+            # If it's a symlink (broken or working), remove it to let stow recreate it
+            echo "  Removing existing symlink: $rel_path"
+            rm "$target"
+        elif [[ -f "$target" ]]; then
+            # If it's a real file, back it up
+            echo "  Backing up existing file: $rel_path"
+            mkdir -p "$(dirname "$BACKUP_DIR/$rel_path")"
+            mv "$target" "$BACKUP_DIR/$rel_path"
         fi
     done
 
-    # Run stow
+    # Run stow with restow and verbose flags
     stow -v -R -t "$HOME" "$dir"
 done
 

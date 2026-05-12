@@ -208,7 +208,7 @@ user_pref("privacy.sanitize.pending", "[{\"id\":\"newtab-container\",\"itemsToCl
 user_pref("privacy.trackingprotection.allow_list.hasMigratedCategoryPrefs", true);
 user_pref("services.settings.blocklists.addons-bloomfilters.last_check", 1778559364);
 user_pref("services.settings.blocklists.gfx.last_check", 1778559364);
-user_pref("services.settings.clock_skew_seconds", -10);
+user_pref("services.settings.clock_skew_seconds", 121);
 user_pref("services.settings.last_etag", "1778554622452");
 user_pref("services.settings.last_update_seconds", 1778558252);
 user_pref("services.settings.main.addons-data-leak-blocker-domains.last_check", 1778559364);
