@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=GP Connect
+Comment=Connect to Global Protect VPN
+Exec=ghostty --class=floating.GlobalProtect -e gp-connect
+Icon=network-vpn
+Terminal=false
+Type=Application
+Categories=Network;

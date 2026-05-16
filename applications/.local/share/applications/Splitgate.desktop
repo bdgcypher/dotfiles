@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Splitgate
+Comment=Play this game on Steam
+Exec=steam steam://rungameid/677620
+Icon=steam_icon_677620
+Terminal=false
+Type=Application
+Categories=Game;
