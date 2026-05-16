@@ -31,6 +31,7 @@ case $choice in
         while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
         
         "$SCRIPTS_DIR/install_packages.sh"
+        "$SCRIPTS_DIR/setup_gpu.sh"
         "$SCRIPTS_DIR/setup_services.sh"
         "$SCRIPTS_DIR/setup_timezone.sh"
         "$SCRIPTS_DIR/stow_configs.sh"
@@ -38,6 +39,7 @@ case $choice in
     2)
         echo "Starting Update..."
         "$SCRIPTS_DIR/install_packages.sh"
+        "$SCRIPTS_DIR/setup_gpu.sh"
         "$SCRIPTS_DIR/stow_configs.sh"
         ;;
     3)

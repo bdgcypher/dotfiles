@@ -1,4 +1,4 @@
-# App Caches
+# App Caches and Ephemeral Data
 **/Cache**
 **/CacheStorage**
 **/Code Cache**
@@ -11,13 +11,61 @@
 **/databases**
 **/blob_storage**
 **/logs**
+**/IndexedDB**
+**/Service Worker**
+**/Crashpad**
+**/VideoDecodeStats**
+**/Segmented Platform**
+**/Feature Engagement Tracker**
+**/BudgetDatabase**
+**/ClientCertificates**
+**/Download Service**
+**/Extension Rules**
+**/Extension Scripts**
+**/Extension State**
+**/GCM Store**
+**/Platform Notifications**
+**/Site Characteristics Database**
+**/Sync Data**
+**/WebStorage**
+**/shared_proto_db**
+**/Dictionaries**
+**/logs**
+**/DIPS**
+**/Network Action Predictor**
+**/sentry**
+**Cookies**
+**Network Persistent State**
+**TransportSecurity**
+**QuotaManager**
+**Preferences**
+**Secure Preferences**
+**Web Data**
+**History**
+**Favicons**
+**Top Sites**
+**Visited Links**
+**Origin Bound Certs**
+**QuotaManager**
+**Reporting and NEL**
+**Trust Tokens**
+**Variations**
+**Last Version**
+**First Run**
+**SingletonCookie**
+**SingletonLock**
+**SingletonSocket**
+**root-state.json**
 *.log
 *.bak
 *.sqlite-wal
 *.sqlite-shm
+*.private
+.parentlock
 
 # App Specific
 bitwarden/.config/Bitwarden/
+gh/.config/gh/
 vesktop/.config/vesktop/sessionData/
 chromium/.config/chromium/
 mozilla/.config/mozilla/firefox/

@@ -8,7 +8,7 @@ DOTFILES_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
 BACKUP_DIR="$HOME/.dotfiles.bak/$(date +%Y%m%d_%H%M%S)"
 
 # List of folders to exclude from stowing
-EXCLUDE=("scripts" ".git" "system" "yay")
+EXCLUDE=("scripts" ".git" "system" "yay" "gh" "bitwarden")
 
 echo "Starting configuration stowing..."
 echo "Backups (if any) will be stored in: $BACKUP_DIR"
