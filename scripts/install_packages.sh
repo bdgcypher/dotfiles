@@ -18,8 +18,24 @@ if ! command -v yay &> /dev/null; then
     cd -
 fi
 
-echo "Updating system..."
-yay -Syu --noconfirm
+# Ensure headers for all installed kernels are present before update
+# This prevents DKMS build failures during yay -Syu
+echo "Ensuring kernel headers are installed..."
+INSTALLED_KERNELS=$(pacman -Qq | grep -E "^linux(-lts|-zen|-hardened)?$" || true)
+if [ -n "$INSTALLED_KERNELS" ]; then
+    for k in $INSTALLED_KERNELS; do
+        echo "Installing headers for $k..."
+        sudo pacman -S --needed --noconfirm "${k}-headers" || echo "Note: Could not install headers for $k."
+    done
+fi
+
+echo "Updating official repositories..."
+sudo pacman -Syu --noconfirm
+
+echo "Updating AUR packages..."
+# We allow AUR update to fail without stopping the whole script
+# as it often contains non-critical build failures.
+yay -Sua --noconfirm || echo "Warning: AUR update encountered some errors. Continuing..."
 
 # Combine lists and remove duplicates
 echo "Consolidating package lists..."
