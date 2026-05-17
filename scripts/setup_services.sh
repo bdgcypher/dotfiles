@@ -27,19 +27,22 @@ else
     if ! grep -q "/swapfile" /etc/fstab; then
         echo "/swapfile none swap defaults 0 0" | sudo tee -a /etc/fstab
     fi
-    echo "Note: Update 'resume_offset' in Limine. Get offset with: sudo btrfs inspect-internal map-swapfile -r /swapfile"
 fi
 
 # 0.1 GPU Specific Configuration (NVIDIA)
 if lspci | grep -i "nvidia" &> /dev/null; then
-    echo "NVIDIA GPU detected. Configuring drivers and KMS..."
-    yay -S --needed --noconfirm nvidia-dkms nvidia-utils lib32-nvidia-utils nvidia-settings
+    echo "NVIDIA GPU detected. Configuring KMS..."
+    # Packages are handled in setup_gpu.sh
     
-    if ! grep -q "nvidia nvidia_modeset nvidia_uvm nvidia_drm" /etc/mkinitcpio.conf; then
-        echo "Adding NVIDIA modules to /etc/mkinitcpio.conf..."
-        sudo sed -i 's/^MODULES=(/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
-        REBUILD_NEEDED=true
-    fi
+    # Add NVIDIA modules to mkinitcpio for Early KMS
+    # We add them individually to avoid matching issues if the order is different
+    for mod in nvidia nvidia_modeset nvidia_uvm nvidia_drm; do
+        if ! grep -qE "^MODULES=.*\b$mod\b" /etc/mkinitcpio.conf; then
+            echo "Adding $mod to /etc/mkinitcpio.conf..."
+            sudo sed -i "s/^MODULES=(/MODULES=($mod /" /etc/mkinitcpio.conf
+            REBUILD_NEEDED=true
+        fi
+    done
 fi
 
 # 1. SDDM Autologin
@@ -73,7 +76,24 @@ sudo cp "$SYSTEM_DIR/etc/systemd/sleep.conf.d/hibernate.conf" /etc/systemd/sleep
 # 4. Limine Bootloader
 if [[ -f "$SYSTEM_DIR/boot/limine.conf" ]]; then
     echo "Updating Limine configuration..."
-    sudo cp "$SYSTEM_DIR/boot/limine.conf" /boot/limine.conf
+    
+    # Detect Hardware Identifiers
+    ROOT_UUID=$(findmnt / -n -o UUID)
+    ROOT_PARTUUID=$(findmnt / -n -o PARTUUID)
+    
+    if [ -f /swapfile ]; then
+        RESUME_OFFSET=$(sudo btrfs inspect-internal map-swapfile -r /swapfile)
+    else
+        RESUME_OFFSET=0
+    fi
+
+    echo "Detected Root UUID: $ROOT_UUID"
+    echo "Detected Root PARTUUID: $ROOT_PARTUUID"
+    echo "Detected Resume Offset: $RESUME_OFFSET"
+
+    # Create temporary config from template
+    sed "s/@ROOT_UUID@/$ROOT_UUID/g; s/@ROOT_PARTUUID@/$ROOT_PARTUUID/g; s/@RESUME_OFFSET@/$RESUME_OFFSET/g" \
+        "$SYSTEM_DIR/boot/limine.conf" | sudo tee /boot/limine.conf > /dev/null
 else
     echo "Warning: Limine master config not found in $SYSTEM_DIR/boot/"
 fi

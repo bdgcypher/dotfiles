@@ -17,8 +17,8 @@ if lspci | grep -qi "nvidia"; then
         # We might still want to ensure common utilities are present if not already
         DRIVERS=("nvidia-settings" "lib32-nvidia-utils")
     else
-        echo "No NVIDIA drivers detected. Installing standard NVIDIA suite..."
-        DRIVERS=("nvidia" "nvidia-utils" "nvidia-settings" "lib32-nvidia-utils")
+        echo "No NVIDIA drivers detected. Installing NVIDIA DKMS suite..."
+        DRIVERS=("nvidia-dkms" "nvidia-utils" "nvidia-settings" "lib32-nvidia-utils")
     fi
 elif lspci | grep -qi "amd"; then
     GPU_TYPE="amd"

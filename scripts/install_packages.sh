@@ -18,6 +18,13 @@ if ! command -v yay &> /dev/null; then
     cd -
 fi
 
+# Ensure multilib is enabled
+if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
+    echo "Enabling multilib repository..."
+    sudo sed -i '/#\[multilib\]/,/Include = \/etc\/pacman.d\/mirrorlist/ s/^#//' /etc/pacman.conf
+    sudo pacman -Syu --noconfirm
+fi
+
 # Ensure headers for all installed kernels are present before update
 # This prevents DKMS build failures during yay -Syu
 echo "Ensuring kernel headers are installed..."
