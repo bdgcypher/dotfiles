@@ -19,9 +19,10 @@ echo "2) Update Only (Packages, Stow)"
 echo "3) System Only (Sudo-level Services)"
 echo "4) Audio Setup (Set default output)"
 echo "5) Timezone Setup (Set system timezone)"
-echo "6) Exit"
+echo "6) Repair (Restore missing/modified dotfiles)"
+echo "7) Exit"
 echo ""
-read -p "Selection [1-6]: " choice
+read -p "Selection [1-7]: " choice
 
 case $choice in
     1)
@@ -54,6 +55,11 @@ case $choice in
         "$SCRIPTS_DIR/setup_timezone.sh"
         ;;
     6)
+        echo "Repairing dotfiles repository..."
+        git -C "$(dirname "$(realpath "$0")")" restore .
+        echo "Repair complete."
+        ;;
+    7)
         echo "Exiting."
         exit 0
         ;;

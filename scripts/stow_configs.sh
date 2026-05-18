@@ -26,17 +26,25 @@ for dir in */; do
     echo "Processing $dir..."
 
     # Robust Conflict Handling Logic:
+    # We only look for potential conflicts in the HOME directory.
+    # We NEVER modify files inside the $DOTFILES_DIR itself.
     find "$dir" -type f | while read -r file; do
         rel_path="${file#$dir/}"
         target="$HOME/$rel_path"
         
+        # Security Guard: Ensure we never try to "backup" the source file itself
+        if [[ "$(realpath "$file")" == "$(realpath "$target")" ]]; then
+            echo "  Skipping: Source and target are the same ($rel_path)"
+            continue
+        fi
+
         if [[ -L "$target" ]]; then
             # If it's a symlink (broken or working), remove it to let stow recreate it
-            echo "  Removing existing symlink: $rel_path"
+            echo "  Removing existing symlink in HOME: $rel_path"
             rm "$target"
         elif [[ -f "$target" ]]; then
-            # If it's a real file, back it up
-            echo "  Backing up existing file: $rel_path"
+            # If it's a real file in HOME, back it up
+            echo "  Backing up existing file in HOME: $rel_path"
             mkdir -p "$(dirname "$BACKUP_DIR/$rel_path")"
             mv "$target" "$BACKUP_DIR/$rel_path"
         fi
