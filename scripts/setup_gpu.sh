@@ -43,8 +43,14 @@ echo "GPU detected: $GPU_TYPE"
 
 if [ "$GPU_TYPE" != "unknown" ]; then
     echo "Installing drivers for $GPU_TYPE: ${DRIVERS[*]}"
-    # Use yay as it is already assumed to be installed by install_packages.sh
-    yay -S --needed --noconfirm "${DRIVERS[@]}"
+    # For NVIDIA, we don't use --needed because version mismatches between
+    # nvidia-utils and lib32-nvidia-utils are common points of failure.
+    # Forcing a re-install ensures they are synced to the current repo version.
+    if [ "$GPU_TYPE" == "nvidia" ]; then
+        yay -S --noconfirm "${DRIVERS[@]}"
+    else
+        yay -S --needed --noconfirm "${DRIVERS[@]}"
+    fi
 else
     echo "No matching GPU found or GPU type is unknown. Skipping driver installation."
 fi

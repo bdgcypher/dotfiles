@@ -36,9 +36,12 @@ fi
 # Enable ParallelDownloads (default to 5 if not set)
 sudo sed -i 's/^#ParallelDownloads = 5/ParallelDownloads = 5/' /etc/pacman.conf
 
-# Ensure headers for all installed kernels are present before update
-# This prevents DKMS build failures during yay -Syu
-echo "Ensuring kernel headers are installed..."
+echo "Updating official repositories..."
+sudo pacman -Syu --noconfirm
+
+# Ensure headers for all installed kernels are present AFTER update
+# This prevents DKMS build failures by ensuring headers match the updated kernel
+echo "Ensuring matching kernel headers are installed..."
 # Match linux, linux-lts, linux-zen, linux-hardened, linux-rt, etc.
 # We exclude things like linux-firmware or linux-api-headers by checking for the existence of the -headers package.
 INSTALLED_KERNELS=$(pacman -Qq | grep -E "^linux(-[a-z0-9]+)?$" | grep -vE "-(firmware|api-headers|docs|pts)" || true)
@@ -50,9 +53,6 @@ if [ -n "$INSTALLED_KERNELS" ]; then
         fi
     done
 fi
-
-echo "Updating official repositories..."
-sudo pacman -Syu --noconfirm
 
 echo "Updating AUR packages..."
 # We allow AUR update to fail without stopping the whole script

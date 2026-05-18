@@ -85,6 +85,7 @@ otf-hermit-nerd
 otf-monaspace-nerd
 otf-opendyslexic-nerd
 otf-overpass-nerd
+pciutils
 piper-tts-bin
 piper-voices-en-us
 pipewire
