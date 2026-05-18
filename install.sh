@@ -17,12 +17,13 @@ echo "Please select an installation mode:"
 echo "1) Full Install (Packages, Services, Stow)"
 echo "2) Update Only (Packages, Stow)"
 echo "3) System Only (Sudo-level Services)"
-echo "4) Audio Setup (Set default output)"
-echo "5) Timezone Setup (Set system timezone)"
-echo "6) Repair (Restore missing/modified dotfiles)"
-echo "7) Exit"
+echo "4) GPU Driver Setup (Optional)"
+echo "5) Audio Setup (Set default output)"
+echo "6) Timezone Setup (Set system timezone)"
+echo "7) Repair (Restore missing/modified dotfiles)"
+echo "8) Exit"
 echo ""
-read -p "Selection [1-7]: " choice
+read -p "Selection [1-8]: " choice
 
 case $choice in
     1|2)
@@ -40,14 +41,12 @@ case $choice in
             while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
             
             "$SCRIPTS_DIR/install_packages.sh"
-            "$SCRIPTS_DIR/setup_gpu.sh"
             "$SCRIPTS_DIR/setup_services.sh"
             "$SCRIPTS_DIR/setup_timezone.sh"
             "$SCRIPTS_DIR/stow_configs.sh"
         else
             echo "Starting Update..."
             "$SCRIPTS_DIR/install_packages.sh"
-            "$SCRIPTS_DIR/setup_gpu.sh"
             "$SCRIPTS_DIR/stow_configs.sh"
         fi
         ;;
@@ -57,12 +56,16 @@ case $choice in
         "$SCRIPTS_DIR/setup_services.sh"
         ;;
     4)
-        "$SCRIPTS_DIR/setup_audio.sh"
+        echo "Starting GPU Driver Setup..."
+        "$SCRIPTS_DIR/setup_gpu.sh"
         ;;
     5)
-        "$SCRIPTS_DIR/setup_timezone.sh"
+        "$SCRIPTS_DIR/setup_audio.sh"
         ;;
     6)
+        "$SCRIPTS_DIR/setup_timezone.sh"
+        ;;
+    7)
         echo "Repairing dotfiles repository (Hard Reset)..."
         # Force restore even if changes are staged
         git -C "$DOTFILES_DIR" fetch origin main
@@ -70,7 +73,7 @@ case $choice in
         git -C "$DOTFILES_DIR" clean -fd
         echo "Repair complete. Source files have been restored to match GitHub."
         ;;
-    7)
+    8)
         echo "Exiting."
         exit 0
         ;;
