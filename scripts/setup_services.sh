@@ -104,4 +104,39 @@ if [ "$REBUILD_NEEDED" = true ]; then
     sudo mkinitcpio -P
 fi
 
+# 5. Hyprlock PAM Configuration (Keyring Unlocking)
+echo "Configuring PAM for hyprlock..."
+if [ -f /etc/pam.d/hyprlock ]; then
+    if ! grep -q "pam_gnome_keyring.so" /etc/pam.d/hyprlock; then
+        # Add keyring unlocking to hyprlock
+        # We append it to ensure it doesn't break existing auth
+        echo "auth     optional     pam_gnome_keyring.so" | sudo tee -a /etc/pam.d/hyprlock > /dev/null
+        echo "session  optional     pam_gnome_keyring.so auto_start" | sudo tee -a /etc/pam.d/hyprlock > /dev/null
+    fi
+else
+    # Create basic hyprlock PAM file if it doesn't exist (fallback)
+    echo "Creating basic /etc/pam.d/hyprlock..."
+    sudo tee /etc/pam.d/hyprlock > /dev/null <<EOF
+auth        include     system-auth
+auth        optional     pam_gnome_keyring.so
+account     include     system-auth
+session     include     system-auth
+session     optional     pam_gnome_keyring.so auto_start
+EOF
+fi
+
+# 6. Passwordless Sudo for VPN Scripts
+echo "Configuring passwordless sudo for VPN scripts..."
+# Since scripts are in ~/.local/bin, we use a wildcard match for the home directory path
+# to make it portable while keeping it secure for the wheel group.
+# We determine the script path relative to the current user's home.
+CURRENT_USER=$(whoami)
+USER_HOME=$(eval echo ~$CURRENT_USER)
+GP_CONNECT_PATH="$USER_HOME/.local/bin/gp-connect"
+GP_QUIT_PATH="$USER_HOME/.local/bin/gp-quit"
+
+SUDOERS_FILE="/etc/sudoers.d/vpn-scripts"
+echo "%wheel ALL=(ALL) NOPASSWD: $GP_CONNECT_PATH, $GP_QUIT_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
+sudo chmod 440 "$SUDOERS_FILE"
+
 echo "System services configuration complete."
