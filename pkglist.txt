@@ -29,6 +29,7 @@ fastfetch
 fd
 ffmpeg
 firefox
+firefoxpwa
 fzf
 gazelle-tui
 gemini-cli
