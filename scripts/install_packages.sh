@@ -25,6 +25,17 @@ if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
     sudo pacman -Syu --noconfirm
 fi
 
+# Aesthetic and Performance enhancements for pacman
+echo "Configuring pacman aesthetics (ILoveCandy)..."
+# Enable Color
+sudo sed -i 's/^#Color$/Color/' /etc/pacman.conf
+# Add ILoveCandy if not present
+if ! grep -q "^ILoveCandy" /etc/pacman.conf; then
+    sudo sed -i '/^Color/a ILoveCandy' /etc/pacman.conf
+fi
+# Enable ParallelDownloads (default to 5 if not set)
+sudo sed -i 's/^#ParallelDownloads = 5/ParallelDownloads = 5/' /etc/pacman.conf
+
 # Ensure headers for all installed kernels are present before update
 # This prevents DKMS build failures during yay -Syu
 echo "Ensuring kernel headers are installed..."
