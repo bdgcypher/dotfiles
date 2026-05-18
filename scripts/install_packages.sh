@@ -28,11 +28,15 @@ fi
 # Ensure headers for all installed kernels are present before update
 # This prevents DKMS build failures during yay -Syu
 echo "Ensuring kernel headers are installed..."
-INSTALLED_KERNELS=$(pacman -Qq | grep -E "^linux(-lts|-zen|-hardened)?$" || true)
+# Match linux, linux-lts, linux-zen, linux-hardened, linux-rt, etc.
+# We exclude things like linux-firmware or linux-api-headers by checking for the existence of the -headers package.
+INSTALLED_KERNELS=$(pacman -Qq | grep -E "^linux(-[a-z0-9]+)?$" | grep -vE "-(firmware|api-headers|docs|pts)" || true)
 if [ -n "$INSTALLED_KERNELS" ]; then
     for k in $INSTALLED_KERNELS; do
-        echo "Installing headers for $k..."
-        sudo pacman -S --needed --noconfirm "${k}-headers" || echo "Note: Could not install headers for $k."
+        if pacman -Si "${k}-headers" &>/dev/null; then
+            echo "Installing headers for $k..."
+            sudo pacman -S --needed --noconfirm "${k}-headers"
+        fi
     done
 fi
 

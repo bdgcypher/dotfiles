@@ -11,14 +11,23 @@ if lspci | grep -qi "nvidia"; then
     GPU_TYPE="nvidia"
     echo "NVIDIA GPU detected."
     
-    # Check if any NVIDIA driver package is already installed (standard, versioned, lts, or open)
-    if pacman -Q | grep -qE "^nvidia(-[0-9]+xx)?(-dkms|-lts|-open)? "; then
-        echo "An NVIDIA driver package is already installed. Skipping default 'nvidia' suite to avoid conflicts."
-        # We might still want to ensure common utilities are present if not already
+    # Check if any NVIDIA driver package is already installed (standard, dkms, lts, or open variants)
+    # We check for packages starting with 'nvidia' but exclude utilities and libraries
+    if pacman -Qq | grep -E "^nvidia(-[0-9]+xx)?(-(dkms|lts|open|zen|hardened))?(-dkms)?$" | grep -qvE "-(utils|settings|xconfig|prime|lib32|vulkan|vaapi)" | grep -q .; then
+        echo "An NVIDIA driver package is already installed. Skipping driver installation to avoid conflicts."
+        # We still ensure common utilities are present if not already
         DRIVERS=("nvidia-settings" "lib32-nvidia-utils")
     else
-        echo "No NVIDIA drivers detected. Installing NVIDIA DKMS suite..."
-        DRIVERS=("nvidia-dkms" "nvidia-utils" "nvidia-settings" "lib32-nvidia-utils")
+        echo "No NVIDIA drivers detected. Preparing installation..."
+        # If the user has only the standard 'linux' kernel, 'nvidia' is a safe pre-built choice.
+        # Otherwise, 'nvidia-dkms' is more robust for multiple/custom kernels.
+        if pacman -Qq | grep -E "^linux$" > /dev/null && ! pacman -Qq | grep -E "^linux-(lts|zen|hardened)$" > /dev/null; then
+            echo "Standard 'linux' kernel detected. Using 'nvidia' pre-built drivers."
+            DRIVERS=("nvidia" "nvidia-utils" "nvidia-settings" "lib32-nvidia-utils")
+        else
+            echo "Multiple or custom kernels detected. Using 'nvidia-dkms' for maximum compatibility."
+            DRIVERS=("nvidia-dkms" "nvidia-utils" "nvidia-settings" "lib32-nvidia-utils")
+        fi
     fi
 elif lspci | grep -qi "amd"; then
     GPU_TYPE="amd"
