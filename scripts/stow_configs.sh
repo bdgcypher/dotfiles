@@ -32,18 +32,20 @@ for dir in */; do
         rel_path="${file#$dir/}"
         target="$HOME/$rel_path"
         
-        # Security Guard: Ensure we never try to "backup" the source file itself
-        if [[ "$(realpath "$file")" == "$(realpath "$target")" ]]; then
-            echo "  Skipping: Source and target are the same ($rel_path)"
+        # 1. Identity Guard: If target IS the source file (via symlink or same path), 
+        # then there is no conflict to resolve.
+        if [[ -e "$target" ]] && [[ "$file" -ef "$target" ]]; then
+            # Already correctly linked, skip to next file
             continue
         fi
 
+        # 2. Link Guard: If it's a symlink in HOME, remove it so stow can manage it.
+        # This handles broken links or links to older/other locations.
         if [[ -L "$target" ]]; then
-            # If it's a symlink (broken or working), remove it to let stow recreate it
             echo "  Removing existing symlink in HOME: $rel_path"
             rm "$target"
+        # 3. Conflict Guard: If it's a REAL file in HOME, back it up.
         elif [[ -f "$target" ]]; then
-            # If it's a real file in HOME, back it up
             echo "  Backing up existing file in HOME: $rel_path"
             mkdir -p "$(dirname "$BACKUP_DIR/$rel_path")"
             mv "$target" "$BACKUP_DIR/$rel_path"

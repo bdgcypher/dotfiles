@@ -25,23 +25,31 @@ echo ""
 read -p "Selection [1-7]: " choice
 
 case $choice in
-    1)
-        echo "Starting Full Installation..."
-        sudo -v # Early sudo elevation
-        # Keep-alive sudo
-        while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+    1|2)
+        # Safety check: If any key directory is empty, trigger a repair first
+        if [[ ! -f "$SCRIPTS_DIR/install_packages.sh" ]] || [[ -z "$(ls -A "$DOTFILES_DIR/hypr" 2>/dev/null)" ]]; then
+            echo "Warning: Repository looks incomplete. Running auto-repair..."
+            git -C "$DOTFILES_DIR" restore .
+            git -C "$DOTFILES_DIR" checkout .
+        fi
         
-        "$SCRIPTS_DIR/install_packages.sh"
-        "$SCRIPTS_DIR/setup_gpu.sh"
-        "$SCRIPTS_DIR/setup_services.sh"
-        "$SCRIPTS_DIR/setup_timezone.sh"
-        "$SCRIPTS_DIR/stow_configs.sh"
-        ;;
-    2)
-        echo "Starting Update..."
-        "$SCRIPTS_DIR/install_packages.sh"
-        "$SCRIPTS_DIR/setup_gpu.sh"
-        "$SCRIPTS_DIR/stow_configs.sh"
+        if [[ $choice -eq 1 ]]; then
+            echo "Starting Full Installation..."
+            sudo -v # Early sudo elevation
+            # Keep-alive sudo
+            while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+            
+            "$SCRIPTS_DIR/install_packages.sh"
+            "$SCRIPTS_DIR/setup_gpu.sh"
+            "$SCRIPTS_DIR/setup_services.sh"
+            "$SCRIPTS_DIR/setup_timezone.sh"
+            "$SCRIPTS_DIR/stow_configs.sh"
+        else
+            echo "Starting Update..."
+            "$SCRIPTS_DIR/install_packages.sh"
+            "$SCRIPTS_DIR/setup_gpu.sh"
+            "$SCRIPTS_DIR/stow_configs.sh"
+        fi
         ;;
     3)
         echo "Starting System Configuration..."
@@ -55,9 +63,12 @@ case $choice in
         "$SCRIPTS_DIR/setup_timezone.sh"
         ;;
     6)
-        echo "Repairing dotfiles repository..."
-        git -C "$(dirname "$(realpath "$0")")" restore .
-        echo "Repair complete."
+        echo "Repairing dotfiles repository (Hard Reset)..."
+        # Force restore even if changes are staged
+        git -C "$DOTFILES_DIR" fetch origin main
+        git -C "$DOTFILES_DIR" reset --hard origin/main
+        git -C "$DOTFILES_DIR" clean -fd
+        echo "Repair complete. Source files have been restored to match GitHub."
         ;;
     7)
         echo "Exiting."
