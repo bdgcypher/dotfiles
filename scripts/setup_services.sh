@@ -87,6 +87,8 @@ if [[ -f "$SYSTEM_DIR/boot/limine.conf" ]]; then
     ROOT_PARTUUID=$(findmnt / -n -o PARTUUID)
     
     if [ -f /swapfile ]; then
+        # Ensure swap is on for offset calculation
+        sudo swapon /swapfile 2>/dev/null || true
         RESUME_OFFSET=$(sudo btrfs inspect-internal map-swapfile -r /swapfile)
     else
         RESUME_OFFSET=0
@@ -97,6 +99,7 @@ if [[ -f "$SYSTEM_DIR/boot/limine.conf" ]]; then
     echo "Detected Resume Offset: $RESUME_OFFSET"
 
     # Create temporary config from template
+    # We use PARTUUID for both root and resume for maximum reliability
     sed "s/@ROOT_UUID@/$ROOT_UUID/g; s/@ROOT_PARTUUID@/$ROOT_PARTUUID/g; s/@RESUME_OFFSET@/$RESUME_OFFSET/g" \
         "$SYSTEM_DIR/boot/limine.conf" | sudo tee /boot/limine.conf > /dev/null
 else
