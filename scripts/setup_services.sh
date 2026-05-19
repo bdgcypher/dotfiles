@@ -73,6 +73,11 @@ echo "Configuring Suspend-then-Hibernate delay..."
 sudo mkdir -p /etc/systemd/sleep.conf.d
 sudo cp "$SYSTEM_DIR/etc/systemd/sleep.conf.d/hibernate.conf" /etc/systemd/sleep.conf.d/hibernate.conf
 
+# 3.1 Quiet Boot/Shutdown (Sysctl)
+echo "Configuring quiet printk for silent shutdown..."
+sudo mkdir -p /etc/sysctl.d
+sudo cp "$SYSTEM_DIR/etc/sysctl.d/20-quiet-printk.conf" /etc/sysctl.d/20-quiet-printk.conf
+
 # 4. Limine Bootloader
 if [[ -f "$SYSTEM_DIR/boot/limine.conf" ]]; then
     echo "Updating Limine configuration..."
