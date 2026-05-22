@@ -103,7 +103,9 @@ python-pipx
 python-pywal16
 python-pywalfox
 qalculate-qt
+qt5-wayland
 qt5ct
+qt6-wayland
 qt6ct
 resvg
 ripgrep
@@ -194,6 +196,7 @@ yay
 yay-debug
 yazi
 yt-dlp
+zoom
 zoxide
 zram-generator
 zsh

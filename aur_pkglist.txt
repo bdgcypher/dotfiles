@@ -35,3 +35,4 @@ walker
 walker-debug
 yay
 yay-debug
+zoom
