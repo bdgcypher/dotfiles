@@ -147,4 +147,10 @@ SUDOERS_FILE="/etc/sudoers.d/vpn-scripts"
 echo "%wheel ALL=(ALL) NOPASSWD: $GP_CONNECT_PATH, $GP_QUIT_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
 sudo chmod 440 "$SUDOERS_FILE"
 
+# 7. Sunshine udev rules
+echo "Configuring Sunshine udev rules..."
+sudo mkdir -p /etc/udev/rules.d
+sudo cp "$SYSTEM_DIR/etc/udev/rules.d/85-sunshine.rules" /etc/udev/rules.d/85-sunshine.rules
+sudo udevadm control --reload-rules && sudo udevadm trigger
+
 echo "System services configuration complete."
