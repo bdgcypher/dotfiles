@@ -124,6 +124,7 @@ swaync
 swayosd
 syncthing
 system-config-printer
+tailscale
 ttf-0xproto-nerd
 ttf-3270-nerd
 ttf-adwaitamono-nerd

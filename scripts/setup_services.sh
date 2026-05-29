@@ -153,4 +153,8 @@ sudo mkdir -p /etc/udev/rules.d
 sudo cp "$SYSTEM_DIR/etc/udev/rules.d/85-sunshine.rules" /etc/udev/rules.d/85-sunshine.rules
 sudo udevadm control --reload-rules && sudo udevadm trigger
 
+# 8. Tailscale
+echo "Enabling Tailscale service..."
+sudo systemctl enable --now tailscaled.service
+
 echo "System services configuration complete."

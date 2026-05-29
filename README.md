@@ -44,4 +44,5 @@ install.sh
     - Plymouth Splash Screen (`arch-charge`)
     - Suspend-then-Hibernate (15min delay)
     - Limine Bootloader management
+    - Tailscale Mesh VPN
 - **Conflict Management:** Backs up existing configs before stowing.
