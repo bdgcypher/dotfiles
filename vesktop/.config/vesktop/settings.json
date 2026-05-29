@@ -7,6 +7,6 @@
     "customTitleBar": false,
     "splashTheming": true,
     "enableSplashScreen": false,
-    "splashColor": "rgb(220, 220, 223)",
-    "splashBackground": "color(srgb 0.0376471 0.0878431 0.0878431)"
+    "splashColor": "rgb(239, 239, 241)",
+    "splashBackground": "color(srgb 0.0627451 0.0470588 0.116078)"
 }
