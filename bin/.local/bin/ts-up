@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# Clear terminal
+clear
+
+# -r: Backslashes won't be escaped
+# -s: Secret mode (input is invisible)
+# -p: Custom prompt string
+read -r -s -p "Tailscale Sudo Password: " PASS
+
+# If PASS is empty (User hit Enter without typing or hit Ctrl+C)
+if [ -z "$PASS" ]; then
+  echo -e "\n"
+  notify-send "Tailscale" "Connection Cancelled" \
+    --icon=information \
+    --hint=int:transient:1 \
+    --expire-time=2000
+  exit 0
+fi
+
+# Clear again to hide the prompt text once Enter is pressed
+clear
+
+# Pipe password to sudo -S to run tailscale up
+# Redirect output to /dev/null to keep ui clean
+if echo "$PASS" | sudo -S tailscale up >/dev/null 2>&1; then
+
+  notify-send "Tailscale" "VPN Connected" \
+    --icon=network-vpn \
+    --hint=int:transient:1 \
+    --expire-time=2300
+else
+  notify-send "Tailscale" "VPN Connection Failed" \
+    --icon=network-error \
+    --hint=int:transient:1 \
+    --expire-time=2300
+fi

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Clear terminal
+clear
+
+# Check if tailscale is active before bothering to ask for a password
+if tailscale status >/dev/null 2>&1; then
+
+  # Prompt for sudo password to run tailscale down
+  read -r -s -p "Tailscale Sudo Password (Disconnect): " PASS
+  
+  if [ -z "$PASS" ]; then
+    echo -e "\n"
+    notify-send "Tailscale" "Disconnect Cancelled" \
+      --icon=information \
+      --hint=int:transient:1 \
+      --expire-time=2000
+    exit 0
+  fi
+
+  clear
+
+  # Pipe password to sudo -S to bring tailscale down
+  if echo "$PASS" | sudo -S tailscale down >/dev/null 2>&1; then
+    # Send disconnect notification
+    notify-send "Tailscale" "VPN Disconnected" \
+      --icon=network-error \
+      --hint=int:transient:1 \
+      --expire-time=2300
+  else
+    notify-send "Tailscale" "Disconnect Failed" \
+      --icon=network-error \
+      --hint=int:transient:1 \
+      --expire-time=2300
+  fi
+
+else
+  # Send no VPN notification if tailscale status was already offline/down
+  notify-send "Tailscale" "No VPN Active" \
+    --icon=network-error \
+    --urgency=low \
+    --hint=int:transient:1 \
+    --expire-time=2300
+fi

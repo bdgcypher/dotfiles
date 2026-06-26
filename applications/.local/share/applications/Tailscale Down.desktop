@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Tailscale Down
+Comment=Disconnect Tailscale VPN
+Exec=ghostty --class=floating.Tailscale -e ts-down
+Icon=network-vpn-disconnected
+Terminal=false
+Type=Application
+Categories=Network;
+
