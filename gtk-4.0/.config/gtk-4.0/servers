@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbel version="1.0"
+      xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks"
+      xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info"
+>
+  <bookmark href="smb:///%5C%5C192.168.4.93%5CBenAndTayNAS" added="2026-07-10T00:39:57.472094Z" modified="2026-07-10T00:39:57.472100Z" visited="2026-07-10T00:39:57.472096Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <bookmark:applications>
+          <bookmark:application name="org.gnome.Nautilus" exec="&apos;org.gnome.Nautilus %u&apos;" modified="2026-07-10T00:39:57.472098Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="smb://192.168.4.93/benandtaynas/" added="2026-07-10T00:40:46.234953Z" modified="2026-07-10T00:40:46.234961Z" visited="2026-07-10T00:40:46.234956Z">
+    <title>benandtaynas on 192.168.4.93</title>
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <bookmark:applications>
+          <bookmark:application name="org.gnome.Nautilus" exec="&apos;org.gnome.Nautilus %u&apos;" modified="2026-07-10T00:40:46.234958Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+</xbel>
