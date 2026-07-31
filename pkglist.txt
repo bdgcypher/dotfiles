@@ -32,7 +32,6 @@ firefox
 firefoxpwa
 fzf
 gazelle-tui
-gemini-cli
 ghostty
 github-cli
 gnome-themes-extra
@@ -107,6 +106,7 @@ qt5-wayland
 qt5ct
 qt6-wayland
 qt6ct
+remmina
 resvg
 ripgrep
 satty
