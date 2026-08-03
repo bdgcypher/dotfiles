@@ -11,124 +11,124 @@
     /* font-style: italic; */
 
     /* *.background */
-    --background-primary: #101d25;
-    --background-secondary: #101d25;
-    --background-tertiary: #101d25;
+    --background-primary: #1a1e25;
+    --background-secondary: #1a1e25;
+    --background-tertiary: #1a1e25;
 
-    --background-primary-alt: #101d25;
-    --background-secondary-alt: #101d25;
-    --background-tertiary-alt: #101d25;
+    --background-primary-alt: #1a1e25;
+    --background-secondary-alt: #1a1e25;
+    --background-tertiary-alt: #1a1e25;
 
-    --channeltextarea-background: #101d25;
-    --custom-channel-members-bg: #101d25;
+    --channeltextarea-background: #1a1e25;
+    --custom-channel-members-bg: #1a1e25;
 
-    --profile-gradient-primary-color: #101d25;
-    --profile-gradient-secondary-color: #101d25;
+    --profile-gradient-primary-color: #1a1e25;
+    --profile-gradient-secondary-color: #1a1e25;
 
-    --__header-bar-background: #101d25 !important;
+    --__header-bar-background: #1a1e25 !important;
 
     /* -- themes update -- */
-    --bg-base-tertiary: #101d25;
+    --bg-base-tertiary: #1a1e25;
 
     /* slightly darker background - useful for separating */
-    --card-primary-bg: color-mix(in srgb, #101d25, black 20%);
-    --input-background: color-mix(in srgb, #101d25, black 20%);
-    --autocomplete-bg: color-mix(in srgb, #101d25, black 20%);
-    --background-nested-floating: color-mix(in srgb, #101d25, black 20%);
-    --background-floating: color-mix(in srgb, #101d25, black 20%);
-    --scrollbar-auto-track: color-mix(in srgb, #101d25, black 20%);
-    --scrollbar-thin-track: color-mix(in srgb, #101d25, black 20%);
+    --card-primary-bg: color-mix(in srgb, #1a1e25, black 20%);
+    --input-background: color-mix(in srgb, #1a1e25, black 20%);
+    --autocomplete-bg: color-mix(in srgb, #1a1e25, black 20%);
+    --background-nested-floating: color-mix(in srgb, #1a1e25, black 20%);
+    --background-floating: color-mix(in srgb, #1a1e25, black 20%);
+    --scrollbar-auto-track: color-mix(in srgb, #1a1e25, black 20%);
+    --scrollbar-thin-track: color-mix(in srgb, #1a1e25, black 20%);
 
     /* -- themes update -- */
-    --border-subtle: color-mix(in srgb, #101d25, black 20%);
-    --background-base-lowest: color-mix(in srgb, #101d25, black 20%);
-    --background-surface-high: color-mix(in srgb, #101d25, black 20%);
+    --border-subtle: color-mix(in srgb, #1a1e25, black 20%);
+    --background-base-lowest: color-mix(in srgb, #1a1e25, black 20%);
+    --background-surface-high: color-mix(in srgb, #1a1e25, black 20%);
 
-    --button-secondary-background: color-mix(in srgb, #101d25, black 30%);
-    --background-surface-higher: color-mix(in srgb, #101d25, black 30%);
-    --background-base-lower: color-mix(in srgb, #101d25, black 35%);
+    --button-secondary-background: color-mix(in srgb, #1a1e25, black 30%);
+    --background-surface-higher: color-mix(in srgb, #1a1e25, black 30%);
+    --background-base-lower: color-mix(in srgb, #1a1e25, black 35%);
 
-    --background-message-hover: color-mix(in srgb, #101d25, black 40%);
-    --button-secondary-background-hover: color-mix(in srgb, #101d25, black 40%);
-    --background-base-low: color-mix(in srgb, #101d25, black 40%);
-    --background-surface-highest: color-mix(in srgb, #101d25, black 40%);
-    --chat-background-default: color-mix(in srgb, #101d25, black 45%);
+    --background-message-hover: color-mix(in srgb, #1a1e25, black 40%);
+    --button-secondary-background-hover: color-mix(in srgb, #1a1e25, black 40%);
+    --background-base-low: color-mix(in srgb, #1a1e25, black 40%);
+    --background-surface-highest: color-mix(in srgb, #1a1e25, black 40%);
+    --chat-background-default: color-mix(in srgb, #1a1e25, black 45%);
     
-    --button-secondary-background-active: color-mix(in srgb, #101d25, black 60%);
+    --button-secondary-background-active: color-mix(in srgb, #1a1e25, black 60%);
 
     /* primary.* */
-    --primary-630: #101d25;
+    --primary-630: #1a1e25;
 
     /* *.color2 - secondary elements */
-    --scrollbar-auto-thumb: #EC748A;
-    --scrollbar-thin-thumb: #EC748A;
-    --interactive-muted: #EC748A;
-    --text-muted: #EC748A;
-    --background-modifier-hover: color-mix(in srgb, #EC748A, black 40%);
-    --background-modifier-active: color-mix(in srgb, #EC748A, black 20%);
-    --background-modifier-accent: #EC748A;
-    --background-accent: #EC748A;
+    --scrollbar-auto-thumb: #6A7191;
+    --scrollbar-thin-thumb: #6A7191;
+    --interactive-muted: #6A7191;
+    --text-muted: #6A7191;
+    --background-modifier-hover: color-mix(in srgb, #6A7191, black 40%);
+    --background-modifier-active: color-mix(in srgb, #6A7191, black 20%);
+    --background-modifier-accent: #6A7191;
+    --background-accent: #6A7191;
 
     /* -- themes update -- */
-    --input-border: #EC748A;
-    --border-normal: #EC748A;
-    --icon-secondary: #EC748A;
-    --icon-tertiary: #EC748A;
-    --channel-icon: #EC748A;
-    --channels-default: #EC748A;
-    --header-primary: #EC748A;
-    --__lottieIconColor: #EC748A;
-    --interactive-normal: #EC748A;
+    --input-border: #6A7191;
+    --border-normal: #6A7191;
+    --icon-secondary: #6A7191;
+    --icon-tertiary: #6A7191;
+    --channel-icon: #6A7191;
+    --channels-default: #6A7191;
+    --header-primary: #6A7191;
+    --__lottieIconColor: #6A7191;
+    --interactive-normal: #6A7191;
 
     /* *.color3 */
-    --red-400: #DA77A4;
-    --background-modifier-selected: #DA77A4;
+    --red-400: #917894;
+    --background-modifier-selected: #917894;
 
     /* -- themes update -- */
-    --notice-background-positive: color-mix(in srgb, #DA77A4, black 75%);
-    --notice-text-positive: #DA77A4;
+    --notice-background-positive: color-mix(in srgb, #917894, black 75%);
+    --notice-text-positive: #917894;
 
     /* *.color4 - main theme color: flashy, important elements */
-    --status-danger: #5EA1A3;
-    --button-outline-danger-border: #5EA1A3;
-    --button-outline-danger-text: #5EA1A3;
-    --button-danger-background: #5EA1A3;
+    --status-danger: #AC7B93;
+    --button-outline-danger-border: #AC7B93;
+    --button-outline-danger-text: #AC7B93;
+    --button-danger-background: #AC7B93;
 
-    --yellow-300: #5EA1A3;
+    --yellow-300: #AC7B93;
 
     /* *.color5 - light theme color */
-    --brand-experiment: #51BDA4;
-    --brand-experiment-360: #51BDA4;
-    --brand-experiment-500: #51BDA4;
-    --profile-gradient-button-color: #51BDA4;
+    --brand-experiment: #C17D91;
+    --brand-experiment-360: #C17D91;
+    --brand-experiment-500: #C17D91;
+    --profile-gradient-button-color: #C17D91;
 
-    --green-360: #51BDA4;
+    --green-360: #C17D91;
 
     /* *.color6 - lighter theme color */
     /* -!- currently unused -!- */
 
     /* *.color7 - very light, text and foreground */
-    --text-normal: #c3c6c8;
-    --interactive-active: #c3c6c8;
+    --text-normal: #c5c6c8;
+    --interactive-active: #c5c6c8;
 }
 
 /* status indicators */
 rect[fill="#d83a41"] {
-    fill: #DA77A4 !important;
+    fill: #917894 !important;
 }
 
 rect[fill="#cc954c"] {
-    fill: #5EA1A3 !important;
+    fill: #AC7B93 !important;
 }
 
 rect[fill="#40a258"] {
-    fill: #51BDA4 !important;
+    fill: #C17D91 !important;
 }
 
 html, body, #app-mount, 
 /* [class^="sidebar_"]::after */
 {
-    background: color-mix(in srgb, #101d25, black 20%) !important;
+    background: color-mix(in srgb, #1a1e25, black 20%) !important;
 }
 
 html, body, #app-mount, 
@@ -136,6 +136,6 @@ html, body, #app-mount,
 [class^="sidebar_"]::after,
 [class^="tree_"]
 {
-    background-color: color-mix(in srgb, #101d25, black 50%) !important;
+    background-color: color-mix(in srgb, #1a1e25, black 50%) !important;
 }
 

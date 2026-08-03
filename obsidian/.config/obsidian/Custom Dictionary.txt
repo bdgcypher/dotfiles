@@ -1,7 +1,9 @@
 Huacachina
 Journaling
+Lamanites
 MOC
 MOC's
 SuperShe
+Zerubbabel
 structuralized
-checksum_v1 = 5edb15890d4c23d88dc3ed5b2ad2e5dd
+checksum_v1 = ceb6d4551da660bf7937e255d916ced1
