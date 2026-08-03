@@ -112,6 +112,7 @@ ripgrep
 satty
 sddm
 slack-desktop
+slurp
 snapper
 sof-firmware
 speech-dispatcher
@@ -188,6 +189,7 @@ vencord
 walker
 waybar
 wev
+wf-record
 wireplumber
 wl-clipboard
 woff2-font-awesome

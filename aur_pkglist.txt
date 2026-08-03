@@ -8,6 +8,7 @@ elephant-all-git
 elephant-all-git-debug
 gazelle-tui
 gradience
+iriunwebcam-bin
 jellyfin-tui
 jellyfin-tui-debug
 matugen-bin
