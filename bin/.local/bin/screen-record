@@ -5,79 +5,71 @@ mkdir -p "$SAVE_DIR"
 FILENAME="$SAVE_DIR/recording_$(date +'%Y-%m-%d_%H-%M-%S').mp4"
 
 AUDIO_SOURCE="$(pactl get-default-sink).monitor"
-ID_FILE="/tmp/wf_recorder_nid"
+LOCK_FILE="/tmp/wf_recording_active"
 
-# Helper to send or replace a notification and store its unique ID
-notify_id() {
-  local title="$1"
-  local body="$2"
-  local icon="$3"
-  local replace_flag=""
-
-  if [ -f "$ID_FILE" ]; then
-    local prev_id
-    prev_id=$(cat "$ID_FILE")
-    replace_flag="-r $prev_id"
+# On-screen overlay helper (uses SwayOSD if available, falls back to transient notify-send)
+show_osd() {
+  local msg="$1"
+  if command -v swayosd-client &>/dev/null; then
+    swayosd-client --custom-message "$msg" --custom-icon "camera-video"
+  else
+    notify-send "Screen Recorder" "$msg" -i "camera-video" -t 2000 -a "screen-record"
   fi
-
-  # Pass -p to print notification ID, and save it to file
-  local new_id
-  new_id=$(notify-send "$title" "$body" \
-    -a "screen-record" \
-    -i "$icon" \
-    -t 3000 \
-    -p $replace_flag \
-    -h string:transient:1 \
-    -h boolean:inhibithistory:true)
-
-  echo "$new_id" >"$ID_FILE"
 }
 
 # 1. Stop recording if currently active
 if pgrep -x "wf-recorder" >/dev/null; then
   pkill -x --signal SIGINT "wf-recorder"
 
-  # Replace the 'Started' notification with 'Saved'
-  notify_id "Screen Recording" "Recording saved to $SAVE_DIR" "camera-video"
+  # Clean up state lock and signal Waybar
+  rm -f "$LOCK_FILE"
+  pkill -RTMIN+8 waybar &>/dev/null
 
-  # Read the ID and schedule a targeted purge specifically for this notification
-  if [ -f "$ID_FILE" ]; then
-    NID=$(cat "$ID_FILE")
-    rm -f "$ID_FILE"
-    (
-      sleep 3.1
-      swaync-client --close-by-id "$NID" &>/dev/null
-    ) &
-  fi
+  show_osd "Recording Stopped & Saved"
   exit 0
 fi
 
-# 2. Open selection via Walker
+# 2. Select mode via Walker
 CHOICE=$(printf "Screen\nWindow\nRegion" | walker --dmenu)
 
 case "$CHOICE" in
 "Screen")
-  notify_id "Screen Recording" "Started full-screen recording..." "camera-video"
-  wf-recorder --audio="$AUDIO_SOURCE" -f "$FILENAME" &
+  GEOM=""
   ;;
 "Window")
   sleep 0.2
   GEOM=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
-  if [ -n "$GEOM" ] && [ "$GEOM" != "null,null nullxnull" ]; then
-    notify_id "Screen Recording" "Started window recording..." "camera-video"
-    wf-recorder --audio="$AUDIO_SOURCE" -g "$GEOM" -f "$FILENAME" &
-  else
-    notify_id "Screen Recording" "No active window detected!" "dialog-error"
+  if [ -z "$GEOM" ] || [ "$GEOM" = "null,null nullxnull" ]; then
+    show_osd "No active window detected!"
+    exit 1
   fi
   ;;
 "Region")
   GEOM=$(slurp)
-  if [ -n "$GEOM" ]; then
-    notify_id "Screen Recording" "Started region recording..." "camera-video"
-    wf-recorder --audio="$AUDIO_SOURCE" -g "$GEOM" -f "$FILENAME" &
+  if [ -z "$GEOM" ]; then
+    exit 0
   fi
   ;;
 *)
   exit 0
   ;;
 esac
+
+# Create state lock and trigger instant Waybar refresh
+touch "$LOCK_FILE"
+pkill -RTMIN+8 waybar &>/dev/null
+
+show_osd "Recording Started"
+
+# Background watcher to launch wf-recorder and ensure lockfile cleanup when finished
+(
+  if [ -n "$GEOM" ]; then
+    wf-recorder --audio="$AUDIO_SOURCE" -g "$GEOM" -f "$FILENAME"
+  else
+    wf-recorder --audio="$AUDIO_SOURCE" -f "$FILENAME"
+  fi
+
+  # Cleanup lockfile on exit (whether stopped manually or killed)
+  rm -f "$LOCK_FILE"
+  pkill -RTMIN+8 waybar &>/dev/null
+) &

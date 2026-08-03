@@ -1,0 +1,6 @@
+[general]
+# Disable default libnotify notifications
+disable-notifications = true
+
+# Override copy-command to copy data AND invoke SwayOSD
+copy-command = "sh -c 'wl-copy && swayosd-client --custom-message \"  Screenshot Copied to clipboard\"'"

@@ -7,7 +7,7 @@
   "height": 26,
   "margin": "6 12 0 12",
   "modules-left": ["custom/menu", "hyprland/workspaces"],
-  "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screenrecording-indicator"],
+  "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screen-recording-indicator"],
   "modules-right": [
     "group/tray-expander",
     "bluetooth",
@@ -87,7 +87,7 @@
     "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%",
     "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%",
     "interval": 5,
-    "on-click": "omarchy-menu power",
+    "on-click": "menu power",
     "states": {
       "warning": 20,
       "critical": 10
@@ -126,14 +126,15 @@
     "format": "",
     "tooltip": false
   },
-  "custom/screenrecording-indicator": {
-    "on-click": "omarchy-cmd-screenrecord",
-    "exec": "$OMARCHY_PATH/default/waybar/indicators/screen-recording.sh",
+  "custom/screen-recording-indicator": {
+    "exec": "if [ -f /tmp/wf_recording_active ]; then echo '{\"text\": \"\", \"class\": \"recording\", \"tooltip\": \"Recording in progress... (Click icon or press SUPER + R to stop)\"}'; else echo '{\"text\": \"\", \"class\": \"stopped\"}'; fi",
+    "return-type": "json",
+    "interval": "once",
     "signal": 8,
-    "return-type": "json"
+    "on-click": "screen-record"
   },
   "custom/voxtype": {
-    "exec": "omarchy-voxtype-status",
+    "exec": "voxtype-status",
     "return-type": "json",
     "format": "{icon}",
     "format-icons": {
@@ -142,8 +143,8 @@
       "transcribing": "󰔟"
     },
     "tooltip": true,
-    "on-click-right": "omarchy-voxtype-config",
-    "on-click": "omarchy-voxtype-model"
+    "on-click-right": "voxtype-config",
+    "on-click": "voxtype-model"
   },
   "custom/notification": {
     "tooltip": true,

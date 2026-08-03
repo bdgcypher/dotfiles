@@ -82,17 +82,37 @@ tooltip {
   margin-right: 5px;
 }
 
-#custom-screenrecording-indicator {
-  min-width: 12px;
-  margin-left: 5px;
-  margin-right: 5px;
-  font-size: 10px;
-  padding-bottom: 1px;
+#custom-screen-recording-indicator.recording {
+  color: transparent;
+  font-weight: bold;
+  padding: 0 4px;
+  margin: 3px 5px;
+  border-radius: 8px;
+  animation: blink 1.5s infinite alternate;
 }
 
-#custom-screenrecording-indicator.active {
-  color: #a55555;
+#custom-screen-recording-indicator.stopped {
+  padding: 0;
+  margin: 0;
 }
+
+@keyframes blink {
+  to {
+    color: #a55555;
+  }
+}
+
+/* #custom-screen-recording-indicator { */
+/*   min-width: 12px; */
+/*   margin-left: 5px; */
+/*   margin-right: 5px; */
+/*   font-size: 10px; */
+/*   padding-bottom: 1px; */
+/* } */
+/**/
+/* #custom-screen-recording-indicator.active { */
+/*   color: #a55555; */
+/* } */
 
 #custom-voxtype {
   min-width: 12px;
