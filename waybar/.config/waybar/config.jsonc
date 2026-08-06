@@ -12,6 +12,7 @@
     "group/tray-expander",
     "bluetooth",
     "network",
+    "custom/vpn",
     "pulseaudio",
     "memory",
     "cpu",
@@ -145,6 +146,12 @@
     "tooltip": true,
     "on-click-right": "voxtype-config",
     "on-click": "voxtype-model"
+  },
+  "custom/vpn": {
+    "exec": "~/.config/waybar/scripts/vpn-status.sh",
+    "return-type": "json",
+    "interval": 5,
+    "tooltip": true
   },
   "custom/notification": {
     "tooltip": true,

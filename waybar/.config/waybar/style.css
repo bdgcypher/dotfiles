@@ -126,3 +126,7 @@ tooltip {
 #custom-notification.active {
   color: #a55555;
 }
+
+#custom-vpn.disconnected {
+  font-size: 0;
+}
