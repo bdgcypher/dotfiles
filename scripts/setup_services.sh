@@ -29,7 +29,30 @@ else
     fi
 fi
 
-# 0.1 GPU Specific Configuration (NVIDIA)
+# 0.1 GPU Specific Configuration
+GPU_CMDLINE=""
+
+# Intel
+if lspci | grep -iE "vga.*intel" &> /dev/null; then
+    echo "Intel GPU detected. Adding i915 for early KMS..."
+    if ! grep -qE "^MODULES=.*\bi915\b" /etc/mkinitcpio.conf; then
+        sudo sed -i "s/^MODULES=(/MODULES=(i915 /" /etc/mkinitcpio.conf
+        REBUILD_NEEDED=true
+    fi
+    GPU_CMDLINE="i915.modeset=1"
+fi
+
+# AMD
+if lspci | grep -iE "vga.*(amd|radeon)" &> /dev/null; then
+    echo "AMD GPU detected. Adding amdgpu for early KMS..."
+    if ! grep -qE "^MODULES=.*\bamdgpu\b" /etc/mkinitcpio.conf; then
+        sudo sed -i "s/^MODULES=(/MODULES=(amdgpu /" /etc/mkinitcpio.conf
+        REBUILD_NEEDED=true
+    fi
+    GPU_CMDLINE="amdgpu.modeset=1"
+fi
+
+# NVIDIA
 if lspci | grep -i "nvidia" &> /dev/null; then
     echo "NVIDIA GPU detected. Configuring KMS..."
     # Packages are handled in setup_gpu.sh
@@ -43,6 +66,7 @@ if lspci | grep -i "nvidia" &> /dev/null; then
             REBUILD_NEEDED=true
         fi
     done
+    GPU_CMDLINE="nvidia_drm.modeset=1 nvidia_drm.fbdev=1"
 fi
 
 # 1. SDDM Autologin
@@ -65,8 +89,7 @@ if ! grep -q "resume" /etc/mkinitcpio.conf; then
     REBUILD_NEEDED=true
 fi
 
-echo "Setting Plymouth theme to arch-charge..."
-sudo plymouth-set-default-theme -R arch-charge
+echo "Setting Plymouth theme to arch-charge..."    sudo plymouth-set-default-theme -R arch-charge 2>/dev/null || echo "Plymouth theme setup skipped — will apply after reboot"
 
 # 3. Systemd Sleep (Hibernate Delay)
 echo "Configuring Suspend-then-Hibernate delay..."
@@ -100,7 +123,7 @@ if [[ -f "$SYSTEM_DIR/boot/limine.conf" ]]; then
 
     # Create temporary config from template
     # We use PARTUUID for both root and resume for maximum reliability
-    sed "s/@ROOT_UUID@/$ROOT_UUID/g; s/@ROOT_PARTUUID@/$ROOT_PARTUUID/g; s/@RESUME_OFFSET@/$RESUME_OFFSET/g" \
+    sed "s/@ROOT_UUID@/$ROOT_UUID/g; s/@ROOT_PARTUUID@/$ROOT_PARTUUID/g; s/@RESUME_OFFSET@/$RESUME_OFFSET/g; s/@GPU_CMDLINE@/$GPU_CMDLINE/g" \
         "$SYSTEM_DIR/boot/limine.conf" | sudo tee /boot/limine.conf > /dev/null
 else
     echo "Warning: Limine master config not found in $SYSTEM_DIR/boot/"
