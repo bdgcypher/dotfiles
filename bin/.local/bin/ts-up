@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
-# Clear terminal
-clear
-
 # Run tailscale up with passwordless sudo
-# Redirect output to /dev/null to keep ui clean
 if sudo tailscale up >/dev/null 2>&1; then
 
   notify-send "Tailscale" "VPN Connected" \

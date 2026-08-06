@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Tailscale Up
 Comment=Connect to Tailscale VPN
-Exec=ghostty --class=floating.Tailscale -e ts-up
+Exec=ts-up
 Icon=network-vpn
 Terminal=false
 Type=Application
