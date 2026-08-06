@@ -33,7 +33,7 @@ git clone https://github.com/bdgcypher/dotfiles.git ~/.dotfiles && cd ~/.dotfile
 
 chmod +x ./install.sh
 
-install.sh
+./install.sh
 ```
 
 ## Features
