@@ -135,18 +135,11 @@ fi
 
 # 6. Passwordless Sudo for VPN Scripts
 echo "Configuring passwordless sudo for VPN scripts..."
-# Since scripts are in ~/.local/bin, we use a wildcard match for the home directory path
-# to make it portable while keeping it secure for the wheel group.
-# We determine the script path relative to the current user's home.
 CURRENT_USER=$(whoami)
 USER_HOME=$(eval echo ~$CURRENT_USER)
-GP_CONNECT_PATH="$USER_HOME/.local/bin/gp-connect"
-GP_QUIT_PATH="$USER_HOME/.local/bin/gp-quit"
-TS_UP_PATH="$USER_HOME/.local/bin/ts-up"
-TS_DOWN_PATH="$USER_HOME/.local/bin/ts-down"
 
 SUDOERS_FILE="/etc/sudoers.d/vpn-scripts"
-echo "%wheel ALL=(ALL) NOPASSWD: $GP_CONNECT_PATH, $GP_QUIT_PATH, $TS_UP_PATH, $TS_DOWN_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
+echo "%wheel ALL=(ALL) NOPASSWD: /usr/bin/openconnect, /usr/bin/pkill, /usr/bin/tailscale" | sudo tee "$SUDOERS_FILE" > /dev/null
 sudo chmod 440 "$SUDOERS_FILE"
 
 # 7. Sunshine udev rules
