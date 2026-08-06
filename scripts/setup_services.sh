@@ -176,7 +176,7 @@ echo "Mouseless permissions configured. Log out and back in for group changes to
 # 10. Iriunwebcam: reload v4l2loopback module
 echo "Reloading v4l2loopback for iriunwebcam..."
 sudo rmmod v4l2loopback 2>/dev/null || true
-sudo modprobe v4l2loopback
-echo "Iriunwebcam v4l2loopback module reloaded."
+sudo modprobe v4l2loopback 2>/dev/null || echo "v4l2loopback not available yet -- will load after reboot"
+echo "Iriunwebcam v4l2loopback setup complete."
 
 echo "System services configuration complete."
