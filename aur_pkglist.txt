@@ -28,7 +28,7 @@ python-pywalfox
 python-screeninfo
 python-yapsy-git
 slack-desktop
-sunshine
+sunshine-bin
 unimatrix-git
 vencord
 vesktop
