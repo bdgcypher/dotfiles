@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
 
-# Clear terminal
 clear
-
-# -r: Backslashes won't be escaped
-# -s: Secret mode (input is invisible)
-# -p: Custom prompt string
 read -r -s -p "SUU VPN Password: " PASS
 
-# If PASS is empty (User hit Enter without typing or hit Ctrl+C)
 if [ -z "$PASS" ]; then
   echo -e "\n"
   notify-send "Global Protect" "Connection Cancelled" \
@@ -18,13 +12,12 @@ if [ -z "$PASS" ]; then
   exit 0
 fi
 
-# Clear again to hide the prompt text once Enter is pressed
 clear
 
-# Pipe password to openconnect
-# Redirect output to /dev/null to keep ui clean
+# Connect directly to the gateway usergroup to bypass double-auth
 if echo "$PASS" | sudo openconnect --protocol=gp \
-  --server=https://vpn.suu.edu \
+  --server=vpn.suu.edu \
+  --usergroup=gateway \
   --user=benjamingoddard \
   --no-dtls \
   --passwd-on-stdin -b >/dev/null 2>&1; then
