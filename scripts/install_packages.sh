@@ -79,3 +79,25 @@ else
 fi
 
 echo "Package installation complete."
+
+# Flatpak: Mouseless
+echo "Setting up Mouseless via Flatpak..."
+if command -v flatpak &> /dev/null; then
+    # Ensure flathub is available for GNOME runtime dependency
+    flatpak remote-add --user --if-not-exists flathub \
+        https://flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+    flatpak remote-add --user --if-not-exists sonuscape \
+        https://dl.sonuscape.net/flatpak/sonuscape.flatpakrepo 2>/dev/null || true
+    flatpak install --user -y net.sonuscape.mouseless || \
+        echo "Warning: Mouseless flatpak install failed. Run manually: flatpak install --user net.sonuscape.mouseless"
+    # Copy Mouseless config into flatpak app data
+    CONFIG_SRC="$DOTFILES_DIR/mouseless/config.yaml"
+    CONFIG_DST="$HOME/.var/app/net.sonuscape.mouseless/data/mouseless/configs/config.yaml"
+    if [ -f "$CONFIG_SRC" ]; then
+        mkdir -p "$(dirname "$CONFIG_DST")"
+        cp "$CONFIG_SRC" "$CONFIG_DST"
+        echo "Mouseless config installed."
+    fi
+else
+    echo "Warning: flatpak not found. Skipping Mouseless install."
+fi

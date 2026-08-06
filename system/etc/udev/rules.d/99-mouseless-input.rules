@@ -1,0 +1,1 @@
+KERNEL=="uinput", GROUP="mouseless", MODE:="0660"

@@ -142,19 +142,33 @@ CURRENT_USER=$(whoami)
 USER_HOME=$(eval echo ~$CURRENT_USER)
 GP_CONNECT_PATH="$USER_HOME/.local/bin/gp-connect"
 GP_QUIT_PATH="$USER_HOME/.local/bin/gp-quit"
+TS_UP_PATH="$USER_HOME/.local/bin/ts-up"
+TS_DOWN_PATH="$USER_HOME/.local/bin/ts-down"
 
 SUDOERS_FILE="/etc/sudoers.d/vpn-scripts"
-echo "%wheel ALL=(ALL) NOPASSWD: $GP_CONNECT_PATH, $GP_QUIT_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
+echo "%wheel ALL=(ALL) NOPASSWD: $GP_CONNECT_PATH, $GP_QUIT_PATH, $TS_UP_PATH, $TS_DOWN_PATH" | sudo tee "$SUDOERS_FILE" > /dev/null
 sudo chmod 440 "$SUDOERS_FILE"
 
 # 7. Sunshine udev rules
 echo "Configuring Sunshine udev rules..."
 sudo mkdir -p /etc/udev/rules.d
 sudo cp "$SYSTEM_DIR/etc/udev/rules.d/85-sunshine.rules" /etc/udev/rules.d/85-sunshine.rules
-sudo udevadm control --reload-rules && sudo udevadm trigger
-
-# 8. Tailscale
+sudo udevadm control --reload-rules && sudo udevadm trigger# 8. Tailscale
 echo "Enabling Tailscale service..."
 sudo systemctl enable --now tailscaled.service
+
+# 9. Mouseless Wayland Input Permissions
+echo "Configuring Mouseless input permissions..."
+# Create system group and add user
+sudo groupadd --system mouseless 2>/dev/null || true
+sudo usermod -aG input,mouseless "$CURRENT_USER"
+# Copy udev rule
+sudo cp "$SYSTEM_DIR/etc/udev/rules.d/99-mouseless-input.rules" /etc/udev/rules.d/99-mouseless-input.rules
+# Ensure uinput module loads on boot
+echo "uinput" | sudo tee /etc/modules-load.d/uinput.conf > /dev/null
+sudo modprobe uinput 2>/dev/null || true
+# Reload udev rules
+sudo udevadm control --reload-rules && sudo udevadm trigger
+echo "Mouseless permissions configured. Log out and back in for group changes to take effect."
 
 echo "System services configuration complete."

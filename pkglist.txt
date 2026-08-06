@@ -28,6 +28,7 @@ espeak-ng
 fastfetch
 fd
 ffmpeg
+flatpak
 firefox
 firefoxpwa
 fzf
