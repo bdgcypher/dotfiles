@@ -13,10 +13,35 @@ if lspci | grep -qi "nvidia"; then
     
     # Check if any NVIDIA driver package is already installed (standard, dkms, lts, or open variants)
     # We check for packages starting with 'nvidia' but exclude utilities and libraries
-    if pacman -Qq | grep -E "^nvidia(-[0-9]+xx)?(-(dkms|lts|open|zen|hardened))?(-dkms)?$" | grep -qvE "-(utils|settings|xconfig|prime|lib32|vulkan|vaapi)" | grep -q .; then
-        echo "An NVIDIA driver package is already installed. Skipping driver installation to avoid conflicts."
-        # We still ensure common utilities are present if not already
-        DRIVERS=("nvidia-settings" "lib32-nvidia-utils")
+    INSTALLED_DRIVER=$(pacman -Qq | grep -E -- "^nvidia(-[0-9]+xx)?(-(dkms|lts|open|zen|hardened))?(-dkms)?$" | grep -vE -- "-(utils|settings|xconfig|prime|lib32|vulkan|vaapi)" || true)
+
+    if [ -n "$INSTALLED_DRIVER" ]; then
+        # Detect if this is a legacy AUR driver (e.g. nvidia-525xx-dkms)
+        if echo "$INSTALLED_DRIVER" | grep -qE "^nvidia-[0-9]+xx"; then
+            echo "Legacy AUR NVIDIA driver detected: $INSTALLED_DRIVER"
+            echo "Your GTX 1660 (Turing) supports the current official driver. Replacing..."
+
+            # Remove all legacy NVIDIA AUR packages
+            LEGACY_PACKAGES=$(pacman -Qq | grep -E "^nvidia-[0-9]+xx" || true)
+            if [ -n "$LEGACY_PACKAGES" ]; then
+                echo "Removing legacy packages: $LEGACY_PACKAGES"
+                sudo pacman -Rdd --noconfirm $LEGACY_PACKAGES
+            fi
+
+            # Install current official driver
+            if pacman -Qq | grep -E "^linux$" > /dev/null && ! pacman -Qq | grep -E "^linux-(lts|zen|hardened)$" > /dev/null; then
+                echo "Standard 'linux' kernel detected. Using 'nvidia' pre-built drivers."
+                DRIVERS=("nvidia" "nvidia-utils" "nvidia-settings" "lib32-nvidia-utils")
+            else
+                echo "Multiple or custom kernels detected. Using 'nvidia-dkms' for maximum compatibility."
+                DRIVERS=("nvidia-dkms" "nvidia-utils" "nvidia-settings" "lib32-nvidia-utils")
+            fi
+        else
+            echo "An NVIDIA driver package is already installed: $INSTALLED_DRIVER"
+            echo "Skipping driver installation to avoid conflicts."
+            # We still ensure common utilities are present if not already
+            DRIVERS=("nvidia-settings" "lib32-nvidia-utils")
+        fi
     else
         echo "No NVIDIA drivers detected. Preparing installation..."
         # If the user has only the standard 'linux' kernel, 'nvidia' is a safe pre-built choice.
@@ -43,11 +68,10 @@ echo "GPU detected: $GPU_TYPE"
 
 if [ "$GPU_TYPE" != "unknown" ]; then
     echo "Installing drivers for $GPU_TYPE: ${DRIVERS[*]}"
-    # For NVIDIA, we don't use --needed because version mismatches between
-    # nvidia-utils and lib32-nvidia-utils are common points of failure.
-    # Forcing a re-install ensures they are synced to the current repo version.
+    # All NVIDIA driver packages are in official repos — use pacman directly
+    # to avoid AUR rebuild issues with leftover legacy packages
     if [ "$GPU_TYPE" == "nvidia" ]; then
-        yay -S --noconfirm "${DRIVERS[@]}"
+        sudo pacman -S --noconfirm "${DRIVERS[@]}"
     else
         yay -S --needed --noconfirm "${DRIVERS[@]}"
     fi

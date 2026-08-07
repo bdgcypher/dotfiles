@@ -58,15 +58,39 @@ if lspci | grep -i "nvidia" &> /dev/null; then
     # Packages are handled in setup_gpu.sh
     
     # Add NVIDIA modules to mkinitcpio for Early KMS
-    # We add them individually to avoid matching issues if the order is different
-    for mod in nvidia nvidia_modeset nvidia_uvm nvidia_drm; do
-        if ! grep -qE "^MODULES=.*\b$mod\b" /etc/mkinitcpio.conf; then
-            echo "Adding $mod to /etc/mkinitcpio.conf..."
-            sudo sed -i "s/^MODULES=(/MODULES=($mod /" /etc/mkinitcpio.conf
+    # Order matters: nvidia_drm must load AFTER nvidia, nvidia_modeset, nvidia_uvm
+    NVIDIA_MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)
+    if grep -qE "^MODULES=.*\bnvidia\b" /etc/mkinitcpio.conf; then
+        # Modules exist but order may be wrong - rebuild the MODULES line correctly
+        echo "Ensuring correct NVIDIA module load order in mkinitcpio.conf..."
+        # Extract existing modules, remove nvidia* ones, then prepend in correct order
+        EXISTING_MODULES=$(sed -n 's/^MODULES=(\(.*\))$/\1/p' /etc/mkinitcpio.conf)
+        CLEAN_MODULES=$(echo "$EXISTING_MODULES" | tr ' ' '\n' | grep -vE "^nvidia(_|$)" | tr '\n' ' ' | sed 's/ *$//')
+        NEW_MODULES="${NVIDIA_MODULES[*]} $CLEAN_MODULES"
+        NEW_MODULES=$(echo "$NEW_MODULES" | sed 's/ *$//')
+        if [ "$EXISTING_MODULES" != "$NEW_MODULES" ]; then
+            sudo sed -i "s/^MODULES=.*/MODULES=($NEW_MODULES)/" /etc/mkinitcpio.conf
             REBUILD_NEEDED=true
         fi
-    done
+    else
+        # No NVIDIA modules yet - add them all in correct order
+        echo "Adding NVIDIA modules to /etc/mkinitcpio.conf..."
+        sudo sed -i "s/^MODULES=(/MODULES=(${NVIDIA_MODULES[*]} /" /etc/mkinitcpio.conf
+        REBUILD_NEEDED=true
+    fi
     GPU_CMDLINE="nvidia_drm.modeset=1 nvidia_drm.fbdev=1"
+
+    # Copy NVIDIA modprobe.d config for reliable DRM modesetting
+    echo "Configuring NVIDIA modprobe.d..."
+    sudo mkdir -p /etc/modprobe.d
+    sudo cp "$SYSTEM_DIR/etc/modprobe.d/nvidia.conf" /etc/modprobe.d/nvidia.conf
+
+    # Remove kms hook to prevent nouveau from loading (NVIDIA modules handle KMS)
+    if grep -qE "^HOOKS=.*\bkms\b" /etc/mkinitcpio.conf; then
+        echo "Removing 'kms' hook to prevent nouveau conflict with NVIDIA drivers..."
+        sudo sed -i -E 's/\bkms\b ?//; s/  / /g' /etc/mkinitcpio.conf
+        REBUILD_NEEDED=true
+    fi
 fi
 
 # 1. SDDM Autologin
@@ -89,7 +113,19 @@ if ! grep -q "resume" /etc/mkinitcpio.conf; then
     REBUILD_NEEDED=true
 fi
 
-echo "Setting Plymouth theme to arch-charge..."    sudo plymouth-set-default-theme -R arch-charge 2>/dev/null || echo "Plymouth theme setup skipped — will apply after reboot"
+echo "Setting Plymouth theme to arch-charge..."
+sudo plymouth-set-default-theme -R arch-charge || echo "Plymouth theme setup skipped — will apply after reboot"
+
+# Enable Plymouth boot services. The shutdown services (plymouth-halt/reboot/
+# poweroff/kexec) are STATIC units without an [Install] section - they are
+# pulled in automatically by halt.target/reboot.target/poweroff.target during
+# shutdown, so they must not be (and cannot be) enabled directly.
+echo "Enabling Plymouth boot services..."
+for SVC in plymouth-start plymouth-read-write plymouth-quit plymouth-quit-wait; do
+    if ! systemctl is-enabled "$SVC.service" >/dev/null 2>&1; then
+        sudo systemctl enable "$SVC.service" 2>/dev/null || echo "Warning: could not enable $SVC.service"
+    fi
+done
 
 # 3. Systemd Sleep (Hibernate Delay)
 echo "Configuring Suspend-then-Hibernate delay..."
@@ -100,6 +136,11 @@ sudo cp "$SYSTEM_DIR/etc/systemd/sleep.conf.d/hibernate.conf" /etc/systemd/sleep
 echo "Configuring quiet printk for silent shutdown..."
 sudo mkdir -p /etc/sysctl.d
 sudo cp "$SYSTEM_DIR/etc/sysctl.d/20-quiet-printk.conf" /etc/sysctl.d/20-quiet-printk.conf
+
+# 3.2 Systemd Quiet Log Level
+echo "Configuring systemd quiet log level..."
+sudo mkdir -p /etc/systemd/system.conf.d
+sudo cp "$SYSTEM_DIR/etc/systemd/system.conf.d/quiet.conf" /etc/systemd/system.conf.d/quiet.conf
 
 # 4. Limine Bootloader
 if [[ -f "$SYSTEM_DIR/boot/limine.conf" ]]; then
@@ -123,8 +164,21 @@ if [[ -f "$SYSTEM_DIR/boot/limine.conf" ]]; then
 
     # Create temporary config from template
     # We use PARTUUID for both root and resume for maximum reliability
-    sed "s/@ROOT_UUID@/$ROOT_UUID/g; s/@ROOT_PARTUUID@/$ROOT_PARTUUID/g; s/@RESUME_OFFSET@/$RESUME_OFFSET/g; s/@GPU_CMDLINE@/$GPU_CMDLINE/g" \
-        "$SYSTEM_DIR/boot/limine.conf" | sudo tee /boot/limine.conf > /dev/null
+    GENERATED_CONF=$(sed "s/@ROOT_UUID@/$ROOT_UUID/g; s/@ROOT_PARTUUID@/$ROOT_PARTUUID/g; s/@RESUME_OFFSET@/$RESUME_OFFSET/g; s/@GPU_CMDLINE@/$GPU_CMDLINE/g" "$SYSTEM_DIR/boot/limine.conf")
+
+    # Limine BIOS scans for limine.conf in this order:
+    #   1. /boot/limine/limine.conf  (takes precedence!)
+    #   2. /boot/limine.conf
+    #   3. /limine/limine.conf
+    #   4. /limine.conf
+    # We write to all locations that exist (or may be used) so the updated
+    # config is always the one Limine actually reads.
+    if [ -d /boot/limine ]; then
+        echo "Writing Limine config to /boot/limine/limine.conf..."
+        printf '%s\n' "$GENERATED_CONF" | sudo tee /boot/limine/limine.conf > /dev/null
+    fi
+    echo "Writing Limine config to /boot/limine.conf..."
+    printf '%s\n' "$GENERATED_CONF" | sudo tee /boot/limine.conf > /dev/null
 else
     echo "Warning: Limine master config not found in $SYSTEM_DIR/boot/"
 fi
