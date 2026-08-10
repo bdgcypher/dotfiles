@@ -57,3 +57,17 @@ for dir in */; do
 done
 
 echo "Stowing complete."
+
+# Enable Waybar systemd user service
+if command -v waybar &> /dev/null && systemctl --user enable --now waybar.service 2>/dev/null; then
+    echo "Waybar service enabled and started."
+else
+    echo "Note: Could not enable waybar.service (may need to run after login)."
+fi
+
+# Enable Voxtype systemd user service
+if command -v voxtype &> /dev/null && systemctl --user enable --now voxtype.service 2>/dev/null; then
+    echo "Voxtype service enabled and started."
+elif command -v voxtype &> /dev/null; then
+    echo "Note: Could not enable voxtype.service (may need to run after login)."
+fi

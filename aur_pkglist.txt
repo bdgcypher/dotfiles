@@ -37,4 +37,5 @@ walker
 walker-debug
 yay
 yay-debug
+voxtype-bin
 zoom

@@ -121,7 +121,6 @@ starship
 steam
 stow
 sudo
-sunshine
 swaync
 swayosd
 syncthing

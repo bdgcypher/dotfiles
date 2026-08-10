@@ -7,7 +7,7 @@
   "height": 26,
   "margin": "6 12 0 12",
   "modules-left": ["custom/menu", "hyprland/workspaces"],
-  "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screen-recording-indicator"],
+  "modules-center": ["clock", "custom/voxtype", "custom/screen-recording-indicator"],
   "modules-right": [
     "group/tray-expander",
     "bluetooth",
@@ -42,9 +42,8 @@
   },
   "custom/menu": {
     "format": "󱗼",
-    "on-click": "",
-    "on-click-right": "xdg-terminal-exec",
-    "tooltip-format": "Menu\n\nSuper + Space"
+    "on-click": "walker",
+    "tooltip-format": "Menu"
   },
   "memory": {
     "interval": 5,
@@ -135,6 +134,7 @@
     "on-click": "screen-record"
   },
   "custom/voxtype": {
+    "exec-if": "which voxtype-status",
     "exec": "voxtype-status",
     "return-type": "json",
     "format": "{icon}",

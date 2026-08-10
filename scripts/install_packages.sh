@@ -80,6 +80,14 @@ fi
 
 echo "Package installation complete."
 
+# Voxtype: systemd daemon setup
+echo "Setting up Voxtype systemd daemon..."
+if command -v voxtype &> /dev/null; then
+    voxtype setup systemd 2>/dev/null || echo "  Warning: voxtype setup systemd failed. Run manually: voxtype setup systemd"
+else
+    echo "  Voxtype not found, skipping systemd setup."
+fi
+
 # Flatpak: Mouseless
 echo "Setting up Mouseless via Flatpak..."
 if command -v flatpak &> /dev/null; then
