@@ -19,7 +19,7 @@ else
     SWAP_SIZE_MB=$((RAM_MB + 1024))
     echo "Detected ${RAM_MB}MB RAM. Creating ${SWAP_SIZE_MB}MB swap file..."
     sudo truncate -s 0 /swapfile
-    sudo chattr +C /swapfile
+    sudo chattr +C /swapfile 2>/dev/null || true  # CoW disable (Btrfs only, harmless otherwise)
     sudo dd if=/dev/zero of=/swapfile bs=1M count=$SWAP_SIZE_MB status=progress
     sudo chmod 600 /swapfile
     sudo mkswap /swapfile
@@ -153,7 +153,12 @@ if [[ -f "$SYSTEM_DIR/boot/limine.conf" ]]; then
     if [ -f /swapfile ]; then
         # Ensure swap is on for offset calculation
         sudo swapon /swapfile 2>/dev/null || true
-        RESUME_OFFSET=$(sudo btrfs inspect-internal map-swapfile -r /swapfile)
+        # Btrfs requires a special offset lookup; other filesystems use 0
+        if [ "$(findmnt / -n -o FSTYPE)" = "btrfs" ]; then
+            RESUME_OFFSET=$(sudo btrfs inspect-internal map-swapfile -r /swapfile)
+        else
+            RESUME_OFFSET=0
+        fi
     else
         RESUME_OFFSET=0
     fi

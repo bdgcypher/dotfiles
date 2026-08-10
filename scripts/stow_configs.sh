@@ -28,7 +28,9 @@ for dir in */; do
     # Robust Conflict Handling Logic:
     # We only look for potential conflicts in the HOME directory.
     # We NEVER modify files inside the $DOTFILES_DIR itself.
-    find "$dir" -type f | while read -r file; do
+    # Include both files and symlinks — stow packages may contain symlinks
+    # (e.g., systemd .wants/ entries) that need conflict resolution too.
+    find "$dir" \( -type f -o -type l \) | while read -r file; do
         rel_path="${file#$dir/}"
         target="$HOME/$rel_path"
         
@@ -70,4 +72,12 @@ if command -v voxtype &> /dev/null && systemctl --user enable --now voxtype.serv
     echo "Voxtype service enabled and started."
 elif command -v voxtype &> /dev/null; then
     echo "Note: Could not enable voxtype.service (may need to run after login)."
+fi
+
+# Re-enable Sunshine systemd user service (its .wants symlink gets cleaned
+# up by conflict handling since it's excluded from stow via .stow-local-ignore)
+if command -v sunshine &> /dev/null && systemctl --user enable --now app-dev.lizardbyte.app.Sunshine.service 2>/dev/null; then
+    echo "Sunshine service enabled and started."
+elif command -v sunshine &> /dev/null; then
+    echo "Note: Could not enable Sunshine service (may need to run after login)."
 fi
