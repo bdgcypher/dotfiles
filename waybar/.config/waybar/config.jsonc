@@ -134,7 +134,6 @@
     "on-click": "screen-record"
   },
   "custom/voxtype": {
-    "exec-if": "which voxtype-status",
     "exec": "voxtype-status",
     "return-type": "json",
     "format": "{icon}",

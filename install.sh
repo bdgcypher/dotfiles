@@ -41,7 +41,7 @@ case $choice in
             while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
             
             "$SCRIPTS_DIR/install_packages.sh"
-            "$SCRIPTS_DIR/setup_gpu.sh"
+            "$SCRIPTS_DIR/setup_gpu.sh" || echo "WARNING: GPU driver setup failed, continuing with remaining steps..."
             "$SCRIPTS_DIR/setup_services.sh"
             "$SCRIPTS_DIR/setup_timezone.sh"
             "$SCRIPTS_DIR/stow_configs.sh"

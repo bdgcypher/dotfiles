@@ -71,7 +71,39 @@ if [ "$GPU_TYPE" != "unknown" ]; then
     # All NVIDIA driver packages are in official repos — use pacman directly
     # to avoid AUR rebuild issues with leftover legacy packages
     if [ "$GPU_TYPE" == "nvidia" ]; then
-        sudo pacman -S --noconfirm "${DRIVERS[@]}"
+        # Sync package databases first — the 'nvidia' package can temporarily
+        # disappear from mirrors when the kernel updates before it's rebuilt.
+        echo "Syncing package databases..."
+        sudo pacman -Sy --noconfirm
+
+        # Check if the pre-built 'nvidia' package is available.
+        # If not (e.g., kernel updated ahead of nvidia rebuild), fall back to nvidia-dkms.
+        if [[ " ${DRIVERS[*]} " == *" nvidia "* ]] && ! pacman -Si nvidia &>/dev/null; then
+            echo "Pre-built 'nvidia' package not available (likely kernel update in progress)."
+            echo "Falling back to nvidia-dkms..."
+            NEW_DRIVERS=()
+            for drv in "${DRIVERS[@]}"; do
+                if [ "$drv" == "nvidia" ]; then
+                    NEW_DRIVERS+=("nvidia-dkms")
+                else
+                    NEW_DRIVERS+=("$drv")
+                fi
+            done
+            DRIVERS=("${NEW_DRIVERS[@]}")
+            echo "Adjusted driver list: ${DRIVERS[*]}"
+        fi
+
+        sudo pacman -S --noconfirm "${DRIVERS[@]}" || {
+            echo ""
+            echo "============================================"
+            echo "  WARNING: GPU driver installation failed!"
+            echo "  Your GPU may not work until drivers are"
+            echo "  installed manually. Run option 4 later:"
+            echo "    ./install.sh  (then select option 4)"
+            echo "============================================"
+            echo ""
+            exit 1
+        }
     else
         yay -S --needed --noconfirm "${DRIVERS[@]}"
     fi
