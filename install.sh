@@ -5,6 +5,7 @@
 set -e
 
 SCRIPTS_DIR="$(dirname "$(realpath "$0")")/scripts"
+DOTFILES_DIR="$(dirname "$(realpath "$0")")"
 
 # Ensure scripts are executable
 chmod +x "$SCRIPTS_DIR"/*.sh

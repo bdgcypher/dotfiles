@@ -19,7 +19,7 @@ for dir in */; do
     dir=${dir%/} # Remove trailing slash
     
     # Check if directory is in exclude list
-    if [[ " ${EXCLUDE[@]} " =~ " ${dir} " ]]; then
+    if [[ " ${EXCLUDE[*]} " == *" $dir "* ]]; then
         continue
     fi
 
