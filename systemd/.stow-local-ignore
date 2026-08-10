@@ -1,0 +1,2 @@
+# Exclude Sunshine symlinks that point to /usr/lib/ (system-installed, can't be relative)
+.*[Ss]unshine.*
