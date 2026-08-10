@@ -8,5 +8,5 @@
     "splashTheming": true,
     "enableSplashScreen": false,
     "splashColor": "rgb(220, 220, 223)",
-    "splashBackground": "color(srgb 0.106667 0.116078 0.147451)"
+    "splashBackground": "color(srgb 0.0345098 0.0784314 0.0784314)"
 }
