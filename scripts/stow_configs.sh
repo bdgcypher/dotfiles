@@ -72,27 +72,27 @@ GTK_THEME="/usr/share/themes/Materia-dark-compact/gtk-4.0"
 
 # btop
 mkdir -p "$(dirname "$HOME/.config/btop/themes/current.theme")"
-ln -sf "$PYWAL/btop.theme"             "$HOME/.config/btop/themes/current.theme"
+ln -sfn "$PYWAL/btop.theme"             "$HOME/.config/btop/themes/current.theme"
 # cava
 mkdir -p "$(dirname "$HOME/.config/cava/themes/pywal")"
-ln -sf "$PYWAL/colors-cava.conf"       "$HOME/.config/cava/themes/pywal"
+ln -sfn "$PYWAL/colors-cava.conf"       "$HOME/.config/cava/themes/pywal"
 # gazelle
 mkdir -p "$(dirname "$HOME/.config/gazelle/theme.toml")"
-ln -sf "$PYWAL/colors-gazelle.toml"    "$HOME/.config/gazelle/theme.toml"
+ln -sfn "$PYWAL/colors-gazelle.toml"    "$HOME/.config/gazelle/theme.toml"
 # kvantum
 mkdir -p "$(dirname "$HOME/.config/Kvantum/pywal/pywal.kvconfig")"
-ln -sf "$PYWAL/pywal.kvconfig"         "$HOME/.config/Kvantum/pywal/pywal.kvconfig"
-ln -sf "$PYWAL/pywal.svg"              "$HOME/.config/Kvantum/pywal/pywal.svg"
+ln -sfn "$PYWAL/pywal.kvconfig"         "$HOME/.config/Kvantum/pywal/pywal.kvconfig"
+ln -sfn "$PYWAL/pywal.svg"              "$HOME/.config/Kvantum/pywal/pywal.svg"
 # ghostty theme
 mkdir -p "$(dirname "$HOME/.config/theme/ghostty.conf")"
-ln -sf "$PYWAL/colors-ghostty.conf"    "$HOME/.config/theme/ghostty.conf"
+ln -sfn "$PYWAL/colors-ghostty.conf"    "$HOME/.config/theme/ghostty.conf"
 # wallpaper
 mkdir -p "$(dirname "$HOME/.config/theme/current_wallpaper")"
-ln -sf "$HOME/Wallpapers/TN1.png"      "$HOME/.config/theme/current_wallpaper"
+ln -sfn "$HOME/Wallpapers/TN1.png"      "$HOME/.config/theme/current_wallpaper"
 # gtk-4.0 Materia theme
 mkdir -p "$(dirname "$HOME/.config/gtk-4.0/gtk.css")"
-ln -sf "$GTK_THEME/gtk.css"            "$HOME/.config/gtk-4.0/gtk.css"
-ln -sf "$GTK_THEME/assets"             "$HOME/.config/gtk-4.0/assets"
+ln -sfn "$GTK_THEME/gtk.css"            "$HOME/.config/gtk-4.0/gtk.css"
+ln -sfn "$GTK_THEME/assets"             "$HOME/.config/gtk-4.0/assets"
 
 echo "Theme symlinks created."
 
