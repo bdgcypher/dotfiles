@@ -1,0 +1,2 @@
+# Pywal cache symlink — created as absolute symlink in post-stow hook
+\.config/gazelle/theme\.toml

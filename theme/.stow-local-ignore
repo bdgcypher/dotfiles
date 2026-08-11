@@ -1,0 +1,4 @@
+# Theme symlinks — created as absolute symlinks in post-stow hook
+# because stow's directory symlinks change physical path depth.
+\.config/theme/ghostty\.conf
+\.config/theme/current_wallpaper

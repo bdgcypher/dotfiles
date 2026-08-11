@@ -1,0 +1,3 @@
+# Pywal cache symlinks — created as absolute symlinks in post-stow hook
+\.config/Kvantum/pywal/pywal\.kvconfig
+\.config/Kvantum/pywal/pywal\.svg

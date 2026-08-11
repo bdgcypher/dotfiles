@@ -60,6 +60,42 @@ done
 
 echo "Stowing complete."
 
+# Post-stow: Create absolute symlinks for pywal cache themes, GTK theme, and wallpaper.
+# These MUST be absolute because stow creates directory symlinks (e.g.,
+# ~/.config/btop -> ~/.dotfiles/btop/.config/btop) which changes the physical
+# path depth, causing relative symlinks (../../../.cache/wal/...) to resolve
+# incorrectly through the .dotfiles tree instead of from $HOME.
+echo "Creating pywal/theme absolute symlinks..."
+
+PYWAL="$HOME/.cache/wal"
+GTK_THEME="/usr/share/themes/Materia-dark-compact/gtk-4.0"
+
+# btop
+mkdir -p "$(dirname "$HOME/.config/btop/themes/current.theme")"
+ln -sf "$PYWAL/btop.theme"             "$HOME/.config/btop/themes/current.theme"
+# cava
+mkdir -p "$(dirname "$HOME/.config/cava/themes/pywal")"
+ln -sf "$PYWAL/colors-cava.conf"       "$HOME/.config/cava/themes/pywal"
+# gazelle
+mkdir -p "$(dirname "$HOME/.config/gazelle/theme.toml")"
+ln -sf "$PYWAL/colors-gazelle.toml"    "$HOME/.config/gazelle/theme.toml"
+# kvantum
+mkdir -p "$(dirname "$HOME/.config/Kvantum/pywal/pywal.kvconfig")"
+ln -sf "$PYWAL/pywal.kvconfig"         "$HOME/.config/Kvantum/pywal/pywal.kvconfig"
+ln -sf "$PYWAL/pywal.svg"              "$HOME/.config/Kvantum/pywal/pywal.svg"
+# ghostty theme
+mkdir -p "$(dirname "$HOME/.config/theme/ghostty.conf")"
+ln -sf "$PYWAL/colors-ghostty.conf"    "$HOME/.config/theme/ghostty.conf"
+# wallpaper
+mkdir -p "$(dirname "$HOME/.config/theme/current_wallpaper")"
+ln -sf "$HOME/Wallpapers/TN1.png"      "$HOME/.config/theme/current_wallpaper"
+# gtk-4.0 Materia theme
+mkdir -p "$(dirname "$HOME/.config/gtk-4.0/gtk.css")"
+ln -sf "$GTK_THEME/gtk.css"            "$HOME/.config/gtk-4.0/gtk.css"
+ln -sf "$GTK_THEME/assets"             "$HOME/.config/gtk-4.0/assets"
+
+echo "Theme symlinks created."
+
 # Enable Waybar systemd user service
 if command -v waybar &> /dev/null && systemctl --user enable --now waybar.service 2>/dev/null; then
     echo "Waybar service enabled and started."
