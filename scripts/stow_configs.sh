@@ -103,6 +103,14 @@ else
     echo "Note: Could not enable waybar.service (may need to run after login)."
 fi
 
+# Enable Syncthing systemd user service (preferred over Hyprland exec-once —
+# starts at login, survives compositor restarts, and has built-in restart logic)
+if command -v syncthing &> /dev/null && systemctl --user enable --now syncthing.service 2>/dev/null; then
+    echo "Syncthing service enabled and started."
+elif command -v syncthing &> /dev/null; then
+    echo "Note: Could not enable syncthing.service (may need to run after login)."
+fi
+
 # Enable Voxtype systemd user service
 if command -v voxtype &> /dev/null && systemctl --user enable --now voxtype.service 2>/dev/null; then
     echo "Voxtype service enabled and started."
