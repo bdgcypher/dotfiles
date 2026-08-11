@@ -1,2 +1,4 @@
 # Exclude Electron singleton runtime lock files — these are created by the app at runtime
 Singleton*
+# Exclude pywal-generated theme — regenerated per-machine by wal -R
+pywal-vencord\.theme\.css

@@ -67,6 +67,8 @@
 bitwarden/.config/Bitwarden/
 gh/.config/gh/
 vesktop/.config/vesktop/sessionData/
+vesktop/.config/vesktop/state.json
+vesktop/.config/vesktop/themes/pywal-vencord.theme.css
 chromium/.config/chromium/
 mozilla/.config/mozilla/firefox/
 slack/.config/Slack/
