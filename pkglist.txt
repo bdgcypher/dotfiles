@@ -190,6 +190,7 @@ walker
 waybar
 wev
 wf-record
+wiremix
 wireplumber
 wl-clipboard
 woff2-font-awesome
