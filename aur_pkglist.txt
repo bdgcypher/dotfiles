@@ -6,6 +6,7 @@ daisy
 daisy-debug
 elephant-all-git
 elephant-all-git-debug
+freebuff-bin
 gazelle-tui
 gradience
 iriunwebcam-bin

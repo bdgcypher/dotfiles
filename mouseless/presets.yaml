@@ -1,0 +1,57 @@
+app_version: 1.0.0
+classname: PresetColl
+name: ''
+preset_data:
+  grid_configs:
+    Hayami:
+    - always_show_subgrid: false
+      grid_defn:
+      - border_width: 0
+        callback: build_cell_strings
+        keys: QWDFG JUKYP ASERT HNIOL ZXCVB ;M,./
+        num_cells_x: 16
+        num_cells_y: 1
+      - border_width: 1
+        callback: build_cell_strings
+        keys: QWDFG JUKYP ASERT HNIOL ZXCVB ;M,./
+        num_cells_x: 1
+        num_cells_y: 30
+      - border_width: 0
+        callback: apply_strings_and_subgrid_to_cells
+        keys: ''
+        num_cells_x: 2
+        num_cells_y: 1
+      hold_subgrid_key_for_nudge: true
+      name: position_based_columns
+      nudges_per_cell: 4
+      strategy: subgrid
+      subgrid_dims:
+      - 10
+      - 3
+      subgrid_mouse_action_keys: QWDFG JUKYP ASERT HNIOL ZXCVB ;M,./
+    QWERTY:
+    - always_show_subgrid: false
+      grid_defn:
+      - border_width: 0
+        callback: build_cell_strings
+        keys: QWERT YUIOP ASDFG HJKL; ZXCVB NM,./
+        num_cells_x: 16
+        num_cells_y: 1
+      - border_width: 1
+        callback: build_cell_strings
+        keys: QWERT YUIOP ASDFG HJKL; ZXCVB NM,./m
+        num_cells_x: 1
+        num_cells_y: 30
+      - border_width: 0
+        callback: apply_strings_and_subgrid_to_cells
+        keys: ''
+        num_cells_x: 2
+        num_cells_y: 1
+      hold_subgrid_key_for_nudge: true
+      name: position_based_columns
+      nudges_per_cell: 4
+      strategy: subgrid
+      subgrid_dims:
+      - 10
+      - 3
+      subgrid_mouse_action_keys: QWERT YUIOP ASDFG HJKL; ZXCVB NM,./
