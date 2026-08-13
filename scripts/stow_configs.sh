@@ -8,7 +8,9 @@ DOTFILES_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
 BACKUP_DIR="$HOME/.dotfiles.bak/$(date +%Y%m%d_%H%M%S)"
 
 # List of folders to exclude from stowing
-EXCLUDE=("scripts" ".git" "system" "yay" "gh" "bitwarden" "mozilla")
+# 'mouseless' is excluded because its files are copied into the flatpak app's
+# data dir by install_packages.sh, not symlinked into $HOME.
+EXCLUDE=("scripts" ".git" "system" "yay" "gh" "bitwarden" "mozilla" "mouseless")
 
 echo "Starting configuration stowing..."
 echo "Backups (if any) will be stored in: $BACKUP_DIR"

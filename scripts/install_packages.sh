@@ -106,6 +106,15 @@ if command -v flatpak &> /dev/null; then
         cp "$CONFIG_SRC" "$CONFIG_DST"
         echo "Mouseless config installed."
     fi
+    # Copy Mouseless presets into flatpak app data (presets live in a
+    # sibling 'presets' directory, not 'configs')
+    PRESETS_SRC="$DOTFILES_DIR/mouseless/presets.yaml"
+    PRESETS_DST="$HOME/.var/app/net.sonuscape.mouseless/data/mouseless/presets/presets.yaml"
+    if [ -f "$PRESETS_SRC" ]; then
+        mkdir -p "$(dirname "$PRESETS_DST")"
+        cp "$PRESETS_SRC" "$PRESETS_DST"
+        echo "Mouseless presets installed."
+    fi
 else
     echo "Warning: flatpak not found. Skipping Mouseless install."
 fi
