@@ -55,3 +55,62 @@ preset_data:
       - 10
       - 3
       subgrid_mouse_action_keys: QWERT YUIOP ASDFG HJKL; ZXCVB NM,./
+  style_configs.0.text:
+    1080p Monitor:
+      char_anchor: center
+      char_display: all
+      char_spacing_cell_width_ratio: 0.5
+      char_spacing_font_size_ratio: 0.5
+      char_spacing_strategy: cell_width_relative
+      font_size_multiplier: 0.4
+      font_weight: 600
+      subgrid_font_size_multiplier: 0.75
+      subgrid_text_rgba:
+      - 1
+      - 1
+      - 1
+      - 0.5
+      text_rgba:
+      - 1
+      - 1
+      - 1
+      - 1
+      text_shadow_blur_radius: 4
+      text_shadow_offset:
+      - 0
+      - 0
+      text_shadow_rgba:
+      - 0.02
+      - 0.04
+      - 0.06
+      - 1
+      text_y_offset: 0
+    4K Monitor:
+      char_anchor: center
+      char_display: all
+      char_spacing_cell_width_ratio: 0.5
+      char_spacing_font_size_ratio: 0.5
+      char_spacing_strategy: cell_width_relative
+      font_size_multiplier: 0.3
+      font_weight: 500
+      subgrid_font_size_multiplier: 0.75
+      subgrid_text_rgba:
+      - 1
+      - 1
+      - 1
+      - 0.5
+      text_rgba:
+      - 1
+      - 1
+      - 1
+      - 1
+      text_shadow_blur_radius: 4
+      text_shadow_offset:
+      - 0
+      - 0
+      text_shadow_rgba:
+      - 0.02
+      - 0.04
+      - 0.06
+      - 1
+      text_y_offset: 0
