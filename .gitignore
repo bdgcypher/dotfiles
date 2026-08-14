@@ -76,3 +76,6 @@ slack/.config/Slack/
 
 # System
 system_snapshot.txt
+
+# uwsm runtime state (written via the ~/.config/uwsm stow symlink)
+uwsm/.config/uwsm/default-id
