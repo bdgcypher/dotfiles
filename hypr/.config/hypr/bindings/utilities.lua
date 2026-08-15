@@ -11,7 +11,7 @@ hl.bind("XF86Calculator", hl.dsp.exec_cmd("gnome-calculator"), { description = "
 
 hl.bind("SUPER + CTRL + SPACE", hl.dsp.exec_cmd("~/.local/bin/set-random-wallpaper"), { description = "Set random background and generate theme colors" })
 
-hl.bind("SUPER + BACKSPACE", hl.dsp.exec_cmd([[hyprctl dispatch setprop "address:$(hyprctl activewindow -j | jq -r '.address')" opaque toggle]]), { description = "Toggle window transparency" })
+hl.bind("SUPER + BACKSPACE", hl.dsp.window.set_prop({ prop = "opaque", value = "toggle" }), { description = "Toggle window transparency" })
 
 
 -- Notifications
@@ -81,6 +81,6 @@ hl.bind("SUPER + L", hl.dsp.exec_cmd("hyprlock"), { description = "Lock system" 
 
 -- Turn off laptop screen if docked
 
-hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd([[bash -c '[ $(hyprctl monitors | grep -c "^Monitor") -gt 1 ] && hyprctl keyword monitor "eDP-1, disable"']]), { locked = true, description = "Disable internal display on lid close if external monitor attached" })
+hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd([[test "$(hyprctl monitors | grep -c '^Monitor')" -gt 1 && hyprctl eval 'hl.monitor({output="eDP-1",disabled=true})']]), { locked = true, description = "Disable internal display on lid close if external monitor attached" })
 
-hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd([[hyprctl keyword monitor "eDP-1, preferred, auto, 1"]]), { locked = true, description = "Re-enable internal display on lid open" })
+hl.bind("switch:off:Lid Switch", hl.dsp.exec_cmd([[hyprctl eval 'hl.monitor({output="eDP-1",disabled=false})']]), { locked = true, description = "Re-enable internal display on lid open" })

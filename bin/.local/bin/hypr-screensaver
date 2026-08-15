@@ -26,8 +26,8 @@ show_osd() {
   fi
 }
 
-hide_cursor() { hyprctl keyword cursor:invisible true  2>/dev/null || true; }
-show_cursor() { hyprctl keyword cursor:invisible false 2>/dev/null || true; }
+hide_cursor() { hyprctl eval 'hl.config({cursor={invisible=true}})'  2>/dev/null || true; }
+show_cursor() { hyprctl eval 'hl.config({cursor={invisible=false}})' 2>/dev/null || true; }
 
 is_running() { pgrep -f "hypr-screensaver run" >/dev/null 2>&1; }
 
@@ -41,7 +41,7 @@ stop() {
   hyprctl clients -j 2>/dev/null \
     | jq -r ".[] | select(.class == \"$CLASS\") | .address" 2>/dev/null \
     | while IFS= read -r addr; do
-        [ -n "$addr" ] && hyprctl dispatch closewindow "address:$addr" 2>/dev/null
+        [ -n "$addr" ] && hyprctl dispatch "hl.dsp.window.close({window=\"address:$addr\"})" 2>/dev/null
       done
 }
 
@@ -59,12 +59,12 @@ start() {
 
   local m
   for m in $(hyprctl monitors -j 2>/dev/null | jq -r '.[].name' 2>/dev/null); do
-    hyprctl dispatch focusmonitor "$m" 2>/dev/null
-    hyprctl dispatch exec -- "$TERM_BIN --class=$CLASS --gtk-single-instance=false --background=#000000 --window-padding-x=0 --window-padding-y=0 --window-padding-color=extend-always --font-size=$FONT_SIZE -e hypr-screensaver run" 2>/dev/null
+    hyprctl dispatch "hl.dsp.focus({monitor=\"$m\"})" 2>/dev/null
+    hyprctl dispatch "hl.dsp.exec_cmd(\"$TERM_BIN --class=$CLASS --gtk-single-instance=false --background=#000000 --window-padding-x=0 --window-padding-y=0 --window-padding-color=extend-always --font-size=$FONT_SIZE -e hypr-screensaver run\")" 2>/dev/null
     sleep 0.6
   done
 
-  [ -n "$original" ] && hyprctl dispatch focusmonitor "$original" 2>/dev/null
+  [ -n "$original" ] && hyprctl dispatch "hl.dsp.focus({monitor=\"$original\"})" 2>/dev/null
 }
 
 toggle() {
