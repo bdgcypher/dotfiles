@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Toggle the active workspace's layout between dwindle and scrolling.
+
+show_osd() {
+  local msg="$1"
+  if command -v swayosd-client &>/dev/null; then
+    swayosd-client --custom-message "$msg" --custom-icon "view-grid-symbolic"
+  else
+    notify-send "Workspace layout" "$msg" -i "view-grid-symbolic" -t 2000 -a "hypr-toggle-layout"
+  fi
+}
+
+ws="$(hyprctl activeworkspace -j)"
+current="$(printf '%s' "$ws" | jq -r '.tiledLayout')"
+ws_id="$(printf '%s' "$ws" | jq -r '.id')"
+
+case "$current" in
+  dwindle) new="scrolling" ;;
+  *)       new="dwindle" ;;
+esac
+
+hyprctl keyword workspace "$ws_id", layout:"$new"
+show_osd "Workspace layout: $new"

@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+# uwsm env — general environment variables (sourced by uwsm at session start).
+#
+# These replace the old `env = KEY,value` lines that lived in
+# hypr/.config/hypr/envs.conf and hyprland.conf. Hyprland docs advise uwsm
+# users to keep env vars here rather than in hyprland.lua.
+
+# Path
+export PATH="$HOME/.local/bin/:$PATH"
+
+# Cursor
+export XCURSOR_SIZE=30
+export HYPRCURSOR_SIZE=24
+export XCURSOR_THEME=BreezeX-Black
+
+# Force all apps to use Wayland
+export GDK_BACKEND='wayland,x11,*'
+export QT_QPA_PLATFORM='wayland;xcb'
+export QT_STYLE_OVERRIDE=kvantum
+export SDL_VIDEODRIVER='wayland,x11'
+export MOZ_ENABLE_WAYLAND=1
+export ELECTRON_OZONE_PLATFORM_HINT=wayland
+export OZONE_PLATFORM=wayland
+export XDG_SESSION_TYPE=wayland
+
+# Allow better support for screen sharing (Google Meet, Discord, etc)
+export XDG_CURRENT_DESKTOP=Hyprland
+export XDG_SESSION_DESKTOP=Hyprland
+
+# Use XCompose file
+export XCOMPOSEFILE="$HOME/.XCompose"
+
+# GTK and Qt apps theming
+export GTK_THEME=Materia-dark-compact
+export QT_QPA_PLATFORMTHEME=qt6ct
+
+# Keep GTK apps from double-scaling
+export GDK_SCALE=0.9

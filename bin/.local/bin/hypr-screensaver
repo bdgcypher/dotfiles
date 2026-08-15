@@ -1,0 +1,122 @@
+#!/usr/bin/env bash
+# Hyprland screensaver: animate the fastfetch logo with random TTE effects,
+# one fullscreen instance per monitor. Dismiss with any key, mouse activity
+# (via hypridle on-resume), or by toggling the keybind again.
+#
+# Usage:
+#   hypr-screensaver            # toggle (start if stopped, stop if running)
+#   hypr-screensaver start      # start (idempotent)
+#   hypr-screensaver stop       # stop
+#   hypr-screensaver run        # (internal) the per-terminal animation loop
+
+set -u
+
+CLASS="${HYPR_SCREENSAVER_CLASS:-org.hypr.screensaver}"
+LOGO="${HYPR_SCREENSAVER_LOGO:-$HOME/.config/fastfetch/archlogo.txt}"
+TTE_BIN="${HYPR_SCREENSAVER_TTE:-tte}"
+TERM_BIN="${HYPR_SCREENSAVER_TERM:-ghostty}"
+FONT_SIZE="${HYPR_SCREENSAVER_FONT_SIZE:-18}"
+
+show_osd() {
+  local msg="$1"
+  if command -v swayosd-client >/dev/null 2>&1; then
+    swayosd-client --custom-message "$msg" --custom-icon "preferences-desktop-screensaver" 2>/dev/null
+  else
+    notify-send "Screensaver" "$msg" -i "preferences-desktop-screensaver" -t 2000 -a "hypr-screensaver" 2>/dev/null
+  fi
+}
+
+hide_cursor() { hyprctl keyword cursor:invisible true  2>/dev/null || true; }
+show_cursor() { hyprctl keyword cursor:invisible false 2>/dev/null || true; }
+
+is_running() { pgrep -f "hypr-screensaver run" >/dev/null 2>&1; }
+
+stop() {
+  show_cursor
+  # Kill the per-terminal loops and the ghostty processes that launched them.
+  # Each loop's EXIT trap reaps its tte child, and a ghostty window closes
+  # automatically when its -e command exits.
+  pkill -f "hypr-screensaver run" 2>/dev/null
+  # Belt-and-suspenders: close any lingering screensaver windows.
+  hyprctl clients -j 2>/dev/null \
+    | jq -r ".[] | select(.class == \"$CLASS\") | .address" 2>/dev/null \
+    | while IFS= read -r addr; do
+        [ -n "$addr" ] && hyprctl dispatch closewindow "address:$addr" 2>/dev/null
+      done
+}
+
+start() {
+  is_running && return 0
+
+  command -v "$TTE_BIN" >/dev/null 2>&1 || {
+    show_osd "TTE not installed (yay -S python-terminaltexteffects)"
+    return 1
+  }
+  [ -f "$LOGO" ] || { show_osd "Logo not found: $LOGO"; return 1; }
+
+  local original
+  original=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.focused) | .name' 2>/dev/null)
+
+  local m
+  for m in $(hyprctl monitors -j 2>/dev/null | jq -r '.[].name' 2>/dev/null); do
+    hyprctl dispatch focusmonitor "$m" 2>/dev/null
+    hyprctl dispatch exec -- "$TERM_BIN --class=$CLASS --gtk-single-instance=false --background=#000000 --window-padding-x=0 --window-padding-y=0 --window-padding-color=extend-always --font-size=$FONT_SIZE -e hypr-screensaver run" 2>/dev/null
+    sleep 0.6
+  done
+
+  [ -n "$original" ] && hyprctl dispatch focusmonitor "$original" 2>/dev/null
+}
+
+toggle() {
+  if is_running; then stop; else start; fi
+}
+
+# --- internal: the animation loop running inside each fullscreen terminal ---
+run() {
+  printf '\033]11;rgb:00/00/00\007'   # black background
+  hide_cursor
+
+  local art tte_pid=0
+  # Strip fastfetch's $1/$2 color markers. They're theme-dependent tokens, so
+  # we don't hard-code colors; tte applies its own default effect colors.
+  art=$(sed -e 's/\$1//g' -e 's/\$2//g' "$LOGO" 2>/dev/null)
+
+  cleanup() {
+    [ "$tte_pid" -gt 0 ] && kill "$tte_pid" 2>/dev/null
+    show_cursor
+  }
+  trap cleanup EXIT
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+  trap 'exit 129' HUP
+
+  # Terminals allocate an 80x24 pty and only resize it once the compositor has
+  # fullscreened the window; tte measures the terminal once at startup, so wait
+  # for the resize to land before starting the first effect.
+  local deadline=$((SECONDS + 2))
+  while ((SECONDS < deadline)) && [[ $(stty size 2>/dev/null) == "24 80" ]]; do
+    sleep 0.02
+  done
+
+  while true; do
+    printf '%s\n' "$art" | "$TTE_BIN" -R \
+      --frame-rate 120 --canvas-width 0 --canvas-height 0 \
+      --reuse-canvas --anchor-canvas c --anchor-text c \
+      --no-eol --no-restore-cursor --terminal-background-color 000000 &
+    tte_pid=$!
+
+    while kill -0 "$tte_pid" 2>/dev/null; do
+      if read -r -n1 -t 1; then
+        exit 0   # any keypress dismisses the screensaver
+      fi
+    done
+  done
+}
+
+case "${1:-toggle}" in
+  start)  start ;;
+  stop)   stop ;;
+  run)    run ;;
+  toggle) toggle ;;
+  *) printf 'usage: hypr-screensaver [start|stop|toggle|run]\n' >&2; exit 1 ;;
+esac

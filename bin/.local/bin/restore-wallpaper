@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Start awww-daemon once the compositor is ready, then restore the last wallpaper.
+#
+# awww-daemon (0.12.x) crashes with SIGABRT on Hyprland when it starts too
+# early in the session (before the compositor/monitor is fully initialized).
+# Waiting for the monitor, then the daemon socket, avoids that race.
+
+# 1. Wait for the compositor to expose at least one monitor.
+for _ in $(seq 1 50); do
+    hyprctl monitors -j 2>/dev/null | grep -q '"name"' && break
+    sleep 0.2
+done
+
+# 2. Start the daemon if not already running.
+pgrep -x awww-daemon >/dev/null 2>&1 || awww-daemon &
+
+# 3. Wait for the daemon socket to be ready.
+for _ in $(seq 1 50); do
+    awww query >/dev/null 2>&1 && break
+    sleep 0.2
+done
+
+# 4. Restore the last wallpaper.
+awww img ~/.config/theme/current_wallpaper

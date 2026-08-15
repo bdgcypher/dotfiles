@@ -27,6 +27,7 @@ python-material-color-utilities
 python-pywal16
 python-pywalfox
 python-screeninfo
+python-terminaltexteffects
 python-yapsy-git
 slack-desktop
 sunshine-bin
