@@ -85,9 +85,9 @@ ln -sfn "$PYWAL/colors-gazelle.toml"    "$HOME/.config/gazelle/theme.toml"
 mkdir -p "$(dirname "$HOME/.config/Kvantum/pywal/pywal.kvconfig")"
 ln -sfn "$PYWAL/pywal.kvconfig"         "$HOME/.config/Kvantum/pywal/pywal.kvconfig"
 ln -sfn "$PYWAL/pywal.svg"              "$HOME/.config/Kvantum/pywal/pywal.svg"
-# ghostty theme
-mkdir -p "$(dirname "$HOME/.config/theme/ghostty.conf")"
-ln -sfn "$PYWAL/colors-ghostty.conf"    "$HOME/.config/theme/ghostty.conf"
+# ghostty theme (loaded via `theme = pywal` in ghostty/config)
+mkdir -p "$HOME/.config/ghostty/themes"
+ln -sfn "$PYWAL/colors-ghostty.conf"    "$HOME/.config/ghostty/themes/pywal"
 # wallpaper
 mkdir -p "$(dirname "$HOME/.config/theme/current_wallpaper")"
 ln -sfn "$HOME/Wallpapers/TN1.png"      "$HOME/.config/theme/current_wallpaper"

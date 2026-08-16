@@ -1,0 +1,43 @@
+# Default Working Directory
+working-directory = home
+window-inherit-working-directory = true
+gtk-single-instance = true
+
+# Dynamic theme colors (pywal theme, loaded first to avoid startup flash)
+theme = pywal
+
+# Font
+font-family = "JetBrainsMono Nerd Font Mono"
+font-style = Regular
+font-size = 12
+
+# Fallback for asian fonts like Japanese
+font-family = "Noto Sans Mono CJK JP"
+font-codepoint-map = U+FF61-U+FF9F=Noto Sans Mono CJK JP # Map Half-width Katakana range (U+FF61 to U+FF9F)
+
+
+# Window
+window-theme = ghostty
+window-padding-x = 14
+window-padding-y = 14
+confirm-close-surface=false
+resize-overlay = never
+gtk-toolbar-style = flat
+
+# Cursor styling
+cursor-style = "underline"
+cursor-style-blink = true
+
+# Keyboard bindings
+keybind = shift+insert=paste_from_clipboard
+keybind = control+insert=copy_to_clipboard
+keybind = super+control+shift+alt+arrow_down=resize_split:down,100
+keybind = super+control+shift+alt+arrow_up=resize_split:up,100
+keybind = super+control+shift+alt+arrow_left=resize_split:left,100
+keybind = super+control+shift+alt+arrow_right=resize_split:right,100
+
+# Slowdown mouse scrolling
+mouse-scroll-multiplier = 1.25
+
+# Fix general slowness on hyprland (https://github.com/ghostty-org/ghostty/discussions/3224)
+async-backend = epoll
