@@ -80,7 +80,9 @@ start() {
   local m
   for m in $(hyprctl monitors -j 2>/dev/null | jq -r '.[].name' 2>/dev/null); do
     hyprctl dispatch "hl.dsp.focus({monitor=\"$m\"})" 2>/dev/null
-    hyprctl dispatch "hl.dsp.exec_cmd(\"$TERM_BIN --class=$CLASS --gtk-single-instance=false --background=#000000 --window-padding-x=0 --window-padding-y=0 --window-padding-color=extend-always --font-size=$FONT_SIZE -e hypr-screensaver run\")" 2>/dev/null
+    # --scrollbar=never: hide Ghostty's native scrollbar (default is "system",
+    # which shows one on GTK when the terminal content overflows the window).
+    hyprctl dispatch "hl.dsp.exec_cmd(\"$TERM_BIN --class=$CLASS --gtk-single-instance=false --background=#000000 --window-padding-x=0 --window-padding-y=0 --window-padding-color=extend-always --font-size=$FONT_SIZE --scrollbar=never -e hypr-screensaver run\")" 2>/dev/null
     sleep 0.6
   done
 
