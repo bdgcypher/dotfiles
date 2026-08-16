@@ -69,6 +69,8 @@ gh/.config/gh/
 vesktop/.config/vesktop/sessionData/
 vesktop/.config/vesktop/state.json
 vesktop/.config/vesktop/themes/pywal-vencord.theme.css
+# Local theme state (pywal-generated / machine-specific, created by post-stow hook)
+theme/.config/theme/current_wallpaper
 chromium/.config/chromium/
 mozilla/.config/mozilla/firefox/
 slack/.config/Slack/

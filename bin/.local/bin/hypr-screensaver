@@ -16,6 +16,8 @@ LOGO="${HYPR_SCREENSAVER_LOGO:-$HOME/.config/fastfetch/archlogo.txt}"
 TTE_BIN="${HYPR_SCREENSAVER_TTE:-tte}"
 TERM_BIN="${HYPR_SCREENSAVER_TERM:-ghostty}"
 FONT_SIZE="${HYPR_SCREENSAVER_FONT_SIZE:-18}"
+STATE="${HYPR_SCREENSAVER_STATE:-${XDG_RUNTIME_DIR:-/tmp}/hypr-screensaver.started}"
+GRACE_PERIOD="${HYPR_SCREENSAVER_GRACE:-5}"  # seconds to ignore stop() after launch
 
 show_osd() {
   local msg="$1"
@@ -32,6 +34,20 @@ show_cursor() { hyprctl eval 'hl.config({cursor={invisible=false}})' 2>/dev/null
 is_running() { pgrep -f "hypr-screensaver run" >/dev/null 2>&1; }
 
 stop() {
+  # Grace period: ignore stop requests within GRACE_PERIOD seconds of launch.
+  # Hyprland treats the screensaver window mapping as input activity, so
+  # hypridle fires on-resume ~1s after start. Without this, the screensaver
+  # is killed instantly and the idle/resume loop repeats every timeout.
+  if [ -f "$STATE" ]; then
+    local started now age
+    started=$(cat "$STATE" 2>/dev/null || echo 0)
+    now=$(date +%s)
+    age=$((now - started))
+    if [ "$age" -lt "$GRACE_PERIOD" ]; then
+      return 0
+    fi
+  fi
+
   show_cursor
   # Kill the per-terminal loops and the ghostty processes that launched them.
   # Each loop's EXIT trap reaps its tte child, and a ghostty window closes
@@ -43,6 +59,7 @@ stop() {
     | while IFS= read -r addr; do
         [ -n "$addr" ] && hyprctl dispatch "hl.dsp.window.close({window=\"address:$addr\"})" 2>/dev/null
       done
+  rm -f "$STATE"
 }
 
 start() {
@@ -53,6 +70,9 @@ start() {
     return 1
   }
   [ -f "$LOGO" ] || { show_osd "Logo not found: $LOGO"; return 1; }
+
+  # Record launch time so stop() can ignore the automatic map-resume
+  date +%s > "$STATE"
 
   local original
   original=$(hyprctl monitors -j 2>/dev/null | jq -r '.[] | select(.focused) | .name' 2>/dev/null)
@@ -76,10 +96,13 @@ run() {
   printf '\033]11;rgb:00/00/00\007'   # black background
   hide_cursor
 
-  local art tte_pid=0
+  local art tte_pid=0 cur_initial
   # Strip fastfetch's $1/$2 color markers. They're theme-dependent tokens, so
   # we don't hard-code colors; tte applies its own default effect colors.
   art=$(sed -e 's/\$1//g' -e 's/\$2//g' "$LOGO" 2>/dev/null)
+  # Mouse dismissal: hypridle's on-resume only fires when the system re-idles,
+  # so poll the cursor here and dismiss on any movement.
+  cur_initial=$(hyprctl cursorpos 2>/dev/null || true)
 
   cleanup() {
     [ "$tte_pid" -gt 0 ] && kill "$tte_pid" 2>/dev/null
@@ -109,6 +132,9 @@ run() {
       if read -r -n1 -t 1; then
         exit 0   # any keypress dismisses the screensaver
       fi
+      local cur_now
+      cur_now=$(hyprctl cursorpos 2>/dev/null || true)
+      [ -n "$cur_now" ] && [ "$cur_now" != "$cur_initial" ] && exit 0  # mouse moved
     done
   done
 }
