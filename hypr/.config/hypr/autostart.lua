@@ -29,6 +29,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("gsettings set org.gnome.desktop.interface gtk-theme 'Materia-dark-compact'")
     hl.exec_cmd("gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'")
 
+    -- Set cursor theme (authoritative at runtime; the XCURSOR*/HYPRCURSOR*
+    -- env vars from uwsm/env only apply on a fresh session, and hyprctl
+    -- setcursor fixes it even when those never reach Hyprland)
+    hl.exec_cmd("hyprctl setcursor BreezeX-Black 30")
+
     -- Mouseless
     hl.exec_cmd("flatpak run net.sonuscape.mouseless")
 

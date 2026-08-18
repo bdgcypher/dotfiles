@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+
+# set-custom-wallpaper — browse, search, and preview wallpapers, then apply one.
+#
+# Keys:
+#   ctrl-j/ctrl-k or arrows navigate
+#   type                    fuzzy filter (active by default)
+#   enter                   select the highlighted wallpaper
+#   esc                     clear the search; press again (empty) to quit
+
+WALLPAPER_DIR="$HOME/Wallpapers"
+
+if [ ! -d "$WALLPAPER_DIR" ]; then
+  echo "Error: Directory $WALLPAPER_DIR does not exist or is a broken link." >&2
+  exit 1
+fi
+
+if ! command -v fzf >/dev/null 2>&1; then
+  echo "Error: fzf is required but not installed." >&2
+  exit 1
+fi
+
+# Full-width Keybinds bar drawn ABOVE fzf's window. fzf's own footer is
+# confined to the list column (it is sized to the window minus the preview
+# pane), so the bar is drawn by us at the top three rows. fzf runs with
+# --height and draws its window at the cursor, which we park just below the
+# bar — and fzf's startup screen-clear (ESC[J) only clears below the cursor,
+# so the bar is never touched. Everything goes to /dev/tty (unbuffered):
+# stdout is line-buffered by bash, and a delayed escape would make fzf's
+# DSR cursor query read a stale position.
+draw_keybinds_bar() {
+  local rows cols
+  read -r rows cols < <(stty size 2>/dev/null)
+  cols=${cols:-100}
+  {
+    # Everything before the fill/pad, per row:
+    #   row 1: "╭─ Keybinds "  = 12 chars, + fill + "╮"  => fill = cols - 13
+    #   row 2: "│  <hints> "   = 61 chars, + pad  + "│"  => pad  = cols - 62
+    #   row 3: "╰" + fill + "╯"                           => fill = cols - 2
+    printf '\033[1;1H╭─ Keybinds %s╮\n' "$(awk -v n=$((cols - 13)) 'BEGIN { for (i = 0; i < n; i++) printf "─" }')"
+    printf '\033[2;1H│  ctrl-j/ctrl-k: move     enter: select     esc: clear/quit %*s│\n' $((cols - 62)) ""
+    printf '\033[3;1H╰%s╯\n' "$(awk -v n=$((cols - 2)) 'BEGIN { for (i = 0; i < n; i++) printf "─" }')"
+  } >/dev/tty
+}
+export -f draw_keybinds_bar
+
+# Generate (once per wallpaper) a downscaled preview copy so chafa's decode
+# cost is paid a single time instead of on every cursor move. The kitty
+# preview is only ~600-1000px wide, so a 1024px thumb is pixel-for-pixel at
+# display size: ~300ms to generate (with jpeg shrink-on-load) and ~60ms per
+# render vs 160-400ms for the full wallpaper.
+preview_cache_dir() {
+  printf '%s/wallpaper-previews' "${XDG_CACHE_HOME:-$HOME/.cache}"
+}
+
+# Prints the path of a cached thumbnail for the given image, creating it
+# (atomically) if missing. Falls back to echoing the original on any error.
+preview_thumb() {
+  local src="$1" real mtime size key dir thumb
+  real=$(realpath "$src") || { printf '%s\n' "$src"; return 0; }
+  mtime=$(stat -c %Y "$real") || { printf '%s\n' "$src"; return 0; }
+  size=$(stat -c %s "$real") || { printf '%s\n' "$src"; return 0; }
+  key=$(printf '%s|%s|%s' "$real" "$mtime" "$size" | md5sum | cut -d' ' -f1)
+  dir=$(preview_cache_dir)
+  thumb="$dir/$key.jpg"
+  if [ ! -f "$thumb" ]; then
+    mkdir -p "$dir"
+    tmp="$thumb.tmp.$$"
+    if command -v magick >/dev/null 2>&1; then
+      magick -define jpeg:size=1024x1024 "$real" -auto-orient -resize '1024x1024>' -strip -quality 85 "$tmp" 2>/dev/null
+    elif command -v convert >/dev/null 2>&1; then
+      convert -define jpeg:size=1024x1024 "$real" -auto-orient -resize '1024x1024>' -strip -quality 85 "$tmp" 2>/dev/null
+    fi
+    if [ -f "$tmp" ]; then
+      mv -f "$tmp" "$thumb"
+    else
+      rm -f "$tmp"
+      printf '%s\n' "$src" # thumb generation failed; use the original
+      return 0
+    fi
+  fi
+  printf '%s\n' "$thumb"
+}
+
+# Render a wallpaper in the fzf preview pane. Uses chafa's kitty graphics
+# protocol in Ghostty/kitty/wezterm (crisp images), falling back to chafa
+# symbol art, then img2txt (libcaca) if chafa is absent.
+preview_image() {
+  local img="$1"
+  local cols="${FZF_PREVIEW_COLUMNS:-80}"
+  local lines="${FZF_PREVIEW_LINES:-24}"
+  local fmt="symbols"
+  case "${TERM_PROGRAM:-}" in
+    ghostty|kitty|wezterm) fmt="kitty" ;;
+  esac
+  if command -v chafa >/dev/null 2>&1; then
+    if [ "$fmt" = "kitty" ]; then
+      # Delete any previously-drawn kitty image first, or previews stack and
+      # overlap as you move through the list (chafa --clear would clear the
+      # whole screen with \e[2J, not just the old image).
+      printf '\033_Ga=d,d=a\033\\'
+    fi
+    chafa --format="$fmt" --size="${cols}x${lines}" "$(preview_thumb "$img")"
+  elif command -v img2txt >/dev/null 2>&1; then
+    # -f utf8 gives colored block art (the default caca format is monochrome
+    # ASCII "garbage"). Still ugly vs chafa, but a usable fallback.
+    img2txt -W "$cols" -H "$lines" -f utf8 "$img"
+  else
+    echo "No image previewer available (install chafa)."
+  fi
+}
+export -f preview_image
+export -f preview_thumb
+export -f preview_cache_dir
+
+# Build the wallpaper list as paths relative to WALLPAPER_DIR.
+mapfile -d '' wallpapers < <(
+  find -L "$WALLPAPER_DIR" -xtype f \
+    \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) \
+    -printf '%P\0' | sort -z
+)
+
+if [ "${#wallpapers[@]}" -eq 0 ]; then
+  echo "Error: No images found in $WALLPAPER_DIR" >&2
+  exit 1
+fi
+
+# Warm the thumbnail cache in the background (low priority) so the first
+# view of each wallpaper is fast too, not just revisits. Generation is
+# serial and each run is ~300ms, so this never fights the UI.
+if command -v magick >/dev/null 2>&1 || command -v convert >/dev/null 2>&1; then
+  (
+    for w in "${wallpapers[@]}"; do
+      preview_thumb "$WALLPAPER_DIR/$w" >/dev/null 2>&1
+    done
+  ) &
+  WARM_PID=$!
+  renice -n 15 -p "$WARM_PID" >/dev/null 2>&1
+  ionice -c 3 -p "$WARM_PID" >/dev/null 2>&1
+fi
+
+# Classic fzf behavior: fuzzy filtering is always on, ctrl-j/ctrl-k or the
+# arrows navigate (fzf defaults), enter selects, and esc clears the search —
+# or, with an empty search, quits. fzf's built-in esc is a no-op while
+# typing, so the transform binding makes it conditional on the query. Space
+# is intentionally NOT bound to accept, so it stays typeable in the filter.
+#
+# The Keybinds hints are drawn as our own full-width bar above the fzf
+# window: fzf's --footer is sized to the list column only (full width minus
+# the preview pane), so it cannot span both columns. fzf runs with --height
+# (rows minus the 3 bar rows) and draws at the cursor, parked just below the
+# bar. --border gives the picker a frame, whose top edge acts as the
+# divider below the bar.
+read -r rows cols < <(stty size 2>/dev/null)
+rows=${rows:-$(tput lines 2>/dev/null || echo 40)}
+cols=${cols:-$(tput cols 2>/dev/null || echo 100)}
+height_pct=$(( (rows - 3) * 100 / rows ))
+[ "$height_pct" -lt 50 ] && height_pct=50
+
+# Draw the bar, then park the cursor just below it (unbuffered, see
+# draw_keybinds_bar).
+draw_keybinds_bar
+printf '\033[4;1H' >/dev/tty
+
+selection=$(
+  printf '%s\n' "${wallpapers[@]}" |
+    fzf \
+      --height="${height_pct}%" \
+      --border=rounded \
+      --border-label="─ Wallpapers ─" \
+      --border-label-pos=2 \
+      --color=border:-1,label:-1 \
+      --prompt="Search> " \
+      --layout=reverse \
+      --preview-window="right:75%,border-left" \
+      --preview "bash -c 'preview_image \"$WALLPAPER_DIR/{}\"'" \
+      --bind "/:clear-query" \
+      --bind "esc:transform:[ -n {q} ] && echo clear-query || echo abort"
+)
+
+# fzf returns non-zero when aborted (esc with an empty search); treat that
+# as "no selection".
+[ -z "$selection" ] && exit 0
+
+# Confirm, then close the picker window while the apply continues in the
+# background, so the awww/wal output never shows in the terminal.
+echo "Setting wallpaper..."
+sleep 0.5 # let the message render before the window closes
+
+# Resolve through the WALLPAPER_DIR symlink to the real path (same as the
+# original `find -L` behavior in set-random-wallpaper).
+IMAGE="$(realpath "$WALLPAPER_DIR/$selection")"
+
+# Hand the apply to the systemd user manager rather than this terminal's
+# process tree. Ghostty registers every window as its own transient scope
+# (app-ghostty-surface-*.scope); when the window closes, systemd kills that
+# scope's cgroup — which takes out plain `&`, `nohup`, and even `setsid`
+# children, since cgroup kills ignore sessions. A systemd-run unit lives in
+# its own cgroup under the user manager, so it outlives the window. Its
+# output also lands in the journal (journalctl --user -n), so failures are
+# visible. Falls back to setsid if the user manager is unavailable.
+if ! systemd-run --user --no-block --collect --setenv=HOME="$HOME" \
+  apply-wallpaper "$IMAGE" >/dev/null 2>&1; then
+  setsid apply-wallpaper "$IMAGE" </dev/null >/dev/null 2>&1 &
+fi
+exit 0

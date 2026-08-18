@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# apply-wallpaper <image_path>
+#
+# Applies a wallpaper image and regenerates/applies the full pywal theme.
+# This is the shared "apply" half extracted from set-random-wallpaper so that
+# the random wallpaper script and the wallpaper picker use identical logic.
+
+IMAGE="$1"
+CURRENT_WALLPAPER="$HOME/.config/theme/current_wallpaper"
+
+if [ -z "$IMAGE" ]; then
+  echo "Usage: apply-wallpaper <image_path>" >&2
+  exit 1
+fi
+
+if [ ! -f "$IMAGE" ]; then
+  echo "Error: $IMAGE does not exist." >&2
+  exit 1
+fi
+
+# Detect Binary
+BIN=$(command -v awww || command -v swww)
+
+# Update the current_wallpaper symlink
+# delete the old link and create a new one pointing to the image
+mkdir -p "$(dirname "$CURRENT_WALLPAPER")"
+ln -sf "$IMAGE" "$CURRENT_WALLPAPER"
+
+# Apply Wallpaper
+$BIN img "$IMAGE" --transition-type any
+
+# Run pywal16 to generate new colorscheme from wallpaper
+wal -i "$IMAGE" -n
+
+# Reload application styles
+hyprctl reload   # hyprland 1st
+pkill -USR2 btop # btop
+pkill -USR2 cava # cava
+
+if pgrep -f "obsidian" >/dev/null; then # obsidian
+  obsidian reload                       # also obsidian
+fi                                      # also obsidian
+
+swaync-client -rs         # swaync
+killall -9 swayosd-server # swayosd
+# Backgrounded: swayosd-server is a foreground daemon, so without `&` it
+# blocks the script and prevents the Vesktop theme copy below from running.
+uwsm-app -- swayosd-server >/dev/null 2>&1 & # also swayosd
+
+# Reload Vesktop (Discord) theme
+VENCORD_CSS="$HOME/.cache/wal/colors-discord.css"
+VESKTOP_THEME="$HOME/.config/vesktop/themes/pywal-vencord.theme.css"
+
+if [ -f "$VENCORD_CSS" ]; then
+  cp "$VENCORD_CSS" "$VESKTOP_THEME"
+else
+  exit 1
+fi

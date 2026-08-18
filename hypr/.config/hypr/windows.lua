@@ -57,6 +57,14 @@ hl.window_rule({
 	size = "800 800",
 })
 
+-- Wallpaper picker (floating)
+hl.window_rule({
+	match = { initial_class = "floating.Wallpaper" },
+	float = true,
+	center = true,
+	size = "1200 800",
+})
+
 -- Global Protect VPN (floating)
 hl.window_rule({
 	match = { initial_class = "floating.GlobalProtect" },

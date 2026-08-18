@@ -8,10 +8,11 @@
 # Path
 export PATH="$HOME/.local/bin/:$PATH"
 
-# Cursor
+# Cursor (HYPRCURSOR_* wins over XCURSOR_* in Hyprland; keep sizes in sync)
 export XCURSOR_SIZE=30
-export HYPRCURSOR_SIZE=24
+export HYPRCURSOR_SIZE=30
 export XCURSOR_THEME=BreezeX-Black
+export HYPRCURSOR_THEME=BreezeX-Black
 
 # Force all apps to use Wayland
 export GDK_BACKEND='wayland,x11,*'
