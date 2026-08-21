@@ -87,3 +87,7 @@ system_snapshot.txt
 
 # uwsm runtime state (written via the ~/.config/uwsm stow symlink)
 uwsm/.config/uwsm/default-id
+
+# KDE Connect identity keys — machine-specific, generated on first run
+kdeconnect/.config/kdeconnect/certificate.pem
+kdeconnect/.config/kdeconnect/privateKey.pem

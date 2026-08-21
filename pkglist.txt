@@ -50,7 +50,6 @@ intel-ucode
 jellyfin-tui
 jq
 kdeconnect
-kitty
 kvantum
 lazydocker
 lazygit
@@ -68,7 +67,6 @@ networkmanager
 nodejs
 noto-fonts-cjk
 noto-fonts-emoji
-nwg-look
 obs-studio
 obsidian
 openconnect
