@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# toggle-theme-mode — switch the currently applied theme (Original <-> Rebalanced)
+# and reapply it. The current mode comes from current_theme_mode (written by
+# apply-wallpaper); if it is missing, detect it by comparing the live pywal
+# cache against the rebalanced palette for the current wallpaper.
+
+IMAGE="$(readlink -f "$HOME/.config/theme/current_wallpaper")"
+if [ ! -f "$IMAGE" ]; then
+  swayosd-client --custom-message "Theme mode - no current wallpaper" 2>/dev/null
+  exit 1
+fi
+
+CURRENT_FILE="$HOME/.config/theme/current_theme_mode"
+MODE=""
+if [ -f "$CURRENT_FILE" ] && grep -qi '^rebalanced$\|^on$\|^1$\|^true$\|^yes$' "$CURRENT_FILE"; then
+  MODE="rebalanced"
+elif [ -f "$CURRENT_FILE" ]; then
+  MODE="original"
+fi
+
+if [ -z "$MODE" ]; then
+  # Fallback: detect via palette comparison (no current_theme_mode file yet)
+  SCRATCH="$(mktemp -d)"
+  trap 'rm -rf "$SCRATCH"' EXIT
+  printf '{}' >"$SCRATCH/colors.json"
+  if ! rebalance-pywal-colorscheme "$IMAGE" "$SCRATCH/colors.json" >/dev/null 2>&1; then
+    swayosd-client --custom-message "Theme mode - could not compute palette" 2>/dev/null
+    exit 1
+  fi
+
+  # Digest of just the color values (ignores wal's extra fields like checksum).
+  digest() {
+    python3 -c '
+import hashlib, json, sys
+d = json.load(open(sys.argv[1]))
+payload = json.dumps({"special": d.get("special", {}), "colors": d.get("colors", {})}, sort_keys=True)
+print(hashlib.sha256(payload.encode()).hexdigest())
+' "$1"
+  }
+
+  CACHE="$HOME/.cache/wal/colors.json"
+  if [ -f "$CACHE" ] && [ "$(digest "$SCRATCH/colors.json")" = "$(digest "$CACHE")" ]; then
+    MODE="rebalanced"
+  else
+    MODE="original"
+  fi
+fi
+
+if [ "$MODE" = "rebalanced" ]; then
+  TARGET="Original"
+  FLAG="--no-rebalance"
+else
+  TARGET="Rebalanced"
+  FLAG="--rebalance"
+fi
+
+swayosd-client --custom-message "Theme mode - $TARGET" --custom-icon "preferences-desktop-theme" 2>/dev/null
+apply-wallpaper $FLAG "$IMAGE"

@@ -32,7 +32,9 @@ export XDG_SESSION_DESKTOP=Hyprland
 export XCOMPOSEFILE="$HOME/.XCompose"
 
 # GTK and Qt apps theming
-export GTK_THEME=Materia-dark-compact
+# GTK theme is pywal/oomox via gsettings (set by apply-wallpaper). Do NOT set
+# GTK_THEME here: it overrides gtk-theme-name for every GTK app and pins them
+# to a fixed theme, which breaks the pywal colors.
 export QT_QPA_PLATFORMTHEME=qt6ct
 
 # Keep GTK apps from double-scaling

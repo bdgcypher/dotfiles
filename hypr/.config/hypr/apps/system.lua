@@ -14,12 +14,12 @@ hl.window_rule({
 })
 
 hl.window_rule({
-    match = { class = "(org.gnome.NautilusPreviewer|org.gnome.Evince|com.gabm.satty|imv|mpv)" },
+    match = { class = "(org.gnome.Evince|com.gabm.satty|imv|mpv)" },
     tag   = "+floating-window",
 })
 hl.window_rule({
     match = {
-        class = "(xdg-desktop-portal-gtk|sublime_text|DesktopEditors|org.gnome.Nautilus)",
+        class = "(xdg-desktop-portal-gtk|sublime_text|DesktopEditors)",
         title = "^(Open.*Files?|Open [F|f]older.*|Save.*Files?|Save.*As|Save|All Files|.*wants to [open|save].*|[C|c]hoose.*)",
     },
     tag = "+floating-window",
@@ -31,11 +31,11 @@ hl.window_rule({
 
 -- No transparency on media windows
 hl.window_rule({
-    match = { class = "^(zoom|vlc|mpv|org.kde.kdenlive|com.obsproject.Studio|com.github.PintaProject.Pinta|imv|org.gnome.NautilusPreviewer)$" },
+    match = { class = "^(zoom|vlc|mpv|org.kde.kdenlive|com.obsproject.Studio|com.github.PintaProject.Pinta|imv)$" },
     tag   = "-default-opacity",
 })
 hl.window_rule({
-    match   = { class = "^(zoom|vlc|mpv|org.kde.kdenlive|com.obsproject.Studio|com.github.PintaProject.Pinta|imv|org.gnome.NautilusPreviewer)$" },
+    match   = { class = "^(zoom|vlc|mpv|org.kde.kdenlive|com.obsproject.Studio|com.github.PintaProject.Pinta|imv)$" },
     opacity = "1 1",
 })
 

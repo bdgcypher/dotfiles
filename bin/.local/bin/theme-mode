@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+# theme-mode — view or set the default theme mode, and show the current mode.
+#
+# Usage:
+#   theme-mode                     show default mode and current applied mode
+#   theme-mode original|rebalanced set the default mode
+#   theme-mode toggle              flip the default mode
+#   theme-mode -h|--help           show this help
+
+DEFAULT_FILE="$HOME/.config/theme/default_theme_mode"
+CURRENT_FILE="$HOME/.config/theme/current_theme_mode"
+
+usage() {
+  sed -n '2,8p' "$0" | sed 's/^# \{0,1\}//'
+  exit 0
+}
+
+default_mode() {
+  mkdir -p "$(dirname "$DEFAULT_FILE")" 2>/dev/null
+  [ -f "$DEFAULT_FILE" ] || printf 'original\n' >"$DEFAULT_FILE"
+  if grep -qi '^rebalanced$\|^on$\|^1$\|^true$\|^yes$' "$DEFAULT_FILE"; then
+    printf 'rebalanced\n'
+  else
+    printf 'original\n'
+  fi
+}
+
+current_mode() {
+  if [ ! -f "$CURRENT_FILE" ]; then
+    printf 'unknown\n'
+  elif grep -qi '^rebalanced$\|^on$\|^1$\|^true$\|^yes$' "$CURRENT_FILE"; then
+    printf 'rebalanced\n'
+  else
+    printf 'original\n'
+  fi
+}
+
+osd_default() {
+  local mode
+  mode="$(default_mode)"
+  echo "Default mode: $mode"
+  swayosd-client --custom-message "Default Theme mode: $mode" --custom-icon "preferences-desktop-theme" 2>/dev/null
+}
+
+VAL="$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')"
+
+case "$VAL" in
+  "")
+    echo "Default mode: $(default_mode)"
+    echo "Current mode: $(current_mode)"
+    ;;
+  -h|--help) usage ;;
+  toggle)
+    if [ "$(default_mode)" = "rebalanced" ]; then
+      printf 'original\n' >"$DEFAULT_FILE"
+    else
+      printf 'rebalanced\n' >"$DEFAULT_FILE"
+    fi
+    osd_default ;;
+  original|off|0|false|no)
+    printf 'original\n' >"$DEFAULT_FILE"
+    osd_default ;;
+  rebalanced|on|1|true|yes)
+    printf 'rebalanced\n' >"$DEFAULT_FILE"
+    osd_default ;;
+  *)
+    echo "Error: unknown value '$1' (expected original|rebalanced|toggle)" >&2
+    exit 1 ;;
+esac

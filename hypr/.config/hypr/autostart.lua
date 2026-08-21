@@ -25,8 +25,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("uwsm-app -- swayosd-server")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
 
-    -- Set GTK theme
-    hl.exec_cmd("gsettings set org.gnome.desktop.interface gtk-theme 'Materia-dark-compact'")
+    -- Force dark color-scheme. The GTK theme itself comes from
+    -- restore-wallpaper/apply-wallpaper (oomox-pywal); don't reset it here or
+    -- it clobbers the pywal theme on every login.
     hl.exec_cmd("gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'")
 
     -- Set cursor theme (authoritative at runtime; the XCURSOR*/HYPRCURSOR*

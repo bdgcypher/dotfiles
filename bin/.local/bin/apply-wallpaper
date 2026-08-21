@@ -1,22 +1,51 @@
 #!/usr/bin/env bash
 
-# apply-wallpaper <image_path>
-#
-# Applies a wallpaper image and regenerates/applies the full pywal theme.
-# This is the shared "apply" half extracted from set-random-wallpaper so that
-# the random wallpaper script and the wallpaper picker use identical logic.
+# Run format: apply-wallpaper [--rebalance | --no-rebalance] <image_path>
 
-IMAGE="$1"
+IMAGE=""
+REBALANCE="" # unset = use config file; 1 = on; 0 = off
+REBALANCE_FILE="$HOME/.config/theme/default_theme_mode"   # default mode: original|rebalanced
+CURRENT_MODE_FILE="$HOME/.config/theme/current_theme_mode" # applied mode: original|rebalanced
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --rebalance) REBALANCE=1 ;;
+    --no-rebalance) REBALANCE=0 ;;
+    --) shift; IMAGE="$1" ;;
+    -*) echo "Error: unknown option: $1" >&2; exit 1 ;;
+    *) IMAGE="$1" ;;
+  esac
+  shift
+done
+
 CURRENT_WALLPAPER="$HOME/.config/theme/current_wallpaper"
 
+GTK3_THEME_BASE="adw-gtk3-pywal"              # GTK3 theme prefix; a color hash suffix enables hot-reload
+ICON_THEME_NAME="oomox-pywal"                 # pywal-recolored icon theme (oomox archdroid)
+GTK_WAL_SRC="$HOME/.cache/wal/colors-gtk.css" # shared pywal gtk.css (GTK3 + GTK4)
+ARCHDROID_BIN="/opt/oomox/plugins/icons_archdroid/archdroid-icon-theme/change_color.sh"
+
 if [ -z "$IMAGE" ]; then
-  echo "Usage: apply-wallpaper <image_path>" >&2
+  echo "Usage: apply-wallpaper [--rebalance | --no-rebalance] <image_path>" >&2
   exit 1
 fi
 
 if [ ! -f "$IMAGE" ]; then
   echo "Error: $IMAGE does not exist." >&2
   exit 1
+fi
+
+# Rebalance default from the config file unless an explicit flag was given.
+# The file always exists (created with 'original' on first use); its content
+# is the default mode: rebalanced (or on/1/true/yes) vs original.
+if [ -z "$REBALANCE" ]; then
+  mkdir -p "$(dirname "$REBALANCE_FILE")" 2>/dev/null
+  [ -f "$REBALANCE_FILE" ] || printf 'original\n' >"$REBALANCE_FILE"
+  if grep -qi '^rebalanced$\|^on$\|^1$\|^true$\|^yes$' "$REBALANCE_FILE"; then
+    REBALANCE=1
+  else
+    REBALANCE=0
+  fi
 fi
 
 # Detect Binary
@@ -30,8 +59,25 @@ ln -sf "$IMAGE" "$CURRENT_WALLPAPER"
 # Apply Wallpaper
 $BIN img "$IMAGE" --transition-type any
 
-# Run pywal16 to generate new colorscheme from wallpaper
-wal -i "$IMAGE" -n
+if [ "$REBALANCE" = "1" ]; then
+  # Generate raw palette in a scratch dir (no reloads), rebalance it there,
+  # then export once so apps switch straight to the final theme
+  SCRATCH="$(mktemp -d)"
+  PYWAL_CACHE_DIR="$SCRATCH" wal -i "$IMAGE" -n -e -s --cols16 lighten
+  rebalance-pywal-colorscheme "$IMAGE" "$SCRATCH/colors.json"
+  wal --theme "$SCRATCH/colors.json" -n
+  rm -rf "$SCRATCH"
+else
+  # Generate new colorscheme with pywal16 (16 colors, lighten method)
+  wal -i "$IMAGE" -n --cols16 lighten
+fi
+
+# Record which mode was applied for the current_theme_mode status file
+if [ "$REBALANCE" = "1" ]; then
+  printf 'rebalanced\n' >"$CURRENT_MODE_FILE"
+else
+  printf 'original\n' >"$CURRENT_MODE_FILE"
+fi
 
 # Reload application styles
 hyprctl reload   # hyprland 1st
@@ -42,10 +88,8 @@ if pgrep -f "obsidian" >/dev/null; then # obsidian
   obsidian reload                       # also obsidian
 fi                                      # also obsidian
 
-swaync-client -rs         # swaync
-killall -9 swayosd-server # swayosd
-# Backgrounded: swayosd-server is a foreground daemon, so without `&` it
-# blocks the script and prevents the Vesktop theme copy below from running.
+swaync-client -rs                            # swaync
+killall -9 swayosd-server                    # swayosd
 uwsm-app -- swayosd-server >/dev/null 2>&1 & # also swayosd
 
 # Reload Vesktop (Discord) theme
@@ -56,4 +100,92 @@ if [ -f "$VENCORD_CSS" ]; then
   cp "$VENCORD_CSS" "$VESKTOP_THEME"
 else
   exit 1
+fi
+
+# Apply GTK theme.
+#  - GTK3: generate a per-wallpaper theme with a color-hash suffix
+#    (adw-gtk3-pywal-<hash>). GTK3 caches parsed themes by name, so the name
+#    must CHANGE for running apps to re-read the colors; a unique suffix per
+#    palette forces a fresh parse = hot-reload. (~/.config/gtk-3.0/gtk.css is
+#    intentionally NOT used — it's read once at launch and would shadow the
+#    hot-reloaded theme.)
+#  - GTK4/libadwaita: base Adwaita stylesheet + user gtk.css overrides
+if [ -f "$GTK_WAL_SRC" ]; then
+  echo ":: Applying GTK themes..."
+  gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+
+  GTK3_SRC_THEME="/usr/share/themes/adw-gtk3-dark"
+  GTK3_HASH=$(md5sum "$GTK_WAL_SRC" | cut -c1-8)
+  GTK_THEME_NAME="$GTK3_THEME_BASE-$GTK3_HASH"
+  GTK3_THEME_DIR="$HOME/.themes/$GTK_THEME_NAME"
+  if [ -d "$GTK3_SRC_THEME" ]; then
+    rm -rf "$GTK3_THEME_DIR"
+    cp -r "$GTK3_SRC_THEME" "$GTK3_THEME_DIR"
+    cat "$GTK_WAL_SRC" >>"$GTK3_THEME_DIR/gtk-3.0/gtk.css"
+    cat "$GTK_WAL_SRC" >>"$GTK3_THEME_DIR/gtk-3.0/gtk-dark.css"
+    # Nemo: dim the sidebar places-treeview (icons + labels) to a secondary
+    # tone. Added to BOTH files because dark mode loads gtk-dark.css.
+    NEMO_CSS='.nemo-window .sidebar treeview.view.places-treeview { color: alpha(@sidebar_fg_color, 0.7); }'
+    printf '%s\n' "$NEMO_CSS" >>"$GTK3_THEME_DIR/gtk-3.0/gtk.css"
+    printf '%s\n' "$NEMO_CSS" >>"$GTK3_THEME_DIR/gtk-3.0/gtk-dark.css"
+    # Nemo: mute the list-view text (name + detail columns) to match the
+    # sidebar treatment.
+    NEMO_LIST_CSS='.nemo-window scrolledwindow.view treeview { color: alpha(@view_fg_color, 0.7); }'
+    printf '%s\n' "$NEMO_LIST_CSS" >>"$GTK3_THEME_DIR/gtk-3.0/gtk.css"
+    printf '%s\n' "$NEMO_LIST_CSS" >>"$GTK3_THEME_DIR/gtk-3.0/gtk-dark.css"
+    # Nemo: column headers use adw-gtk3's 'font-size: smaller', which does not
+    # scale with the list-view zoom level, so they look tiny next to the rows.
+    NEMO_HEADER_CSS='.nemo-window treeview.view header button { font-size: 9pt; }'
+    printf '%s\n' "$NEMO_HEADER_CSS" >>"$GTK3_THEME_DIR/gtk-3.0/gtk.css"
+    printf '%s\n' "$NEMO_HEADER_CSS" >>"$GTK3_THEME_DIR/gtk-3.0/gtk-dark.css"
+    OLD_THEME_NAME=$(gsettings get org.gnome.desktop.interface gtk-theme 2>/dev/null | tr -d "'")
+    # a new unique theme name makes running GTK3 apps parse it fresh (hot-reload)
+    gsettings set org.gnome.desktop.interface gtk-theme "$GTK_THEME_NAME"
+    # Remove stale pywal themes, but KEEP the current and the previous one.
+    for old in "$HOME/.themes/$GTK3_THEME_BASE-"*; do
+      [ -e "$old" ] || continue
+      [ "$old" = "$GTK3_THEME_DIR" ] && continue
+      [ "$old" = "$HOME/.themes/$OLD_THEME_NAME" ] && continue
+      rm -rf "$old"
+    done
+  else
+    echo "Warning: '$GTK3_SRC_THEME' not found. Falling back to adw-gtk3-dark (no hot-reload)." >&2
+    gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3-dark"
+  fi
+
+  mkdir -p "$HOME/.config/gtk-4.0"
+  cp -f "$GTK_WAL_SRC" "$HOME/.config/gtk-4.0/gtk.css"
+  cp -f "$GTK_WAL_SRC" "$HOME/.config/gtk-4.0/gtk-dark.css"
+else
+  echo "Warning: Pywal template output '$GTK_WAL_SRC' not found. Skipping GTK theme." >&2
+fi
+
+# Recolor GTK icons from the pywal palette.
+if [ -f "$GTK_WAL_SRC" ] && [ -x "$ARCHDROID_BIN" ]; then
+  ACCENT=$(grep -m1 'accent_color' "$GTK_WAL_SRC" | grep -oE '#[0-9A-Fa-f]{6}' | head -1 | tr -d '#')
+  if [ -n "$ACCENT" ]; then
+    echo ":: Re-compiling GTK Icon Theme..."
+    # Build into a sibling dir and atomically swap it into place. Building
+    # in-place (rm + recreate) leaves ~/.icons/oomox-pywal missing mid-build,
+    # which fatally crashes GTK3 apps (gthumb aborts in gtkiconhelper.c when
+    # it can't load an icon during the rebuild).
+    ICON_DIR="$HOME/.icons/$ICON_THEME_NAME"
+    ICON_NEW="$ICON_DIR.new"
+    rm -rf "$ICON_NEW" "$ICON_DIR.old"
+    "$ARCHDROID_BIN" -o "$ICON_THEME_NAME" -c "$ACCENT" -d "$ICON_NEW" >/dev/null
+    [ -e "$ICON_DIR" ] && mv "$ICON_DIR" "$ICON_DIR.old"
+    mv "$ICON_NEW" "$ICON_DIR"
+    rm -rf "$ICON_DIR.old"
+    gsettings set org.gnome.desktop.interface icon-theme ""
+    sleep 0.1
+    gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME_NAME"
+  else
+    echo "Warning: no accent color in '$GTK_WAL_SRC'. Falling back to Papirus-Dark icons." >&2
+    gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
+  fi
+elif [ ! -f "$GTK_WAL_SRC" ]; then
+  echo "Warning: Pywal template output '$GTK_WAL_SRC' not found. Skipping icon theme." >&2
+else
+  echo "Warning: oomox archdroid plugin not found. Falling back to Papirus-Dark icons." >&2
+  gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
 fi

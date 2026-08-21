@@ -1,0 +1,6 @@
+[filechooser]
+cmd=yazi-wrapper.sh
+default_dir=$HOME/Downloads
+env=TERMCMD='ghostty --title=termfilechooser --class=floating.FilePicker -e'
+open_mode=default
+save_mode=suggested

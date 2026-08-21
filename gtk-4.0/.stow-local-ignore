@@ -1,4 +1,4 @@
-# System theme symlinks — created as absolute symlinks in post-stow hook
-# because stow's directory symlinks change physical path depth.
+# pywal gtk css — real files copied by the post-stow hook and apply-wallpaper
+# (gitignored), so stow must skip them.
 \.config/gtk-4\.0/gtk\.css
-\.config/gtk-4\.0/assets
+\.config/gtk-4\.0/gtk-dark\.css

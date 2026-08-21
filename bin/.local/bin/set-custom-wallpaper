@@ -5,7 +5,7 @@
 # Keys:
 #   ctrl-j/ctrl-k or arrows navigate
 #   type                    fuzzy filter (active by default)
-#   enter                   select the highlighted wallpaper
+#   enter                   select the wallpaper, then pick Original/Rebalanced theme
 #   esc                     clear the search; press again (empty) to quit
 
 WALLPAPER_DIR="$HOME/Wallpapers"
@@ -182,6 +182,36 @@ selection=$(
 # as "no selection".
 [ -z "$selection" ] && exit 0
 
+# Choose the theme: Original (raw pywal) or Rebalanced. Preselect the config
+# default (~/.config/theme/default_theme_mode: original|rebalanced) so plain
+# Enter follows it; q/esc aborts without applying.
+REBALANCE_DEFAULT="Original Theme"
+if [ -f "$HOME/.config/theme/default_theme_mode" ] && grep -qi '^rebalanced$\|^on$\|^1$\|^true$\|^yes$' "$HOME/.config/theme/default_theme_mode"; then
+  REBALANCE_DEFAULT="Rebalanced Theme"
+fi
+printf '\033[4;1H' >/dev/tty
+
+theme_choice=$(
+  printf 'Original Theme\nRebalanced Theme\n' |
+    fzf \
+      --height=6 \
+      --border=rounded \
+      --border-label="─ Theme ─" \
+      --border-label-pos=2 \
+      --color=border:-1,label:-1 \
+      --prompt="Theme> " \
+      --layout=reverse \
+      --bind "esc:abort" \
+      --bind "q:abort" \
+      $([ "$REBALANCE_DEFAULT" = "Rebalanced Theme" ] && echo --bind start:down)
+)
+[ -z "$theme_choice" ] && exit 0
+
+case "$theme_choice" in
+  "Rebalanced Theme") REBALANCE_FLAG="--rebalance" ;;
+  *) REBALANCE_FLAG="--no-rebalance" ;;
+esac
+
 # Confirm, then close the picker window while the apply continues in the
 # background, so the awww/wal output never shows in the terminal.
 echo "Setting wallpaper..."
@@ -200,7 +230,7 @@ IMAGE="$(realpath "$WALLPAPER_DIR/$selection")"
 # output also lands in the journal (journalctl --user -n), so failures are
 # visible. Falls back to setsid if the user manager is unavailable.
 if ! systemd-run --user --no-block --collect --setenv=HOME="$HOME" \
-  apply-wallpaper "$IMAGE" >/dev/null 2>&1; then
-  setsid apply-wallpaper "$IMAGE" </dev/null >/dev/null 2>&1 &
+  apply-wallpaper $REBALANCE_FLAG "$IMAGE" >/dev/null 2>&1; then
+  setsid apply-wallpaper $REBALANCE_FLAG "$IMAGE" </dev/null >/dev/null 2>&1 &
 fi
 exit 0

@@ -1,0 +1,28 @@
+name = "power"
+name_pretty = "Power"
+icon = ""
+
+[[entries]]
+text = "Shutdown"
+icon = " "
+actions = { "shutdown" = "systemctl poweroff" }
+weight = 100
+
+[[entries]]
+text = "Reboot"
+icon = " "
+actions = { "reboot" = "systemctl reboot" }
+weight = 90
+
+[[entries]]
+text = "Lock"
+icon = " "
+actions = { "lock" = "hyprlock" }
+weight = 80
+
+[[entries]]
+text = "Suspend"
+icon = "󰒲 "
+actions = { "suspend" = "systemctl suspend-then-hibernate" }
+weight = 70
+

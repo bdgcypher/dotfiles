@@ -37,7 +37,6 @@ gazelle-tui
 ghostty
 github-cli
 gnome-themes-extra
-gradience
 gst-plugin-pipewire
 gthumb
 hypridle
@@ -63,7 +62,7 @@ linux-headers
 materia-gtk-theme
 matugen-bin
 mise
-nautilus
+nemo
 neovim
 networkmanager
 nodejs
@@ -87,6 +86,7 @@ otf-hermit-nerd
 otf-monaspace-nerd
 otf-opendyslexic-nerd
 otf-overpass-nerd
+papirus-icon-theme
 pciutils
 piper-tts-bin
 piper-voices-en-us

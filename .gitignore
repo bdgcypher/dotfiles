@@ -6,6 +6,7 @@
 **/DawnGraphiteCache**
 **/DawnWebGPUCache**
 **/Local Storage**
+**/Local State
 **/Session Storage**
 **/Shared Dictionary**
 **/databases**
@@ -71,6 +72,11 @@ vesktop/.config/vesktop/state.json
 vesktop/.config/vesktop/themes/pywal-vencord.theme.css
 # Local theme state (pywal-generated / machine-specific, created by post-stow hook)
 theme/.config/theme/current_wallpaper
+theme/.config/theme/default_theme_mode
+theme/.config/theme/current_theme_mode
+# GTK pywal css — rewritten by apply-wallpaper on every wallpaper change
+gtk-4.0/.config/gtk-4.0/gtk.css
+gtk-4.0/.config/gtk-4.0/gtk-dark.css
 chromium/.config/chromium/
 mozilla/.config/mozilla/firefox/
 slack/.config/Slack/

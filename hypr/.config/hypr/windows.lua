@@ -57,6 +57,14 @@ hl.window_rule({
 	size = "800 800",
 })
 
+-- File picker (floating, termfilechooser via yazi)
+hl.window_rule({
+	match = { initial_class = "floating.FilePicker" },
+	float = true,
+	center = true,
+	size = "1200 800",
+})
+
 -- Wallpaper picker (floating)
 hl.window_rule({
 	match = { initial_class = "floating.Wallpaper" },

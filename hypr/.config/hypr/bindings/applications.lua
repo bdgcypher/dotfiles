@@ -4,7 +4,7 @@ hl.bind("ALT + RETURN", hl.dsp.exec_cmd("uwsm-app -- " .. terminal), { descripti
 
 hl.bind(
 	"SUPER + SHIFT + F",
-	hl.dsp.exec_cmd("uwsm-app -- " .. fileManager .. " --new-window"),
+	hl.dsp.exec_cmd("uwsm-app -- " .. fileManager),
 	{ description = "File manager" }
 )
 
@@ -27,12 +27,6 @@ hl.bind(
 hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("uwsm-app -- slack"), { description = "SLack" })
 
 hl.bind("SUPER + SHIFT + SLASH", hl.dsp.exec_cmd("uwsm-app -- bitwarden"), { description = "Passwords" })
-
-hl.bind(
-	"SUPER + W",
-	hl.dsp.exec_cmd(terminal .. " --class=floating.Wallpaper -e set-custom-wallpaper"),
-	{ description = "Wallpaper picker" }
-)
 
 -- Web App bindings
 

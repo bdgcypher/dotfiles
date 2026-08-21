@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""Rebalance a pywal palette: dark neutral background, contrasty accents."""
+import colorsys, json, os, re, subprocess, sys
+
+CACHE = os.environ.get("PYWAL_CACHE_DIR", os.path.expanduser("~/.cache/wal"))
+
+
+def rgb2hex(rgb):
+    return "#%02x%02x%02x" % tuple(int(round(c)) for c in rgb)
+
+
+def hex2rgb(h):
+    h = h.lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def to_hsv(rgb):
+    r, g, b = (c / 255 for c in rgb)
+    return colorsys.rgb_to_hsv(r, g, b)
+
+
+def from_hsv(hsv):
+    r, g, b = (int(round(c * 255)) for c in colorsys.hsv_to_rgb(*hsv))
+    return rgb2hex((r, g, b))
+
+
+def lighten(hexc, amt):
+    return rgb2hex(tuple(c + (255 - c) * amt for c in hex2rgb(hexc)))
+
+
+def luminance(hexc):
+    r, g, b = (c / 255 for c in hex2rgb(hexc))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def hue_deg(hexc):
+    return to_hsv(hex2rgb(hexc))[0] * 360
+
+
+def hue_dist(a, b):
+    d = abs(a - b) % 360
+    return min(d, 360 - d)
+
+
+def accent_score(hexc):
+    hsv = to_hsv(hex2rgb(hexc))
+    return hsv[1] * hsv[2]
+
+
+def pick_accents(hexes, n=6, threshold=30, quality=0.6):
+    """Pick accent colors with hue diversity."""
+    cands = [h for h in hexes if to_hsv(hex2rgb(h))[2] >= 0.45]
+    cands.sort(key=accent_score, reverse=True)
+    rest = [h for h in hexes if h not in cands]
+    rest.sort(key=lambda h: to_hsv(hex2rgb(h))[2], reverse=True)
+    pool = cands + rest
+    selected = [pool[0]]
+    pool = pool[1:]
+    for _ in range(n - 1):
+        if not pool:
+            break
+        best_overall = max(pool, key=accent_score)
+        far = [h for h in pool
+               if min(hue_dist(hue_deg(h), hue_deg(s)) for s in selected) >= threshold]
+        if far:
+            best_far = max(far, key=accent_score)
+            near = [h for h in pool if h not in far]
+            near_best = accent_score(max(near, key=accent_score)) if near else 0.0
+            if accent_score(best_far) >= quality * near_best:
+                pick = best_far
+            else:
+                pick = best_overall
+        else:
+            pick = best_overall
+        selected.append(pick)
+        pool.remove(pick)
+    return selected
+
+
+def image_average(img):
+    out = subprocess.check_output(
+        ["convert", img, "-resize", "1x1!", "txt:-"], stderr=subprocess.DEVNULL
+    ).decode()
+    return re.search(r"#[0-9A-Fa-f]{6}", out).group()
+
+
+def extract_colors(img):
+    out = subprocess.check_output(
+        ["convert", img, "-resize", "25%", "-colors", "16", "-unique-colors", "txt:-"],
+        stderr=subprocess.DEVNULL,
+    ).decode()
+    hexes = re.findall(r"#[0-9A-Fa-f]{6}", out)
+    return list(dict.fromkeys(hexes))[:16]
+
+
+def main():
+    img = sys.argv[1]
+    path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(CACHE, "colors.json")
+
+    hexes = extract_colors(img)
+    h_avg = to_hsv(hex2rgb(image_average(img)))[0]
+
+    # Background: dominant hue, low saturation, very dark
+    bg = from_hsv((h_avg, 0.18, 0.09))
+
+    # Accents: vivid colors, preferring hue diversity (see pick_accents)
+    accents = pick_accents(hexes)
+
+    palette = {"color0": bg}
+    for i, c in enumerate(accents, 1):
+        palette[f"color{i}"] = c
+    palette["color7"] = lighten(bg, 0.55)
+    palette["color8"] = lighten(bg, 0.35)
+    palette["color15"] = lighten(bg, 0.75)
+    for i, c in enumerate(accents, 9):
+        palette[f"color{i}"] = lighten(c, 0.25)
+
+    if not os.path.isfile(path):
+        sys.exit(f"error: {path} not found")
+
+    with open(path) as f:
+        data = json.load(f)
+    data["colors"] = palette
+    data.setdefault("special", {})
+    data["special"]["background"] = bg
+    data["special"]["foreground"] = palette["color15"]
+    data["special"]["cursor"] = palette["color15"]
+    with open(path, "w") as f:
+        json.dump(data, f, indent=4)
+
+    print(f"rebalanced: bg={bg}, accents={accents}")
+
+
+if __name__ == "__main__":
+    main()

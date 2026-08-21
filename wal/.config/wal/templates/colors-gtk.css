@@ -1,0 +1,29 @@
+/* Shared pywal GTK theme. GTK3 (adw-gtk3) and GTK4 (libadwaita) expose the
+   same named colors, so these @define-color overrides recolor every GTK app
+   from the pywal palette. apply-wallpaper copies this to
+   ~/.config/gtk-3.0/gtk.css and ~/.config/gtk-4.0/gtk.css (+gtk-dark.css).
+   No @import needed: the base stylesheet is loaded by GTK itself and this
+   user css layers on top of it. */
+@define-color window_bg_color {color0};
+@define-color window_fg_color {color7};
+@define-color view_bg_color {color0};
+@define-color view_fg_color {color7};
+@define-color headerbar_bg_color {color0};
+@define-color headerbar_fg_color {color7};
+@define-color headerbar_border_color {color8};
+@define-color headerbar_backdrop_color {color0};
+@define-color card_bg_color {color1};
+@define-color card_fg_color {color7};
+@define-color popover_bg_color {color1};
+@define-color popover_fg_color {color7};
+
+@define-color accent_color {color4};
+@define-color accent_bg_color {color4};
+@define-color accent_fg_color {color0};
+
+@define-color sidebar_bg_color {color0};
+@define-color sidebar_fg_color {color7};
+@define-color sidebar_backdrop_color {color0};
+
+@define-color dialog_bg_color {color0};
+@define-color dialog_fg_color {color7};

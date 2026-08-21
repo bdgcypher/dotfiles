@@ -8,7 +8,6 @@ elephant-all-git
 elephant-all-git-debug
 freebuff-bin
 gazelle-tui
-gradience
 iriunwebcam-bin
 jellyfin-tui
 jellyfin-tui-debug
@@ -31,7 +30,9 @@ python-terminaltexteffects
 python-yapsy-git
 slack-desktop
 sunshine-bin
+themix-icons-archdroid-git
 unimatrix-git
+xdg-desktop-portal-termfilechooser
 vencord
 vesktop
 vesktop-debug
