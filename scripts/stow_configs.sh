@@ -106,6 +106,7 @@ GTK3_HASH=$(md5sum "$GTK_CSS_SRC" | cut -c1-8)
 GTK3_THEME_DIR="$HOME/.themes/adw-gtk3-pywal-$GTK3_HASH"
 if [ -d "$GTK3_SRC_THEME" ]; then
     rm -rf "$GTK3_THEME_DIR"
+    mkdir -p "$HOME/.themes"
     cp -r "$GTK3_SRC_THEME" "$GTK3_THEME_DIR"
     cat "$GTK_CSS_SRC" >> "$GTK3_THEME_DIR/gtk-3.0/gtk.css"
     cat "$GTK_CSS_SRC" >> "$GTK3_THEME_DIR/gtk-3.0/gtk-dark.css"

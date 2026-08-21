@@ -120,6 +120,7 @@ if [ -f "$GTK_WAL_SRC" ]; then
   GTK3_THEME_DIR="$HOME/.themes/$GTK_THEME_NAME"
   if [ -d "$GTK3_SRC_THEME" ]; then
     rm -rf "$GTK3_THEME_DIR"
+    mkdir -p "$HOME/.themes"
     cp -r "$GTK3_SRC_THEME" "$GTK3_THEME_DIR"
     cat "$GTK_WAL_SRC" >>"$GTK3_THEME_DIR/gtk-3.0/gtk.css"
     cat "$GTK_WAL_SRC" >>"$GTK3_THEME_DIR/gtk-3.0/gtk-dark.css"
