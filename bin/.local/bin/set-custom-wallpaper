@@ -182,17 +182,19 @@ selection=$(
 # as "no selection".
 [ -z "$selection" ] && exit 0
 
-# Choose the theme: Original (raw pywal) or Rebalanced. Preselect the config
-# default (~/.config/theme/default_theme_mode: original|rebalanced) so plain
-# Enter follows it; q/esc aborts without applying.
-REBALANCE_DEFAULT="Original Theme"
+# Choose the theme: Original (raw pywal) or Rebalanced. The config default
+# (~/.config/theme/default_theme_mode: original|rebalanced) is listed FIRST so
+# it is pre-highlighted and a plain Enter follows it; q/esc aborts without
+# applying.
 if [ -f "$HOME/.config/theme/default_theme_mode" ] && grep -qi '^rebalanced$\|^on$\|^1$\|^true$\|^yes$' "$HOME/.config/theme/default_theme_mode"; then
-  REBALANCE_DEFAULT="Rebalanced Theme"
+  THEME_ITEMS="Rebalanced Theme\nOriginal Theme"
+else
+  THEME_ITEMS="Original Theme\nRebalanced Theme"
 fi
 printf '\033[4;1H' >/dev/tty
 
 theme_choice=$(
-  printf 'Original Theme\nRebalanced Theme\n' |
+  printf '%b\n' "$THEME_ITEMS" |
     fzf \
       --height=6 \
       --border=rounded \
@@ -202,8 +204,7 @@ theme_choice=$(
       --prompt="Theme> " \
       --layout=reverse \
       --bind "esc:abort" \
-      --bind "q:abort" \
-      $([ "$REBALANCE_DEFAULT" = "Rebalanced Theme" ] && echo --bind start:down)
+      --bind "q:abort"
 )
 [ -z "$theme_choice" ] && exit 0
 
