@@ -15,6 +15,9 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("dbus-update-activation-environment --systemd --all")
     hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
 
+    -- Load enabled Hyprland plugins (hyprpm)
+    hl.exec_cmd("hyprpm reload")
+
     -- All other autostarts
     hl.exec_cmd("systemctl --user start elephant.service")
     hl.exec_cmd("walker --gapplication-service")

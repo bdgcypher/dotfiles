@@ -175,11 +175,12 @@ hl.define_submap("minimized", function()
 end)
 
 
--- TAB between workspaces
+-- TAB between workspaces / overview
 
-hl.bind("SUPER + TAB", hl.dsp.focus({ workspace = "e+1" }), { description = "Next workspace" })
-hl.bind("SUPER + SHIFT + TAB", hl.dsp.focus({ workspace = "e-1" }), { description = "Previous workspace" })
-hl.bind("SUPER + CTRL + TAB", hl.dsp.focus({ workspace = "previous" }), { description = "Former workspace" })
+hl.bind("SUPER + TAB", function() hl.plugin.scrolloverview.overview("toggle all") end, { description = "Toggle workspace overview" })
+hl.bind("SUPER + SHIFT + TAB", hl.dsp.focus({ workspace = "e+1" }), { description = "Next workspace" })
+hl.bind("SUPER + CTRL + TAB", hl.dsp.focus({ workspace = "e-1" }), { description = "Previous workspace" })
+hl.bind("SUPER + GRAVE", hl.dsp.focus({ workspace = "previous" }), { description = "Former workspace" })
 
 
 -- Move workspaces to other monitors

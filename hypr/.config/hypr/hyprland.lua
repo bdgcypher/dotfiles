@@ -28,6 +28,7 @@ require("input")
 require("looknfeel")
 require("monitors")
 require("windows")
+require("plugins")
 
 
 -- XWayland / ecosystem settings (moved here from envs.conf, whose env vars now
