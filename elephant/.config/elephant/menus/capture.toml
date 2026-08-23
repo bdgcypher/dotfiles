@@ -1,0 +1,21 @@
+name = "utilities/capture"
+name_pretty = "Utilities → Capture"
+icon = "󰄀"
+
+[[entries]]
+text = "Screen Recording"
+icon = " "
+actions = { "default" = "screen-record" }
+weight = 100
+
+[[entries]]
+text = "Screenshot (clipboard)"
+icon = "󰲎 "
+actions = { "default" = "hyprshot -z -m region --clipboard-only --silent && swayosd-client --custom-message \"Screenshot copied to clipboard\" --custom-icon \"edit-copy\"" }
+weight = 95
+
+[[entries]]
+text = "Screenshot (edit)"
+icon = "󱇣 "
+actions = { "default" = "hyprshot -z -m region --raw --silent | satty --filename -" }
+weight = 90

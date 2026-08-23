@@ -73,6 +73,14 @@ hl.window_rule({
 	size = "1200 800",
 })
 
+-- About / Fastfetch (floating)
+hl.window_rule({
+	match = { initial_class = "floating.About" },
+	float = true,
+	center = true,
+	size = "800 600",
+})
+
 -- Global Protect VPN (floating)
 hl.window_rule({
 	match = { initial_class = "floating.GlobalProtect" },

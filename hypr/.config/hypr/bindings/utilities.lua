@@ -6,6 +6,10 @@ hl.bind("SUPER + PERIOD", hl.dsp.exec_cmd("walker -m symbols --width 400"), { de
 
 hl.bind("XF86Calculator", hl.dsp.exec_cmd("gnome-calculator"), { description = "Calculator" })
 
+hl.bind("SUPER + K", hl.dsp.exec_cmd("walker -m menus:system/keybinds --theme keybinds --width 780"), { description = "Keybinds Overview" })
+
+hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd(terminal .. " --class=floating.About -e sh -c 'fastfetch; exec $SHELL'"), { description = "About" })
+
 -- Aesthetics
 
 hl.bind(
@@ -138,9 +142,9 @@ hl.bind("SUPER + CTRL + X", hl.dsp.exec_cmd("voxtype record start"), { descripti
 
 hl.bind("SUPER + CTRL + X", hl.dsp.exec_cmd("voxtype record stop"), { release = true, description = "Stop dictation" })
 
--- Screensaver
+-- Power menu
 
-hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("hypr-screensaver toggle"), { description = "Toggle screensaver" })
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("walker -m menus:system/power --width 250"), { description = "Power menu" })
 
 -- Lock system
 

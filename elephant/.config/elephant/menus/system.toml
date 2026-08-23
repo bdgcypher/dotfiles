@@ -1,21 +1,40 @@
 name = "system"
 name_pretty = "System"
-icon = "⚙"
+icon = "󰍹"
 
 [[entries]]
-text = "Theme"
-icon = " "
-actions = { "default" = "walker -m menus:system/theme --width 250" }
+text = "About"
+icon = " "
+actions = { "default" = "ghostty --class=floating.About -e sh -c 'fastfetch; exec $SHELL'" }
+weight = 105
+
+[[entries]]
+text = "Config"
+icon = " "
+actions = { "default" = "walker -m menus:system/config --width 250" }
 weight = 100
+
+[[entries]]
+text = "Keybinds"
+icon = "󰌌 "
+actions = { "default" = "walker -m menus:system/keybinds --theme keybinds --width 780" }
+weight = 90
+
+[[entries]]
+text = "Setup"
+icon = " "
+actions = { "default" = "walker -m menus:system/setup --width 250" }
+weight = 85
 
 [[entries]]
 text = "Power"
 icon = " "
 actions = { "default" = "walker -m menus:system/power --width 250" }
-weight = 90
+weight = 80
 
 [[entries]]
-text = "Config"
-icon = " "
-actions = { "default" = "walker -m menus:system/config --width 250" }
-weight = 80
+text = "Theme"
+icon = "󰏘 "
+actions = { "default" = "walker -m menus:system/theme --width 250" }
+weight = 70
+

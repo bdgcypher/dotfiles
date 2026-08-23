@@ -1,18 +1,12 @@
 name = "utilities"
 name_pretty = "Utilities"
-icon = ""
+icon = ""
 
 [[entries]]
 text = "Clipboard History"
-icon = " "
+icon = "󱛢 "
 actions = { "default" = "walker -m clipboard" }
 weight = 100
-
-[[entries]]
-text = "Emoji"
-icon = " "
-actions = { "default" = "walker -m symbols --width 400" }
-weight = 95
 
 [[entries]]
 text = "Calculator"
@@ -21,25 +15,19 @@ actions = { "default" = "walker -m calc" }
 weight = 90
 
 [[entries]]
-text = "Screenshot (clipboard)"
+text = "Capture"
 icon = "󰄀 "
-actions = { "screenshot_clip" = "hyprshot -z -m region --clipboard-only --silent && swayosd-client --custom-message \"Screenshot copied to clipboard\" --custom-icon \"edit-copy\"" }
-weight = 85
-
-[[entries]]
-text = "Screenshot (edit)"
-icon = "󱎏 "
-actions = { "screenshot_edit" = "hyprshot -z -m region --raw --silent | satty --filename -" }
+actions = { "default" = "walker -m menus:utilities/capture --width 250" }
 weight = 80
-
-[[entries]]
-text = "Screen Recording"
-icon = " "
-actions = { "record" = "screen-record" }
-weight = 75
 
 [[entries]]
 text = "Color Picker"
 icon = " "
-actions = { "color" = "pkill hyprpicker || hyprpicker -a -f hex && swayosd-client --custom-message \"Color copied to clipboard\" --custom-icon \"edit-copy\"" }
+actions = { "default" = "pkill hyprpicker || hyprpicker -a -f hex && swayosd-client --custom-message \"Color copied to clipboard\" --custom-icon \"edit-copy\"" }
 weight = 70
+
+[[entries]]
+text = "Emoji Picker"
+icon = " "
+actions = { "default" = "walker -m symbols --width 400" }
+weight = 60

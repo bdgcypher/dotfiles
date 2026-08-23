@@ -1,0 +1,447 @@
+name = "system/keybinds"
+name_pretty = "System → Keybinds"
+
+[[entries]]
+text = "Terminal                                   →          ALT + Return"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "File Manager                               →          SUPER + SHIFT + F"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Browser (Normal)                           →          SUPER + SHIFT + B"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Browser (Private)                          →          SUPER + SHIFT + ALT + B"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Editor (Neovim)                            →          SUPER + SHIFT + N"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Obsidian                                   →          SUPER + SHIFT + O"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Slack                                      →          SUPER + SHIFT + S"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Passwords (Bitwarden)                      →          SUPER + SHIFT + /"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "YouTube Music                              →          SUPER + SHIFT + M"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Google Messages                            →          SUPER + SHIFT + G"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Close Window                               →          ALT + W"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Floating                            →          ALT + T"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Center Floating Window                     →          ALT + T"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Full Screen                                →          ALT + F"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Tiled Full Screen                          →          ALT + CTRL + F"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Full Width                                 →          ALT + SUPER + F"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Pseudo Window                              →          ALT + SUPER + P"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Split                               →          ALT + /"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Swap Split                                 →          ALT + SHIFT + /"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Spawn Next Right                           →          ALT + V"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Spawn Next Below                           →          ALT + SHIFT + V"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Layout (dwindle/scrolling)          →          ALT + CTRL + L"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Window Transparency                 →          SUPER + Backspace"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Focus Left                                 →          ALT + ←/H"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Focus Right                                →          ALT +"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Focus Up                                   →          ALT + ↑/K"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Focus Down                                 →          ALT + ↓/J"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Cycle Next Window                          →          ALT + TAB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Cycle Previous Window                      →          ALT + SHIFT + TAB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Swap Left                                  →          ALT + SHIFT + ←/H"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Swap Right                                 →          ALT + SHIFT +"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Swap Up                                    →          ALT + SHIFT + ↑/K"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Swap Down                                  →          ALT + SHIFT + ↓/J"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Shrink Left                                →          ALT + CTRL + ←/U"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Shrink Up                                  →          ALT + CTRL + ↑/I"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Expand Down                                →          ALT + CTRL + ↓/O"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Expand Right                               →          ALT + CTRL +"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Move Window (drag)                         →          ALT + LMB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Resize Window (drag)                       →          ALT + RMB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Switch to Workspace 1-10                   →          ALT + 1-0"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Move Window to Workspace                   →          ALT + SHIFT + 1-0"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Move Window Silently                       →          ALT + SHIFT + SUPER + 1-0"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Scroll Workspace Forward                   →          ALT + Scroll Down"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Next Workspace                             →          SUPER + SHIFT + TAB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Previous Workspace                         →          SUPER + CTRL + TAB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Former Workspace                           →          SUPER + `"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Workspace Overview                         →          SUPER + TAB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Move Workspace to Left Monitor             →          ALT + SHIFT + SUPER + H"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Move Workspace to Right Monitor            →          ALT + SHIFT + SUPER + L"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Window Grouping                     →          ALT + G"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Move Window Out of Group                   →          ALT + SUPER + G"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Move Into Group                            →          ALT + SUPER + HJKL"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Next in Group                              →          ALT + SUPER + TAB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Previous in Group                          →          ALT + SUPER + SHIFT + TAB"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Group by Number                            →          ALT + SUPER + 1-9"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Minimize Window                            →          ALT + M"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "View Minimized Windows                     →          ALT + SHIFT + M"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "App Launcher                               →          SUPER (tap)"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Emoji Picker                               →          SUPER + ."
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Clipboard History                          →          SUPER + CTRL + V"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Screenshot to Clipboard                    →          SUPER + S"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Screenshot with Editor                     →          SUPER + CTRL + S"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Screen Recording                    →          SUPER + R"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Color Picker                               →          SUPER + CTRL + C"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Random Wallpaper                           →          SUPER + CTRL + SPACE"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Wallpaper Picker                           →          SUPER + SHIFT + W"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Theme Mode                          →          SUPER + W"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Default Theme Mode                  →          SUPER + T"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Notification Center                        →          SUPER + CTRL + N"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Trigger Latest Notification                →          SUPER + ,"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Dismiss Latest Notification                →          SUPER + ALT + ,"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Dismiss All Notifications                  →          SUPER + CTRL + ,"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Toggle Do-Not-Disturb                      →          SUPER + SHIFT + ,"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Lock System                                →          SUPER + L"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Show Time                                  →          SUPER + CTRL + ALT + T"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Power menu                                 →          SUPER + Escape"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "── Control Panels ──"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Bluetooth                                  →          SUPER + CTRL + B"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "WiFi                                       →          SUPER + CTRL + W"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Activity Monitor                           →          SUPER + CTRL + T"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Install Packages                           →          SUPER + CTRL + I"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Remove Packages                            →          SUPER + CTRL + R"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Full System Update                         →          SUPER + CTRL + U"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Copy                                       →          SUPER + C"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Paste                                      →          SUPER + V"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Cut                                        →          SUPER + X"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "About                                      →          SUPER + CTRL + A"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Start/Stop Dictation                       →          SUPER + CTRL + X"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Keybinds Overview                          →          SUPER + K"
+icon = ""
+actions = { "default" = "walker --close" }

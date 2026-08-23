@@ -48,7 +48,7 @@ scrollbar {
 
 /* Logic for selecting items */
 child:selected .item-box {
-  border-radius: 8px;
+  border-radius: 0;
 }
 
 child:selected .item-box * {
@@ -89,6 +89,12 @@ child:selected .item-box * {
   border-top: 1px solid @color6;
 }
 
-/* Empty containers */
-.preview-box, .box, .content-container, .placeholder, .scroll, .list, .preview {
+.content-container {
+  min-width: 250px;
+}
+
+.preview {
+  border-left: 1px solid @color8;
+  margin-left: 10px;
+  padding-left: 10px;
 }

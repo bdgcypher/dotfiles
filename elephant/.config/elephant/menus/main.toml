@@ -15,9 +15,9 @@ actions = { "default" = "walker -m runner" }
 weight = 90
 
 [[entries]]
-text = "Web Search"
-icon = "󰖟 "
-actions = { "default" = "walker -m websearch" }
+text = "System"
+icon = " "
+actions = { "default" = "walker -m menus:system --width 250" }
 weight = 80
 
 [[entries]]
@@ -27,7 +27,8 @@ actions = { "default" = "walker -m menus:utilities --width 250" }
 weight = 70
 
 [[entries]]
-text = "System"
-icon = " "
-actions = { "default" = "walker -m menus:system --width 250" }
-weight = 60
+text = "Web Search"
+icon = "󰖟 "
+actions = { "default" = "walker -m websearch" }
+weight = 70
+

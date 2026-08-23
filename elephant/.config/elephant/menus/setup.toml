@@ -1,0 +1,51 @@
+name = "system/setup"
+name_pretty = "System → Setup"
+icon = ""
+
+[[entries]]
+text = "Audio"
+icon = "󰕾 "
+actions = { "default" = "ghostty --class=floating.Wiremix -e wiremix" }
+weight = 100
+
+[[entries]]
+text = "Bluetooth"
+icon = "󰂯 "
+actions = { "default" = "ghostty --class=floating.Bluetui -e bluetui" }
+weight = 95
+
+[[entries]]
+text = "Edit Keybinds"
+icon = "󰌌 "
+actions = { "default" = "ghostty --class=floating.Config -e sh -c 'cd ~/.config/hypr/bindings && y'" }
+weight = 90
+
+[[entries]]
+text = "Monitors"
+icon = "󰍹 "
+actions = { "default" = "ghostty --class=floating.Config -e nvim ~/.config/hypr/monitors.lua" }
+weight = 85
+
+[[entries]]
+text = "Notifications"
+icon = "󰂜 "
+actions = { "default" = "swaync-client -t -sw" }
+weight = 80
+
+[[entries]]
+text = "Resource Monitor"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Btop -e btop" }
+weight = 75
+
+[[entries]]
+text = "WiFi"
+icon = "󰤨 "
+actions = { "default" = "ghostty --class=floating.Gazelle -e gazelle" }
+weight = 70
+
+[[entries]]
+text = "Window Rules"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Config -e nvim ~/.config/hypr/windows.lua" }
+weight = 65

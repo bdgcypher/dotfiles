@@ -1,6 +1,6 @@
 name = "system/theme"
 name_pretty = "System → Theme"
-icon = ""
+icon = "󰏘"
 
 [[entries]]
 text = "Set Custom Wallpaper"

@@ -1,27 +1,33 @@
 name = "system/power"
 name_pretty = "System → Power"
-icon = ""
+icon = "󰐥"
 
 [[entries]]
 text = "Lock"
-icon = " "
-actions = { "lock" = "hyprlock" }
-weight = 80
+icon = "󰌾 "
+actions = { "default" = "hyprlock" }
+weight = 100
 
 [[entries]]
 text = "Reboot"
-icon = " "
-actions = { "reboot" = "systemctl reboot" }
+icon = "󰜉 "
+actions = { "default" = "systemctl reboot" }
 weight = 90
 
 [[entries]]
+text = "Screensaver"
+icon = "󰿁 "
+actions = { "default" = "hypr-screensaver toggle" }
+weight = 85
+
+[[entries]]
 text = "Shutdown"
-icon = " "
-actions = { "shutdown" = "systemctl poweroff" }
-weight = 100
+icon = "󰐥 "
+actions = { "default" = "systemctl poweroff" }
+weight = 80
 
 [[entries]]
 text = "Suspend"
 icon = "󰒲 "
-actions = { "suspend" = "systemctl suspend-then-hibernate" }
+actions = { "default" = "systemctl suspend-then-hibernate" }
 weight = 70
