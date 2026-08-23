@@ -42,7 +42,7 @@
   },
   "custom/menu": {
     "format": "󱗼",
-    "on-click": "walker",
+    "on-click": "walker -s main --width 250",
     "tooltip-format": "Menu"
   },
   "memory": {

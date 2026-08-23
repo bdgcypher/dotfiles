@@ -1,0 +1,33 @@
+name = "main"
+name_pretty = "Menu"
+icon = "󰍉"
+
+[[entries]]
+text = "Applications"
+icon = "󰣆 "
+actions = { "default" = "walker -m desktopapplications --width 400" }
+weight = 100
+
+[[entries]]
+text = "Scripts"
+icon = " "
+actions = { "default" = "walker -m runner" }
+weight = 90
+
+[[entries]]
+text = "Web Search"
+icon = "󰖟 "
+actions = { "default" = "walker -m websearch" }
+weight = 80
+
+[[entries]]
+text = "Utilities"
+icon = " "
+actions = { "default" = "walker -m menus:utilities --width 250" }
+weight = 70
+
+[[entries]]
+text = "System"
+icon = " "
+actions = { "default" = "walker -m menus:system --width 250" }
+weight = 60

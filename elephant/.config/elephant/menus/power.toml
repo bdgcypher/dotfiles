@@ -1,5 +1,5 @@
-name = "power"
-name_pretty = "Power"
+name = "system/power"
+name_pretty = "System → Power"
 icon = ""
 
 [[entries]]
@@ -25,4 +25,3 @@ text = "Suspend"
 icon = "󰒲 "
 actions = { "suspend" = "systemctl suspend-then-hibernate" }
 weight = 70
-

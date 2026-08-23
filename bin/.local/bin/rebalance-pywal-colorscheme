@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Rebalance a pywal palette: dark neutral background, contrasty accents."""
-import colorsys, json, os, re, subprocess, sys
+"""Rebalance a pywal palette: dark neutral background, contrasty accents.
+Self-contained: extracts colors, rebuilds palette, writes colors.json,
+and regenerates templates -- all in one process without a scratch dir."""
 
-CACHE = os.environ.get("PYWAL_CACHE_DIR", os.path.expanduser("~/.cache/wal"))
+import colorsys, json, os, re, subprocess, sys
 
 
 def rgb2hex(rgb):
@@ -26,11 +27,6 @@ def from_hsv(hsv):
 
 def lighten(hexc, amt):
     return rgb2hex(tuple(c + (255 - c) * amt for c in hex2rgb(hexc)))
-
-
-def luminance(hexc):
-    r, g, b = (c / 255 for c in hex2rgb(hexc))
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
 def hue_deg(hexc):
@@ -77,33 +73,42 @@ def pick_accents(hexes, n=6, threshold=30, quality=0.6):
     return selected
 
 
-def image_average(img):
+def extract_all(img):
+    """Single ImageMagick call: 16-color palette then 1x1 average.
+    Splits on the IM header to parse each block separately."""
     out = subprocess.check_output(
-        ["convert", img, "-resize", "1x1!", "txt:-"], stderr=subprocess.DEVNULL
-    ).decode()
-    return re.search(r"#[0-9A-Fa-f]{6}", out).group()
-
-
-def extract_colors(img):
-    out = subprocess.check_output(
-        ["convert", img, "-resize", "25%", "-colors", "16", "-unique-colors", "txt:-"],
+        ["convert", img,
+         "(", "+clone", "-resize", "25%", "-colors", "16",
+         "-unique-colors", "+write", "txt:-", "+delete", ")",
+         "-resize", "1x1!", "txt:-"],
         stderr=subprocess.DEVNULL,
     ).decode()
-    hexes = re.findall(r"#[0-9A-Fa-f]{6}", out)
-    return list(dict.fromkeys(hexes))[:16]
+
+    blocks = out.split("# ImageMagick pixel enumeration:")
+    # blocks[0] is empty (before first header), blocks[1] is 16-color, blocks[2] is 1x1
+    if len(blocks) < 3:
+        sys.exit("error: ImageMagick output parsing failed")
+
+    hexes16 = re.findall(r"#[0-9A-Fa-f]{6}", blocks[1])
+    avg_match = re.search(r"#[0-9A-Fa-f]{6}", blocks[2])
+    if not hexes16 or not avg_match:
+        sys.exit("error: failed to extract colors from image")
+
+    return list(dict.fromkeys(hexes16))[:16], avg_match.group()
 
 
 def main():
     img = sys.argv[1]
-    path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(CACHE, "colors.json")
+    cache_dir = os.path.expanduser("~/.cache/wal")
+    colors_json = os.path.join(cache_dir, "colors.json")
 
-    hexes = extract_colors(img)
-    h_avg = to_hsv(hex2rgb(image_average(img)))[0]
+    hexes, avg_color = extract_all(img)
+    h_avg = to_hsv(hex2rgb(avg_color))[0]
 
     # Background: dominant hue, low saturation, very dark
     bg = from_hsv((h_avg, 0.18, 0.09))
 
-    # Accents: vivid colors, preferring hue diversity (see pick_accents)
+    # Accents: vivid colors with hue diversity
     accents = pick_accents(hexes)
 
     palette = {"color0": bg}
@@ -115,18 +120,23 @@ def main():
     for i, c in enumerate(accents, 9):
         palette[f"color{i}"] = lighten(c, 0.25)
 
-    if not os.path.isfile(path):
-        sys.exit(f"error: {path} not found")
+    data = {
+        "wallpaper": os.path.realpath(img),
+        "alpha": "100",
+        "colors": palette,
+        "special": {
+            "background": bg,
+            "foreground": palette["color15"],
+            "cursor": palette["color15"],
+        },
+    }
 
-    with open(path) as f:
-        data = json.load(f)
-    data["colors"] = palette
-    data.setdefault("special", {})
-    data["special"]["background"] = bg
-    data["special"]["foreground"] = palette["color15"]
-    data["special"]["cursor"] = palette["color15"]
-    with open(path, "w") as f:
+    os.makedirs(cache_dir, exist_ok=True)
+    with open(colors_json, "w") as f:
         json.dump(data, f, indent=4)
+
+    # Regenerate all templates from the rebalanced palette
+    subprocess.run(["wal", "--theme", colors_json, "-n"], check=True)
 
     print(f"rebalanced: bg={bg}, accents={accents}")
 

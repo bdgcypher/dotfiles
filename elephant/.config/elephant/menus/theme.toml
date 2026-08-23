@@ -1,0 +1,21 @@
+name = "system/theme"
+name_pretty = "System → Theme"
+icon = ""
+
+[[entries]]
+text = "Set Custom Wallpaper"
+icon = "󰸉 "
+actions = { "default" = "ghostty --class=floating.Wallpaper -e set-custom-wallpaper" }
+weight = 100
+
+[[entries]]
+text = "Set Random Wallpaper"
+icon = " "
+actions = { "default" = "~/.local/bin/set-random-wallpaper" }
+weight = 90
+
+[[entries]]
+text = "Toggle Theme Mode"
+icon = " "
+actions = { "default" = "~/.local/bin/toggle-theme-mode" }
+weight = 80

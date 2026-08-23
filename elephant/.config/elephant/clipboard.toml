@@ -1,1 +1,13 @@
-command = 'wl-copy && hyprctl dispatch sendshortcut "SHIFT, Insert,"'
+auto_cleanup = 0
+command = 'wl-copy && wtype -M shift -P Insert -m shift'
+ignore_symbols = true
+image_editor_cmd = ''
+max_items = 100
+pinned_on_top = false
+text_editor_cmd = ''
+
+[Config]
+hide_from_providerlist = false
+icon = 'user-bookmarks'
+min_score = 30
+name_pretty = ''

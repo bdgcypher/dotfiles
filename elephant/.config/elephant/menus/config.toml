@@ -1,0 +1,45 @@
+name = "system/config"
+name_pretty = "System → Config"
+icon = ""
+
+[[entries]]
+text = "Shell"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Yazi -e bash -i -c 'cd $HOME/.dotfiles/bash && y'" }
+weight = 100
+
+[[entries]]
+text = "Ghostty"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Yazi -e bash -i -c 'cd $HOME/.config/ghostty && y'" }
+weight = 90
+
+[[entries]]
+text = "Hyprland"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Yazi -e bash -i -c 'cd $HOME/.config/hypr && y'" }
+weight = 80
+
+[[entries]]
+text = "Waybar"
+icon = "󱔓 "
+actions = { "default" = "ghostty --class=floating.Yazi -e bash -i -c 'cd $HOME/.config/waybar && y'" }
+weight = 70
+
+[[entries]]
+text = "Walker"
+icon = "󰍉 "
+actions = { "default" = "ghostty --class=floating.Yazi -e bash -i -c 'cd $HOME/.config/walker && y'" }
+weight = 60
+
+[[entries]]
+text = "Swaync"
+icon = "󰂚 "
+actions = { "default" = "ghostty --class=floating.Yazi -e bash -i -c 'cd $HOME/.config/swaync && y'" }
+weight = 50
+
+[[entries]]
+text = "Pywal"
+icon = "󰏘 "
+actions = { "default" = "ghostty --class=floating.Yazi -e bash -i -c 'cd $HOME/.config/wal && y'" }
+weight = 40

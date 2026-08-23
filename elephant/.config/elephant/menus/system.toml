@@ -1,0 +1,21 @@
+name = "system"
+name_pretty = "System"
+icon = "⚙"
+
+[[entries]]
+text = "Theme"
+icon = " "
+actions = { "default" = "walker -m menus:system/theme --width 250" }
+weight = 100
+
+[[entries]]
+text = "Power"
+icon = " "
+actions = { "default" = "walker -m menus:system/power --width 250" }
+weight = 90
+
+[[entries]]
+text = "Config"
+icon = " "
+actions = { "default" = "walker -m menus:system/config --width 250" }
+weight = 80

@@ -60,13 +60,7 @@ ln -sf "$IMAGE" "$CURRENT_WALLPAPER"
 $BIN img "$IMAGE" --transition-type any
 
 if [ "$REBALANCE" = "1" ]; then
-  # Generate raw palette in a scratch dir (no reloads), rebalance it there,
-  # then export once so apps switch straight to the final theme
-  SCRATCH="$(mktemp -d)"
-  PYWAL_CACHE_DIR="$SCRATCH" wal -i "$IMAGE" -n -e -s --cols16 lighten
-  rebalance-pywal-colorscheme "$IMAGE" "$SCRATCH/colors.json"
-  wal --theme "$SCRATCH/colors.json" -n
-  rm -rf "$SCRATCH"
+  rebalance-pywal-colorscheme "$IMAGE"
 else
   # Generate new colorscheme with pywal16 (16 colors, lighten method)
   wal -i "$IMAGE" -n --cols16 lighten

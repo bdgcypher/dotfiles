@@ -21,6 +21,10 @@ default = [
   "websearch",
 ]
 
+[providers.sets.main]
+empty = ["menus:main"]
+default = ["menus:main", "menus:utilities", "menus:system", "menus:system/theme", "menus:system/power", "menus:system/config"]
+
 [[providers.prefixes]]
 prefix = "/"
 provider = "providerlist"

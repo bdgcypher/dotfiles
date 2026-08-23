@@ -1,8 +1,10 @@
 -- Menus
 
-hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("walker"), { description = "Launch apps" })
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("walker -s main --width 250"), { description = "Open menu hub" })
 
-hl.bind("SUPER + PERIOD", hl.dsp.exec_cmd("walker -m symbols"), { description = "Emoji picker" })
+hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("walker --width 400"), { description = "Launch apps" })
+
+hl.bind("SUPER + PERIOD", hl.dsp.exec_cmd("walker -m symbols --width 400"), { description = "Emoji picker" })
 
 hl.bind("XF86Calculator", hl.dsp.exec_cmd("gnome-calculator"), { description = "Calculator" })
 
