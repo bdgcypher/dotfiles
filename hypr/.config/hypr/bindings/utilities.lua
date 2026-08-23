@@ -1,8 +1,6 @@
 -- Menus
 
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd("walker -s main --width 250"), { description = "Open menu hub" })
-
-hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("walker --width 400"), { description = "Launch apps" })
+hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("walker --width 250"), { description = "Launch apps" })
 
 hl.bind("SUPER + PERIOD", hl.dsp.exec_cmd("walker -m symbols --width 400"), { description = "Emoji picker" })
 
@@ -28,11 +26,7 @@ hl.bind(
 	{ description = "Toggle applied theme mode (original/rebalanced)" }
 )
 
-hl.bind(
-	"SUPER + T",
-	hl.dsp.exec_cmd("~/.local/bin/theme-mode toggle"),
-	{ description = "Toggle default theme mode" }
-)
+hl.bind("SUPER + T", hl.dsp.exec_cmd("~/.local/bin/theme-mode toggle"), { description = "Toggle default theme mode" })
 
 hl.bind(
 	"SUPER + BACKSPACE",

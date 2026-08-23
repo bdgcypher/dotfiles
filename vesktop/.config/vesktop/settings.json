@@ -8,7 +8,7 @@
     "splashTheming": true,
     "enableSplashScreen": false,
     "splashColor": "rgb(220, 220, 223)",
-    "splashBackground": "color(srgb 0.0564706 0.103529 0.138039)",
+    "splashBackground": "color(srgb 0.0596078 0.0721569 0.0721569)",
     "spellCheckLanguages": [
         "en-US",
         "en"

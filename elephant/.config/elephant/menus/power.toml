@@ -3,10 +3,10 @@ name_pretty = "System → Power"
 icon = ""
 
 [[entries]]
-text = "Shutdown"
-icon = " "
-actions = { "shutdown" = "systemctl poweroff" }
-weight = 100
+text = "Lock"
+icon = " "
+actions = { "lock" = "hyprlock" }
+weight = 80
 
 [[entries]]
 text = "Reboot"
@@ -15,10 +15,10 @@ actions = { "reboot" = "systemctl reboot" }
 weight = 90
 
 [[entries]]
-text = "Lock"
-icon = " "
-actions = { "lock" = "hyprlock" }
-weight = 80
+text = "Shutdown"
+icon = " "
+actions = { "shutdown" = "systemctl poweroff" }
+weight = 100
 
 [[entries]]
 text = "Suspend"
