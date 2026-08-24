@@ -23,7 +23,7 @@ weight = 90
 [[entries]]
 text = "Monitors"
 icon = "󰍹 "
-actions = { "default" = "ghostty --class=floating.Config -e nvim $HOME/config/hypr/monitors.lua" }
+actions = { "default" = "ghostty --class=floating.Config -e nvim $HOME/.config/hypr/monitors.lua" }
 weight = 85
 
 [[entries]]
