@@ -17,7 +17,7 @@ weight = 95
 [[entries]]
 text = "Edit Keybinds"
 icon = "󰌌 "
-actions = { "default" = "ghostty --class=floating.Config -e sh -c 'cd ~/.config/hypr/bindings && y'" }
+actions = { "default" = "ghostty --class=floating.Config -e sh -c 'cd ~/.config/hypr/bindings/ && yazi'" }
 weight = 90
 
 [[entries]]
