@@ -17,13 +17,13 @@ weight = 95
 [[entries]]
 text = "Edit Keybinds"
 icon = "󰌌 "
-actions = { "default" = "ghostty --class=floating.Config -e sh -c 'cd ~/.config/hypr/bindings/ && yazi'" }
+actions = { "default" = "ghostty --class=floating.Config -e sh -c 'cd $HOME/.config/hypr/bindings/ && yazi'" }
 weight = 90
 
 [[entries]]
 text = "Monitors"
 icon = "󰍹 "
-actions = { "default" = "ghostty --class=floating.Config -e nvim ~/.config/hypr/monitors.lua" }
+actions = { "default" = "ghostty --class=floating.Config -e nvim $HOME/config/hypr/monitors.lua" }
 weight = 85
 
 [[entries]]
@@ -47,5 +47,5 @@ weight = 70
 [[entries]]
 text = "Window Rules"
 icon = " "
-actions = { "default" = "ghostty --class=floating.Config -e nvim ~/.config/hypr/windows.lua" }
+actions = { "default" = "ghostty --class=floating.Config -e nvim $HOME/.config/hypr/windows.lua" }
 weight = 65
