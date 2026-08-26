@@ -80,6 +80,24 @@ fi
 
 echo "Package installation complete."
 
+# Aion: Google Calendar TUI (built from source, release binary is incomplete)
+echo "Installing Aion (Google Calendar TUI)..."
+if ! command -v aion &> /dev/null; then
+    if command -v bun &> /dev/null; then
+        echo "  Cloning and building Aion..."
+        git clone --depth 1 https://github.com/semos-labs/aion.git /tmp/aion-build
+        cd /tmp/aion-build && bun install && bun run build
+        install -Dm755 /tmp/aion-build/dist/aion "$HOME/.local/bin/aion"
+        cd /tmp && rm -rf aion-build
+        echo "  Aion installed to ~/.local/bin/aion"
+    else
+        echo "  Warning: bun not found. Install bun first, then build Aion manually."
+        echo "  See: https://github.com/semos-labs/aion"
+    fi
+else
+    echo "  Aion already installed."
+fi
+
 # Voxtype: systemd daemon setup
 echo "Setting up Voxtype systemd daemon..."
 if command -v voxtype &> /dev/null; then

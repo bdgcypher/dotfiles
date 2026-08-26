@@ -1,6 +1,5 @@
 name = "system/keybinds"
 name_pretty = "System → Keybinds"
-
 [[entries]]
 text = "Terminal                                   →          ALT + Return"
 icon = ""
@@ -62,7 +61,7 @@ icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
-text = "Center Floating Window                     →          ALT + T"
+text = "Center Floating Window                     →          ALT + SHIFT + T"
 icon = ""
 actions = { "default" = "walker --close" }
 
@@ -97,12 +96,7 @@ icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
-text = "Spawn Next Right                           →          ALT + V"
-icon = ""
-actions = { "default" = "walker --close" }
-
-[[entries]]
-text = "Spawn Next Below                           →          ALT + SHIFT + V"
+text = "Toggle Tiling Direction (Scroll: Consume)   →          ALT + V"
 icon = ""
 actions = { "default" = "walker --close" }
 
@@ -147,22 +141,22 @@ icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
-text = "Swap Left                                  →          ALT + SHIFT + ←/H"
+text = "Consume/Expel Left                         →          ALT + SHIFT + ←/H"
 icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
-text = "Swap Right                                 →          ALT + SHIFT +"
+text = "Consume/Expel Right                        →          ALT + SHIFT + →/L"
 icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
-text = "Swap Up                                    →          ALT + SHIFT + ↑/K"
+text = "Consume/Expel Up (Scroll: Reorder)        →          ALT + SHIFT + ↑/K"
 icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
-text = "Swap Down                                  →          ALT + SHIFT + ↓/J"
+text = "Consume/Expel Down (Scroll: Reorder)       →          ALT + SHIFT + ↓/J"
 icon = ""
 actions = { "default" = "walker --close" }
 
@@ -382,11 +376,6 @@ icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
-text = "── Control Panels ──"
-icon = ""
-actions = { "default" = "walker --close" }
-
-[[entries]]
 text = "Bluetooth                                  →          SUPER + CTRL + B"
 icon = ""
 actions = { "default" = "walker --close" }
@@ -437,6 +426,11 @@ icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
+text = "Calendar                                    →          SUPER + SHIFT + C"
+icon = ""
+actions = { "default" = "true" }
+
+[[entries]]
 text = "Start/Stop Dictation                       →          SUPER + CTRL + X"
 icon = ""
 actions = { "default" = "walker --close" }
@@ -445,3 +439,4 @@ actions = { "default" = "walker --close" }
 text = "Keybinds Overview                          →          SUPER + K"
 icon = ""
 actions = { "default" = "walker --close" }
+

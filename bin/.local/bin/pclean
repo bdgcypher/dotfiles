@@ -28,16 +28,12 @@ if [ -z "$pkgs" ]; then
 fi
 
 # 4. Cleanup and check for success
-if echo "$pkgs" | xargs -ro yay -Rns; then
-  # Green text for success
+if echo "$pkgs" | xargs -r yay -Rns --noconfirm; then
   echo -e "\n\033[0;32mOrphan cleanup completed successfully!\033[0m"
-
   echo "Press any key to close..."
   read -n 1
 else
-  # Red text for failure
   echo -e "\n\033[0;31mError: Orphan cleanup failed.\033[0m"
-
   echo "Press any key to close..."
   read -n 1
 fi

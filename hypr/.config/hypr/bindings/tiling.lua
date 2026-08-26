@@ -4,15 +4,13 @@ hl.bind("ALT + SLASH", hl.dsp.layout("togglesplit"), { description = "$d Toggle 
 
 hl.bind("ALT + SHIFT + SLASH", hl.dsp.layout("swapsplit"), { description = "$d Swap split" }) -- dwindle
 
-hl.bind("ALT + V", hl.dsp.layout("preselect r"), { description = "$d Spawn next window right" }) -- dwindle
-
-hl.bind("ALT + SHIFT + V", hl.dsp.layout("preselect d"), { description = "$d Spawn next window below" }) -- dwindle
+hl.bind("ALT + V", hl.dsp.exec_cmd("hypr-tiling-direction-toggle"), { description = "$d Toggle tiling direction (right/below)" }) -- dwindle
 
 hl.bind("ALT + SUPER + P", hl.dsp.window.pseudo(), { description = "Pseudo window" }) -- dwindle
 
 hl.bind("ALT + T", hl.dsp.window.float({ action = "toggle" }), { description = "Toggle window floating/tiling" })
 
-hl.bind("ALT + T", hl.dsp.window.center(), { description = "Center floating window" })
+hl.bind("ALT + SHIFT + T", hl.dsp.window.center(), { description = "Center floating window" })
 
 hl.bind("ALT + F", hl.dsp.window.fullscreen({ mode = "fullscreen" }), { description = "Full screen" })
 
@@ -36,12 +34,12 @@ hl.bind("ALT + up", hl.dsp.focus({ direction = "u" }), { description = "Move win
 hl.bind("ALT + down", hl.dsp.focus({ direction = "d" }), { description = "Move window focus down" })
 
 
--- Swap active window with the one next to it with ALT + SHIFT + arrows
+-- Move/toggle window in direction with ALT + SHIFT + arrows (scrolling: consume/expel, dwindle: consume/expel)
 
-hl.bind("ALT + SHIFT + left", hl.dsp.window.swap({ direction = "l" }), { description = "Swap window to the left" })
-hl.bind("ALT + SHIFT + right", hl.dsp.window.swap({ direction = "r" }), { description = "Swap window to the right" })
-hl.bind("ALT + SHIFT + up", hl.dsp.window.swap({ direction = "u" }), { description = "Swap window up" })
-hl.bind("ALT + SHIFT + down", hl.dsp.window.swap({ direction = "d" }), { description = "Swap window down" })
+hl.bind("ALT + SHIFT + left", hl.dsp.exec_cmd("hypr-tiling-window-move l"), { description = "Consume/expel window left" })
+hl.bind("ALT + SHIFT + right", hl.dsp.exec_cmd("hypr-tiling-window-move r"), { description = "Consume/expel window right" })
+hl.bind("ALT + SHIFT + up", hl.dsp.exec_cmd("hypr-tiling-window-move u"), { description = "Consume/expel window up" })
+hl.bind("ALT + SHIFT + down", hl.dsp.exec_cmd("hypr-tiling-window-move d"), { description = "Consume/expel window down" })
 
 
 -- Resize active window with arrow keys
@@ -73,12 +71,12 @@ hl.bind("ALT + k", hl.dsp.focus({ direction = "u" }), { description = "Move wind
 hl.bind("ALT + j", hl.dsp.focus({ direction = "d" }), { description = "Move window focus down" })
 
 
--- Swap active window with the one next to it with ALT + SHIFT + HJKL
+-- Move/toggle window in direction with ALT + SHIFT + HJKL (scrolling: consume/expel, dwindle: consume/expel)
 
-hl.bind("ALT + SHIFT + h", hl.dsp.window.swap({ direction = "l" }), { description = "Swap window to the left" })
-hl.bind("ALT + SHIFT + l", hl.dsp.window.swap({ direction = "r" }), { description = "Swap window to the right" })
-hl.bind("ALT + SHIFT + k", hl.dsp.window.swap({ direction = "u" }), { description = "Swap window up" })
-hl.bind("ALT + SHIFT + j", hl.dsp.window.swap({ direction = "d" }), { description = "Swap window down" })
+hl.bind("ALT + SHIFT + h", hl.dsp.exec_cmd("hypr-tiling-window-move l"), { description = "Consume/expel window left" })
+hl.bind("ALT + SHIFT + l", hl.dsp.exec_cmd("hypr-tiling-window-move r"), { description = "Consume/expel window right" })
+hl.bind("ALT + SHIFT + k", hl.dsp.exec_cmd("hypr-tiling-window-move u"), { description = "Consume/expel window up" })
+hl.bind("ALT + SHIFT + j", hl.dsp.exec_cmd("hypr-tiling-window-move d"), { description = "Consume/expel window down" })
 
 
 -- Resize active window with UIOP

@@ -17,7 +17,7 @@ weight = 90
 [[entries]]
 text = "Screensaver"
 icon = "󰿁 "
-actions = { "default" = "hypr-screensaver toggle" }
+actions = { "default" = "screensaver toggle" }
 weight = 85
 
 [[entries]]

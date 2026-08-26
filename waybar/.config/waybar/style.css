@@ -2,7 +2,6 @@
 
 * {
   color: @foreground;
-
   min-height: 0;
   font-family: 'JetBrainsMono Nerd Font';
   font-size: 12px;
@@ -66,6 +65,19 @@ tooltip {
 
 #custom-update {
   font-size: 10px;
+}
+
+#custom-workspace-layout {
+  min-width: 12px;
+  margin: 0 7.5px;
+}
+
+#custom-tiling-direction {
+  min-width: 12px;
+}
+
+#custom-tiling-direction.auto {
+  opacity: 0.65;
 }
 
 #clock {

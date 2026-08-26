@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+# Move the active window in the given direction, layout-aware.
+#   scrolling: left/right consume_or_expel (join/expel between columns),
+#              up/down reorder within the column.
+#   dwindle:   state-aware consume (join the adjacent split) / expel
+#              (take own row/column), mirroring scrolling's semantics.
+# Usage: hypr-tiling-window-move <u|d|l|r>
+
+dir="${1:?usage: hypr-tiling-window-move <u|d|l|r>}"
+
+ws="$(hyprctl activeworkspace -j 2>/dev/null)"
+layout="$(printf '%s' "$ws" | jq -r '.tiledLayout' 2>/dev/null)"
+
+# Floating windows are moved incrementally by the dedicated 30px bindings
+# (ALT + SHIFT + hjkl/arrows); both fire on the same keypress, so stand down
+# here and let that binding do the work.
+if [ "$(hyprctl activewindow -j 2>/dev/null | jq -r '.floating' 2>/dev/null)" = "true" ]; then
+    exit 0
+fi
+
+# Emit the dwindle dispatcher for the focused window and given direction.
+dwindle_dispatch() {
+    local dir="$1"
+    local active addr ws_id wx wy ww wh tol
+    tol=24
+
+    active="$(hyprctl activewindow -j 2>/dev/null)"
+    if [ -z "$active" ] || [ "$(printf '%s' "$active" | jq -r '.address' 2>/dev/null)" = "null" ]; then
+        echo "hl.dsp.window.move({ direction = '$dir' })"
+        return 0
+    fi
+
+    addr="$(printf '%s' "$active" | jq -r '.address')"
+    ws_id="$(printf '%s' "$active" | jq -r '.workspace.id')"
+    read -r wx wy ww wh <<<"$(printf '%s' "$active" | jq -r '"\(.at[0]) \(.at[1]) \(.size[0]) \(.size[1])"')"
+
+    # band: side-by-side neighbor sharing our y-range (V-split mate, "left"/"right")
+    # stack: stacked neighbor sharing our x-range (H-split mate, "above"/"below")
+    # Among candidates, the closest size identifies the direct split sibling.
+    # stack_h is the mate's height — a much smaller mate means our direct
+    # sibling is a multi-window node (e.g. top window of a 3-row stack).
+    # Outputs "band|stack|stack_h" with "none"/0 sentinels.
+    local band stack stack_h
+    IFS='|' read -r band stack stack_h <<<"$(hyprctl clients -j 2>/dev/null | jq -r \
+        --argjson wx "$wx" --argjson wy "$wy" --argjson ww "$ww" --argjson wh "$wh" \
+        --argjson t "$tol" --argjson ws "$ws_id" --arg addr "$addr" '
+        [.[] | select(.workspace.id == $ws and .floating == false and .mapped == true and .address != $addr)] as $c
+        | {
+            band: ([
+                $c[]
+                | select(
+                    ((.at[1] - $wy) > -$t) and ((.at[1] - $wy) < $t)
+                    and (((.at[1] + .size[1]) - ($wy + $wh)) > -$t) and (((.at[1] + .size[1]) - ($wy + $wh)) < $t)
+                    and (
+                        (((.at[0] + .size[0]) - $wx) > -$t) and (((.at[0] + .size[0]) - $wx) < $t)
+                        or (($wx + $ww - .at[0]) > -$t) and (($wx + $ww - .at[0]) < $t)
+                    )
+                  )
+                | { side: (if .at[0] < $wx then "left" else "right" end), w: .size[0] }
+              ]
+              | sort_by(((.w - $ww) * (.w - $ww)))
+              | .[0].side // "none"),
+            stack: ([
+                $c[]
+                | select(
+                    ((.at[0] - $wx) > -$t) and ((.at[0] - $wx) < $t)
+                    and (((.at[0] + .size[0]) - ($wx + $ww)) > -$t) and (((.at[0] + .size[0]) - ($wx + $ww)) < $t)
+                    and (
+                        (((.at[1] + .size[1]) - $wy) > -$t) and (((.at[1] + .size[1]) - $wy) < $t)
+                        or (($wy + $wh - .at[1]) > -$t) and (($wy + $wh - .at[1]) < $t)
+                    )
+                  )
+                | { side: (if .at[1] < $wy then "above" else "below" end), h: .size[1] }
+              ]
+              | sort_by(((.h - $wh) * (.h - $wh)))
+              | .[0].side // "none"),
+            stack_h: ([
+                $c[]
+                | select(
+                    ((.at[0] - $wx) > -$t) and ((.at[0] - $wx) < $t)
+                    and (((.at[0] + .size[0]) - ($wx + $ww)) > -$t) and (((.at[0] + .size[0]) - ($wx + $ww)) < $t)
+                    and (
+                        (((.at[1] + .size[1]) - $wy) > -$t) and (((.at[1] + .size[1]) - $wy) < $t)
+                        or (($wy + $wh - .at[1]) > -$t) and (($wy + $wh - .at[1]) < $t)
+                    )
+                  )
+                | .size[1]
+              ]
+              | sort_by(((. - $wh) * (. - $wh)))
+              | .[0] // 0)
+          }
+        | [.band, .stack, .stack_h] | join("|")' 2>/dev/null)"
+
+    case "$dir" in
+        u|d)
+            if [ "$band" != "none" ]; then
+                # side-by-side band: expel into own row
+                if [ "$dir" = "u" ]; then
+                    if [ "$band" = "left" ]; then echo "hl.dsp.layout('rotatesplit -90')"; else echo "hl.dsp.layout('rotatesplit 90')"; fi
+                else
+                    if [ "$band" = "left" ]; then echo "hl.dsp.layout('rotatesplit 90')"; else echo "hl.dsp.layout('rotatesplit -90')"; fi
+                fi
+            elif [ "$stack" != "none" ]; then
+                # stacked pair: join the neighbor in that direction. When the
+                # mate is far smaller, our direct sibling is a multi-window
+                # node — togglesplit would flip the whole parent (us taking a
+                # full column); window.move instead joins us into the node.
+                if [ "$wh" -gt $((stack_h * 135 / 100)) ] 2>/dev/null; then
+                    echo "hl.dsp.window.move({ direction = '$dir' })"
+                elif [ "$dir" = "u" ]; then
+                    if [ "$stack" = "above" ]; then echo "hl.dsp.layout('togglesplit')"; else echo "hl.dsp.window.move({ direction = 'u' })"; fi
+                else
+                    if [ "$stack" = "below" ]; then echo "hl.dsp.layout('togglesplit')"; else echo "hl.dsp.window.move({ direction = 'd' })"; fi
+                fi
+            else
+                echo "hl.dsp.window.move({ direction = '$dir' })"
+            fi
+            ;;
+        l|r)
+            if [ "$stack" != "none" ]; then
+                # stacked pair: expel into own column
+                if [ "$dir" = "l" ]; then
+                    if [ "$stack" = "below" ]; then echo "hl.dsp.layout('rotatesplit -90')"; else echo "hl.dsp.layout('rotatesplit 90')"; fi
+                else
+                    if [ "$stack" = "below" ]; then echo "hl.dsp.layout('rotatesplit 90')"; else echo "hl.dsp.layout('rotatesplit -90')"; fi
+                fi
+            elif [ "$band" != "none" ]; then
+                # side-by-side band: join the neighbor in that direction
+                if [ "$dir" = "l" ]; then
+                    if [ "$band" = "left" ]; then echo "hl.dsp.layout('togglesplit')"; else echo "hl.dsp.window.move({ direction = 'l' })"; fi
+                else
+                    if [ "$band" = "right" ]; then echo "hl.dsp.layout('togglesplit')"; else echo "hl.dsp.window.move({ direction = 'r' })"; fi
+                fi
+            else
+                echo "hl.dsp.window.move({ direction = '$dir' })"
+            fi
+            ;;
+    esac
+}
+
+case "$layout" in
+    scrolling)
+        case "$dir" in
+            l) hyprctl eval "hl.dispatch(hl.dsp.layout('consume_or_expel prev'))" ;;
+            r) hyprctl eval "hl.dispatch(hl.dsp.layout('consume_or_expel next'))" ;;
+            u) hyprctl eval "hl.dispatch(hl.dsp.window.move({ direction = 'u' }))" ;;
+            d) hyprctl eval "hl.dispatch(hl.dsp.window.move({ direction = 'd' }))" ;;
+        esac
+        ;;
+    dwindle|*)
+        hyprctl eval "hl.dispatch($(dwindle_dispatch "$dir"))"
+        ;;
+esac

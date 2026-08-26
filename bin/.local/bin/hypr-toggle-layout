@@ -10,14 +10,15 @@ show_osd() {
   fi
 }
 
-ws="$(hyprctl activeworkspace -j)"
+ws="$(hyprctl activeworkspace -j 2>/dev/null)"
+name="$(printf '%s' "$ws" | jq -r '.name')"
 current="$(printf '%s' "$ws" | jq -r '.tiledLayout')"
-ws_id="$(printf '%s' "$ws" | jq -r '.id')"
 
 case "$current" in
   dwindle) new="scrolling" ;;
   *)       new="dwindle" ;;
 esac
 
-hyprctl keyword workspace "$ws_id", layout:"$new"
-show_osd "Workspace layout: $new"
+hyprctl eval "hl.workspace_rule({ workspace = 'name:$name', layout = '$new' })"
+pkill -RTMIN+10 waybar &>/dev/null
+show_osd "Workspace $name layout: $new"

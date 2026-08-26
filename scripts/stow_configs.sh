@@ -10,7 +10,9 @@ BACKUP_DIR="$HOME/.dotfiles.bak/$(date +%Y%m%d_%H%M%S)"
 # List of folders to exclude from stowing
 # 'mouseless' is excluded because its files are copied into the flatpak app's
 # data dir by install_packages.sh, not symlinked into $HOME.
-EXCLUDE=("scripts" ".git" "system" "yay" "gh" "bitwarden" "mozilla" "mouseless")
+# 'rust' is excluded because it is a Cargo workspace (builds binaries), not a
+# stow package — the compiled helpers are copied into ~/.local/bin below.
+EXCLUDE=("scripts" ".git" "system" "yay" "gh" "bitwarden" "mozilla" "mouseless" "rust")
 
 echo "Starting configuration stowing..."
 echo "Backups (if any) will be stored in: $BACKUP_DIR"
@@ -146,6 +148,22 @@ fi
 
 echo "Theme symlinks created."
 
+# Build the Rust helper binaries (hypr-tiling-direction-watch,
+# rebalance-pywal-colorscheme) into ~/.local/bin. The systemd watcher service
+# and apply-wallpaper/theme-mode call them by name.
+if command -v cargo &> /dev/null; then
+    echo "Building Rust helper binaries..."
+    cargo build --release --manifest-path "$DOTFILES_DIR/rust/Cargo.toml" >/dev/null 2>&1 || {
+        echo "Note: Rust build failed — retrying with output:"
+        cargo build --release --manifest-path "$DOTFILES_DIR/rust/Cargo.toml"
+    }
+    install -m755 "$DOTFILES_DIR/rust/target/release/hypr-tiling-direction-watch" "$HOME/.local/bin/"
+    install -m755 "$DOTFILES_DIR/rust/target/release/rebalance-pywal-colorscheme" "$HOME/.local/bin/"
+    echo "Rust binaries built."
+else
+    echo "Note: cargo not found — skipping Rust helper build (install the 'rust' package)."
+fi
+
 # Enable Waybar systemd user service
 if command -v waybar &> /dev/null && systemctl --user enable --now waybar.service 2>/dev/null; then
     echo "Waybar service enabled and started."
@@ -166,6 +184,13 @@ if command -v voxtype &> /dev/null && systemctl --user enable --now voxtype.serv
     echo "Voxtype service enabled and started."
 elif command -v voxtype &> /dev/null; then
     echo "Note: Could not enable voxtype.service (may need to run after login)."
+fi
+
+# Enable the waybar tiling/layout event watcher (signals waybar on Hyprland events)
+if command -v hyprctl &> /dev/null && systemctl --user enable --now hypr-tiling-direction-watch.service 2>/dev/null; then
+    echo "Tiling direction watcher service enabled and started."
+elif command -v hyprctl &> /dev/null; then
+    echo "Note: Could not enable hypr-tiling-direction-watch.service (may need to run after login)."
 fi
 
 # Re-enable Sunshine systemd user service (its .wants symlink gets cleaned

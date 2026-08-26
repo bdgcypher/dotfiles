@@ -5,33 +5,34 @@ additional_theme_location = "~/.config/walker/themes/default/style.css"
 hide_action_hints = false                                                   # globally hide the action hints
 
 [placeholders]
-"default" = { input = " Search...", list = "" }
-"menus:main" = { input = " Main...", list = "" }
-"menus:utilities" = { input = " Utilities...", list = "" }
-"menus:utilities/capture" = { input = " Capture...", list = "" }
-"menus:system" = { input = " System...", list = "" }
-"menus:system/theme" = { input = " Theme...", list = "" }
-"menus:system/power" = { input = " Power...", list = "" }
-"menus:system/config" = { input = " Config...", list = "" }
-"menus:system/keybinds" = { input = " Keybinds...", list = "" }
-"menus:system/setup" = { input = " Setup...", list = "" }
-"desktopapplications" = { input = " Applications...", list = "" }
-"clipboard" = { input = " Clipboard History...", list = "" }
-"symbols" = { input = " Emoji...", list = "" }
-"calc" = { input = " Calculator...", list = "" }
-"websearch" = { input = " Web Search...", list = "" }
-"runner" = { input = " Scripts...", list = "" }
-"files" = { input = " Files...", list = "" }
-"bluetooth" = { input = " Bluetooth...", list = "" }
-"windows" = { input = " Windows...", list = "" }
-"archlinuxpkgs" = { input = " Packages...", list = "" }
-"playerctl" = { input = " Media...", list = "" }
-"todo" = { input = " Todo...", list = "" }
-"bookmarks" = { input = " Bookmarks...", list = "" }
-"snippets" = { input = " Snippets...", list = "" }
-"wireplumber" = { input = " Audio...", list = "" }
-"unicode" = { input = " Unicode...", list = "" }
-"providerlist" = { input = " Providers...", list = "" }
+"default" = { input = "  Search...", list = "" }
+"menus:main" = { input = "  Main...", list = "" }
+"menus:utilities" = { input = "  Utilities...", list = "" }
+"menus:utilities/capture" = { input = "  Capture...", list = "" }
+"menus:system" = { input = "  System...", list = "" }
+"menus:system/theme" = { input = "  Theme...", list = "" }
+"menus:system/power" = { input = "  Power...", list = "" }
+"menus:system/config" = { input = "  Config...", list = "" }
+"menus:system/keybinds" = { input = "  Keybinds...", list = "" }
+"menus:system/setup" = { input = "  Setup...", list = "" }
+"desktopapplications" = { input = "  Applications...", list = "" }
+"clipboard" = { input = "  Clipboard History...", list = "" }
+"symbols" = { input = "  Emoji...", list = "" }
+"calc" = { input = "  Calculator...", list = "" }
+"websearch" = { input = "  Web Search...", list = "" }
+"runner" = { input = "  Scripts...", list = "" }
+"files" = { input = "  Files...", list = "" }
+"bluetooth" = { input = "  Bluetooth...", list = "" }
+"windows" = { input = "  Windows...", list = "" }
+"archlinuxpkgs" = { input = "  Packages...", list = "" }
+"playerctl" = { input = "  Media...", list = "" }
+"todo" = { input = "  Todo...", list = "" }
+"bookmarks" = { input = "  Bookmarks...", list = "" }
+"snippets" = { input = "  Snippets...", list = "" }
+"wireplumber" = { input = "  Audio...", list = "" }
+"unicode" = { input = "  Unicode...", list = "" }
+"providerlist" = { input = "  Providers...", list = "" }
+"aion" = { input = "  Calendar...", list = "" }
 
 [keybinds]
 next = ["Down", "ctrl j"]

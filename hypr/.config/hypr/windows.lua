@@ -112,6 +112,14 @@ hl.window_rule({
   focus_on_activate = false,
 })
 
+-- Calendar / Aion (floating)
+hl.window_rule({
+  match = { initial_class = "floating.Calendar" },
+  float = true,
+  center = true,
+  size = "1000 700",
+})
+
 -- Package Management TUI's (floating)
 hl.window_rule({
   match = { initial_class = "floating.Pacman" },

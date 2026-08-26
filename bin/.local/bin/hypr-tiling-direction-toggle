@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# Toggle the next window's tiling direction.
+# Scrolling layout: arms/disarms a one-shot "consume next" — the next window
+# spawned on this workspace joins the active column instead of a new one.
+# Dwindle layout: arms the dwindle preselect (right/below) for the next window,
+# flipping from the currently effective direction.
+
+ws_info="$(hyprctl activeworkspace -j 2>/dev/null)"
+ws_id="$(printf '%s' "$ws_info" | jq -r '.id')"
+layout="$(printf '%s' "$ws_info" | jq -r '.tiledLayout')"
+
+if [ "$layout" = "scrolling" ]; then
+    state_file="/tmp/scrolling-consume"
+
+    if [ -f "$state_file" ] && grep -qx "$ws_id" "$state_file" 2>/dev/null; then
+        sed -i "/^$ws_id$/d" "$state_file" 2>/dev/null || true
+    else
+        printf '%s\n' "$ws_id" >> "$state_file"
+    fi
+
+    pkill -RTMIN+11 waybar &>/dev/null
+    exit 0
+fi
+
+# Dwindle: flip the preselect from the currently effective direction.
+state_file="/tmp/tiling-direction"
+
+tiled="$(hyprctl clients -j | jq '[.[] | select(.floating == false and .workspace.id == '"$ws_id"')] | length')"
+
+# Currently effective direction: armed preselect if un-consumed on this
+# workspace, else the automatic prediction from the focused tiled window.
+cur=""
+if [ -f "$state_file" ]; then
+    read -r armed_ws dir armed_count consumed < "$state_file" || true
+    if [ -n "$dir" ] && [ "$consumed" != "consumed" ] && [ "$armed_ws" = "$ws_id" ] && [ -n "$tiled" ] && [ "$tiled" -le "$armed_count" ]; then
+        cur="$dir"
+    fi
+fi
+if [ -z "$cur" ]; then
+    win="$(hyprctl activewindow -j 2>/dev/null)"
+    if [ "$(printf '%s' "$win" | jq -r '.class')" != "null" ] && [ "$(printf '%s' "$win" | jq -r '.floating')" != "true" ]; then
+        w="$(printf '%s' "$win" | jq -r '.size[0]')"
+        h="$(printf '%s' "$win" | jq -r '.size[1]')"
+        if [ "$w" -gt "$h" ]; then cur="r"; else cur="d"; fi
+    fi
+fi
+
+case "$cur" in
+    r) new="d" ;;
+    *) new="r" ;;
+esac
+
+hyprctl eval "hl.dispatch(hl.dsp.layout('preselect $new'))"
+
+printf '%s %s %s\n' "$ws_id" "$new" "$tiled" > "$state_file"
+
+pkill -RTMIN+11 waybar &>/dev/null

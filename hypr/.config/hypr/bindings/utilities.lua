@@ -10,6 +10,8 @@ hl.bind("SUPER + K", hl.dsp.exec_cmd("walker -m menus:system/keybinds --theme ke
 
 hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd(terminal .. " --class=floating.About -e sh -c 'fastfetch; exec $SHELL'"), { description = "About" })
 
+hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd(terminal .. " --class=floating.Calendar -e aion"), { description = "Calendar" })
+
 -- Aesthetics
 
 hl.bind(

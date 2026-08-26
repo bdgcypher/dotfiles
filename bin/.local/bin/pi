@@ -19,17 +19,12 @@ if [ -z "$pkgs" ]; then
 fi
 
 # 3. Run the installation and check for success
-# The -o flag in xargs is essential for interactive yay prompts
-if echo "$pkgs" | xargs -ro yay -S; then
-  # Green text for success
+if echo "$pkgs" | xargs -r yay -S --needed --noconfirm; then
   echo -e "\n\033[0;32mInstallation completed successfully!\033[0m"
-
   echo "Press any key to close..."
   read -n 1
 else
-  # Red text for failure
   echo -e "\n\033[0;31mError: Installation failed.\033[0m"
-
   echo "Press any key to close..."
   read -n 1
 fi

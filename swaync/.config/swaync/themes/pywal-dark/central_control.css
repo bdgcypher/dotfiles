@@ -193,7 +193,8 @@ progressbar {
   padding: 6px 2px;
   margin: 6px;
   border-radius: 8px;
-  background: @background-alt;
+  border: 1px solid @selected;
+  background: transparent;
 }
 
 .widget-buttons-grid>flowbox>flowboxchild>button {
@@ -211,9 +212,11 @@ progressbar {
 
   /* Music player */
 .widget-mpris {
-    background: @background-alt;
+    background: transparent;
+    border: 1px solid @selected;
     border-radius: 8px;
     color: @text;
+    padding: 8px;
     margin:  20px 6px;
 }
 
@@ -231,11 +234,11 @@ progressbar {
 }
  
 .widget-mpris button {
-  color: alpha(@text, .6);
+  color: alpha(@text, .5);
 }
 
 .widget-mpris button:hover {
-  color: @text;
+  color: @selected;
 }
 
 .widget-mpris-album-art {

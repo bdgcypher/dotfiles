@@ -1,0 +1,43 @@
+[theme]
+# Accent colors
+[theme.accent]
+primary = "cyan"
+secondary = "blue"
+success = "green"
+warning = "yellow"
+error = "red"
+
+# Text colors
+[theme.text]
+primary = "white"
+secondary = "gray"
+dim = "darkGray"
+
+# Selection highlight
+[theme.selection]
+background = "blue"
+text = "white"
+indicator = "cyan"
+
+# Event type colors
+[theme.eventType]
+default = "cyan"
+focusTime = "blue"
+outOfOffice = "magenta"
+birthday = "yellow"
+
+# Attendance status colors
+[theme.status]
+accepted = "green"
+declined = "red"
+tentative = "yellow"
+
+# UI elements
+[theme.modal]
+background = "black"
+
+[theme.input]
+background = "black"
+
+[theme.statusBar]
+background = "black"

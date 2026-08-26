@@ -1,0 +1,13 @@
+[Unit]
+Description=Waybar Hyprland event watcher (tiling/layout indicators)
+BindsTo=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/hypr-tiling-direction-watch
+Restart=on-failure
+RestartSec=3s
+
+[Install]
+WantedBy=graphical-session.target

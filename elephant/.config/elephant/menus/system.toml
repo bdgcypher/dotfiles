@@ -10,7 +10,7 @@ weight = 105
 
 [[entries]]
 text = "Config"
-icon = " "
+icon = " "
 actions = { "default" = "walker -m menus:system/config --width 250" }
 weight = 100
 
@@ -37,4 +37,3 @@ text = "Theme"
 icon = "󰏘 "
 actions = { "default" = "walker -m menus:system/theme --width 250" }
 weight = 70
-

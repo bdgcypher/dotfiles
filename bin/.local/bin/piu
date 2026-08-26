@@ -3,18 +3,12 @@
 echo "Full System Update..."
 
 # Run the update
-if sudo pacman -Syu; then
-  # Green text for success
+if sudo pacman -Syu --noconfirm; then
   echo -e "\n\033[0;32mSystem update completed!\033[0m"
-
-  # Pause so you can see the success message
   echo "Press any key to close..."
   read -n 1
 else
-  # Red text for failure
   echo -e "\n\033[0;31mError: System update failed.\033[0m"
-
-  # Keep terminal open to read the error
   echo "Press any key to close..."
   read -n 1
 fi

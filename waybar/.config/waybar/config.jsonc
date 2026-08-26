@@ -6,7 +6,7 @@
   "spacing": 8,
   "height": 26,
   "margin": "6 12 0 12",
-  "modules-left": ["custom/menu", "hyprland/workspaces"],
+  "modules-left": ["custom/menu", "hyprland/workspaces", "custom/workspace-layout", "custom/tiling-direction"],
   "modules-center": ["clock", "custom/voxtype", "custom/screen-recording-indicator"],
   "modules-right": [
     "group/tray-expander",
@@ -45,6 +45,20 @@
     "on-click": "walker --width 250",
     "tooltip-format": "Menu"
   },
+  "custom/workspace-layout": {
+    "exec": "~/.config/waybar/scripts/workspace-layout.sh",
+    "return-type": "json",
+    "signal": 10,
+    "tooltip": true,
+    "on-click": "hypr-toggle-layout"
+  },
+  "custom/tiling-direction": {
+    "exec": "~/.config/waybar/scripts/tiling-direction.sh",
+    "return-type": "json",
+    "signal": 11,
+    "tooltip": true,
+    "on-click": "hypr-tiling-direction-toggle"
+  },
   "memory": {
     "interval": 5,
     "format": "  {}% ",
@@ -59,7 +73,7 @@
     "format": "{:L%A %I:%M %p}",
     "format-alt": "{:L%B %d, %Y}",
     "tooltip": false,
-    "on-click-right": ""
+    "on-click-right": "ghostty --class=floating.Calendar -e aion"
   },
   "network": {
     "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
@@ -129,7 +143,6 @@
   "custom/screen-recording-indicator": {
     "exec": "if [ -f /tmp/wf_recording_active ]; then echo '{\"text\": \"\", \"class\": \"recording\", \"tooltip\": \"Recording in progress... (Click icon or press SUPER + R to stop)\"}'; else echo '{\"text\": \"\", \"class\": \"stopped\"}'; fi",
     "return-type": "json",
-    "interval": "once",
     "signal": 8,
     "on-click": "screen-record"
   },
