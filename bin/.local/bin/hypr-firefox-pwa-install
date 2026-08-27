@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+# hypr-firefox-pwa-install — TUI installer for firefox web apps.
+# Uses gum for styled text input and fzf for selection.
+# Single-loop multi-step flow with proper back navigation.
+
+set -uo pipefail
+
+DOTFILES_DIR="$(cd "$(dirname "$(dirname "$(realpath "$0")")")" && pwd)"
+[ -d "$DOTFILES_DIR/hypr" ] || DOTFILES_DIR="$HOME/.dotfiles"
+WINDOWS_LUA="$DOTFILES_DIR/hypr/.config/hypr/windows.lua"
+APPS_LUA="$DOTFILES_DIR/hypr/.config/hypr/bindings/applications.lua"
+KEYBINDS_TOML="$DOTFILES_DIR/elephant/.config/elephant/menus/keybinds.toml"
+APPS_DIR="$HOME/.local/share/applications"
+ICONS_DIR="$HOME/.local/share/icons"
+
+# ── Dependency check ─────────────────────────────────────────────────────
+for cmd in gum fzf; do
+  command -v "$cmd" >/dev/null 2>&1 || { echo "Error: $cmd is required but not installed." >&2; exit 1; }
+done
+
+# Read pywal color6 for cursor tint (falls back to white).
+ACCENT_COLOR="15"
+if [ -f "${XDG_CACHE_HOME:-$HOME/.cache}/wal/colors" ]; then
+  raw=$(sed -n '7p' "${XDG_CACHE_HOME:-$HOME/.cache}/wal/colors" 2>/dev/null | tr -d '#')
+  [ -n "$raw" ] && ACCENT_COLOR="#$raw"
+fi
+
+# ── Draw a full-width keybinds bar at the top of the terminal ────────────
+draw_keybinds_bar() {
+  local rows cols
+  read -r rows cols < <(stty size 2>/dev/null)
+  cols=${cols:-100}
+  {
+    printf '\033[1;1H╭─ Install Web App %s╮\n' "$(awk -v n=$((cols - 20)) 'BEGIN { for (i = 0; i < n; i++) printf "─" }')"
+    printf '\033[2;1H│  enter: confirm     esc: back/close                                   %*s│\n' $((cols - 64)) ""
+    printf '\033[3;1H╰%s╯\n' "$(awk -v n=$((cols - 2)) 'BEGIN { for (i = 0; i < n; i++) printf "─" }')"
+  } >/dev/tty
+}
+
+# ── Gum input wrapper ────────────────────────────────────────────────────
+# Returns 1 on ESC / Ctrl-C so the caller can go back.
+gum_input() {
+  local prompt="$1" placeholder="${2:-}" default="${3:-}"
+  local args=(--prompt "$prompt: " --prompt.foreground 7 --cursor.foreground "$ACCENT_COLOR")
+  [ -n "$placeholder" ] && args+=(--placeholder "$placeholder")
+  [ -n "$default" ] && args+=(--value "$default")
+  STEP_RESULT=$(gum input "${args[@]}" 2>/dev/tty) || return 1
+  return 0
+}
+
+# ── State variables ──────────────────────────────────────────────────────
+URL=""
+APP_NAME=""
+SAFE_NAME=""
+domain=""
+ICON=""
+WANT_KB=""
+KEYBIND=""
+SUCCESS=true
+STEP=1
+TOTAL_STEPS=5
+
+# ── Main loop ────────────────────────────────────────────────────────────
+draw_keybinds_bar
+
+while [ "$STEP" -le "$TOTAL_STEPS" ]; do
+  printf '\033[5;1H\033[2K' >/dev/tty
+
+  case $STEP in
+    1)
+      gum_input "Web App URL" "https://example.com" || { clear; exit 0; }
+      URL="$STEP_RESULT"
+      [ -n "$URL" ] && STEP=$((STEP + 1))
+      ;;
+    2)
+      domain=$(printf '%s' "$URL" | sed -E 's|^[a-z]+://||; s|^www\.||; s|[/?#].*$||')
+      gum_input "Web App Title" "Example Title" || { STEP=$((STEP - 1)); continue; }
+      APP_NAME="$STEP_RESULT"
+      [ -n "$APP_NAME" ] && STEP=$((STEP + 1))
+      ;;
+    3)
+      SAFE_NAME=$(printf '%s' "$APP_NAME" | tr ' /' '__')
+      hypr-firefox-pwa --ensure-extension >/dev/null 2>&1 || true
+      mkdir -p "$ICONS_DIR"
+      ICON="$ICONS_DIR/$SAFE_NAME.png"
+      if ! curl -fsSL --max-time 10 "https://www.google.com/s2/favicons?domain=$domain&sz=128" -o "$ICON" 2>/dev/null || [ ! -s "$ICON" ]; then
+        rm -f "$ICON"
+        gum_input "Icon image URL" "Auto-detect from domain" || { STEP=$((STEP - 1)); continue; }
+        if [ -n "$STEP_RESULT" ]; then
+          curl -fsSL --max-time 10 "$STEP_RESULT" -o "$ICON" >/dev/null 2>&1 || rm -f "$ICON"
+        fi
+      fi
+      [ -s "$ICON" ] || ICON=""
+      STEP=$((STEP + 1))
+      ;;
+    4)
+      gum_input "Add a keybind? (y/N)" "N" || { STEP=$((STEP - 1)); continue; }
+      WANT_KB="${STEP_RESULT:-N}"
+      STEP=$((STEP + 1))
+      ;;
+    5)
+      if [[ "$WANT_KB" =~ ^[yY] ]]; then
+        gum_input "Keybind" "SUPER + SHIFT + R" || { STEP=$((STEP - 1)); continue; }
+        KEYBIND="$STEP_RESULT"
+        [ -n "$KEYBIND" ] && STEP=$((STEP + 1))
+      else
+        KEYBIND=""
+        STEP=$((STEP + 1))
+      fi
+      ;;
+  esac
+done
+
+# ── Installation ─────────────────────────────────────────────────────────
+echo -e "\n\033[1;33mInstalling web app...\033[0m"
+
+# Create desktop file
+mkdir -p "$APPS_DIR"
+EXEC=$(printf 'hypr-firefox-pwa "%s" "%s"' "$URL" "$APP_NAME" | sed 's/%/%%/g')
+cat > "$APPS_DIR/.$SAFE_NAME.desktop.tmp" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$APP_NAME
+Comment=Web app (firefox)
+Exec=$EXEC
+Icon=$ICON
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;
+EOF
+mv "$APPS_DIR/.$SAFE_NAME.desktop.tmp" "$APPS_DIR/$SAFE_NAME.desktop" || SUCCESS=false
+
+# Window rule
+REGEX_NAME=$(printf '%s' "$APP_NAME" | sed 's/[][(){}.*+?^$|\\]/\\&/g')
+if ! grep -qsF -- "-- Web App: $APP_NAME" "$WINDOWS_LUA"; then
+  cat >> "$WINDOWS_LUA" <<EOF
+
+-- Web App: $APP_NAME
+hl.window_rule({
+  match = { class = "firefox", title = ".*$REGEX_NAME.*" },
+  tile = true,
+})
+EOF
+fi
+
+# Keybind in hypr bindings
+if [ -n "$KEYBIND" ]; then
+  URL_LUA=$(printf '%s' "$URL" | sed 's/#/##/g')
+  if ! grep -qsF -- "$URL_LUA" "$APPS_LUA"; then
+    cat >> "$APPS_LUA" <<EOF
+
+-- Web App Keybind: $APP_NAME
+hl.bind(
+	"$KEYBIND",
+	hl.dsp.exec_cmd("hypr-firefox-pwa \\"$URL_LUA\\" \\"$APP_NAME\\""),
+	{ description = "$APP_NAME" }
+)
+EOF
+  fi
+
+  # Elephant keybinds entry
+  if ! grep -qsF -- "$APP_NAME" "$KEYBINDS_TOML"; then
+    TEXT=$(printf '%-43s→          %s' "$APP_NAME" "$KEYBIND")
+    cat >> "$KEYBINDS_TOML" <<EOF
+
+[[entries]]
+text = "$TEXT"
+icon = ""
+actions = { "default" = "walker --close" }
+EOF
+  fi
+fi
+
+# ── Result ───────────────────────────────────────────────────────────────
+if [ "$SUCCESS" = true ]; then
+  echo -e "\n\033[0;32mWeb App installation successful!\033[0m"
+else
+  echo -e "\n\033[0;31mWeb App installation failed.\033[0m"
+fi
+echo "Press any key to close..."
+read -n 1
+
+# Reload configs AFTER the user has seen the result and pressed a key.
+# pkill walker must come after read because killing walker can close
+# the ghostty window that spawned this script.
+hyprctl reload >/dev/null 2>&1 || true
+systemctl --user restart elephant.service >/dev/null 2>&1 || true
+pkill -x walker 2>/dev/null || true
+setsid walker --gapplication-service >/dev/null 2>&1 &

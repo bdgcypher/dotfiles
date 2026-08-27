@@ -128,6 +128,14 @@ hl.window_rule({
   size = "800 900",
 })
 
+-- Web app installer / remover (floating)
+hl.window_rule({
+  match = { initial_class = "floating.WebAppInstall" },
+  float = true,
+  center = true,
+  size = "900 650",
+})
+
 -- Screensaver (TTE)
 hl.window_rule({
   match = { class = "org.hypr.screensaver" },
@@ -135,4 +143,34 @@ hl.window_rule({
   float = true,
   stay_focused = true,
   animation = "none",
+})
+
+-- Web App: Google Messages
+hl.window_rule({
+  match = { class = "firefox", title = ".*Google Messages.*" },
+  tile = true,
+})
+
+-- Web App: To Do
+hl.window_rule({
+  match = { class = "firefox", title = ".*To Do.*" },
+  tile = true,
+})
+
+-- Web App: Youtube Music
+hl.window_rule({
+  match = { class = "firefox", title = ".*Youtube Music.*" },
+  tile = true,
+})
+
+-- Web App: SSamsung Food
+hl.window_rule({
+  match = { class = "firefox", title = ".*SSamsung Food.*" },
+  tile = true,
+})
+
+-- Web App: Samsung Food
+hl.window_rule({
+  match = { class = "firefox", title = ".*Samsung Food.*" },
+  tile = true,
 })

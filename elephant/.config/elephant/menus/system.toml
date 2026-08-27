@@ -21,6 +21,24 @@ actions = { "default" = "walker -m menus:system/keybinds --theme keybinds --widt
 weight = 90
 
 [[entries]]
+text = "Install"
+icon = "󰇚 "
+actions = { "default" = "walker -m menus:system/install --width 250" }
+weight = 89
+
+[[entries]]
+text = "Remove"
+icon = "󰆴 "
+actions = { "default" = "walker -m menus:system/remove --width 250" }
+weight = 88
+
+[[entries]]
+text = "Update"
+icon = "󰑓 "
+actions = { "default" = "walker -m menus:system/update --width 250" }
+weight = 87
+
+[[entries]]
 text = "Setup"
 icon = " "
 actions = { "default" = "walker -m menus:system/setup --width 250" }

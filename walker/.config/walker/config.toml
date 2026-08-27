@@ -15,6 +15,9 @@ hide_action_hints = false                                                   # gl
 "menus:system/config" = { input = "  Config...", list = "" }
 "menus:system/keybinds" = { input = "  Keybinds...", list = "" }
 "menus:system/setup" = { input = "  Setup...", list = "" }
+"menus:system/install" = { input = "  Install...", list = "" }
+"menus:system/remove" = { input = "  Remove...", list = "" }
+"menus:system/update" = { input = "  Update...", list = "" }
 "desktopapplications" = { input = "  Applications...", list = "" }
 "clipboard" = { input = "  Clipboard History...", list = "" }
 "symbols" = { input = "  Emoji...", list = "" }

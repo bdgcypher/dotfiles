@@ -1,0 +1,15 @@
+name = "system/update"
+name_pretty = "System → Update"
+icon = "󰑓"
+
+[[entries]]
+text = "System Update"
+icon = "󰚰 "
+actions = { "default" = "ghostty --class=floating.Pacman -e piu" }
+weight = 100
+
+[[entries]]
+text = "Clean Orphans"
+icon = "󰧹 "
+actions = { "default" = "ghostty --class=floating.Pacman -e pclean" }
+weight = 90

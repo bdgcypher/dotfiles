@@ -14,11 +14,11 @@ fi
 
 # 2. Run fzf to double-check what's being removed
 pkgs=$(echo "$list" | fzf --multi \
-  --header "Remove Orphans (Space: Select)" \
+  --header "Remove Orphans (ctrl-j/k: move, tab: select, esc: close)" \
   --preview "yay -Qi {1}" \
   --preview-window=down:55% \
   --layout=reverse \
-  --bind "ctrl-j:down,ctrl-k:up,space:toggle")
+  --bind "ctrl-j:down,ctrl-k:up,tab:toggle")
 
 # 3. Check if you cancelled the selection
 if [ -z "$pkgs" ]; then

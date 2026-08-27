@@ -440,3 +440,14 @@ text = "Keybinds Overview                          →          SUPER + K"
 icon = ""
 actions = { "default" = "walker --close" }
 
+
+[[entries]]
+text = "To Do                                      →          SUPER + SHIFT + T"
+icon = ""
+actions = { "default" = "walker --close" }
+
+[[entries]]
+text = "Youtube Music                              →          SUPER + SHIFT + M"
+icon = ""
+actions = { "default" = "walker --close" }
+

@@ -1,0 +1,15 @@
+name = "system/remove"
+name_pretty = "System → Remove"
+icon = "󰆴"
+
+[[entries]]
+text = "Packages"
+icon = "󰏗 "
+actions = { "default" = "ghostty --class=floating.Pacman -e pr" }
+weight = 100
+
+[[entries]]
+text = "Web App"
+icon = "󰈹 "
+actions = { "default" = "ghostty --class=floating.WebAppInstall -e hypr-firefox-pwa-remove" }
+weight = 90

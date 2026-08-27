@@ -40,6 +40,7 @@ ghostty
 github-cli
 gnome-themes-extra
 gst-plugin-pipewire
+gum
 gthumb
 hypridle
 hyprland

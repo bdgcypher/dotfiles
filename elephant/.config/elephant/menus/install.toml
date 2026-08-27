@@ -1,0 +1,15 @@
+name = "system/install"
+name_pretty = "System → Install"
+icon = "󰇚"
+
+[[entries]]
+text = "Packages"
+icon = "󰏗 "
+actions = { "default" = "ghostty --class=floating.Pacman -e pi" }
+weight = 100
+
+[[entries]]
+text = "Web App"
+icon = "󰈹 "
+actions = { "default" = "ghostty --class=floating.WebAppInstall -e hypr-firefox-pwa-install" }
+weight = 90

@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "Hypr Web Apps",
+  "version": "1.0.1",
+  "description": "Opens URLs as chromeless web app popups and routes links to a normal browser window.",
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "webRequest",
+    "webRequestBlocking",
+    "https://hypr-webapps.invalid/*"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "hypr-webapps@dotfiles.local",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}

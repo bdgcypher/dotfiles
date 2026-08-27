@@ -38,7 +38,7 @@ draw_keybinds_bar() {
     #   row 2: "│  <hints> "   = 61 chars, + pad  + "│"  => pad  = cols - 62
     #   row 3: "╰" + fill + "╯"                           => fill = cols - 2
     printf '\033[1;1H╭─ Keybinds %s╮\n' "$(awk -v n=$((cols - 13)) 'BEGIN { for (i = 0; i < n; i++) printf "─" }')"
-    printf '\033[2;1H│  ctrl-j/ctrl-k: move     enter: select     esc: clear/quit %*s│\n' $((cols - 62)) ""
+    printf '\033[2;1H│  ctrl-j/k: move     enter: select     esc: clear/close %*s│\n' $((cols - 62)) ""
     printf '\033[3;1H╰%s╯\n' "$(awk -v n=$((cols - 2)) 'BEGIN { for (i = 0; i < n; i++) printf "─" }')"
   } >/dev/tty
 }

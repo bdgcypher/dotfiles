@@ -5,11 +5,11 @@ source "$HOME/.local/bin/fzf-colors"
 
 # 1. Capture the selection from yay/fzf
 pkgs=$(yay -Slq | fzf --multi \
-  --header "Install Packages (Space: Select)" \
+  --header "Install Packages (ctrl-j/k: move, tab: select, esc: close)" \
   --preview "yay -Si {1}" \
   --preview-window=down:55% \
   --layout=reverse \
-  --bind "ctrl-j:down,ctrl-k:up,space:toggle")
+  --bind "ctrl-j:down,ctrl-k:up,tab:toggle")
 
 # 2. Check if the user actually selected anything
 if [ -z "$pkgs" ]; then

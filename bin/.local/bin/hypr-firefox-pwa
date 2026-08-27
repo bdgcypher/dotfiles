@@ -1,0 +1,215 @@
+#!/usr/bin/env bash
+# hypr-firefox-pwa - Launch a URL as a chromeless, tiled firefox web app.
+# Usage: hypr-firefox-pwa <url> [app_name]
+#   Opens the URL in a popup window (no tab bar or URL bar) in the default
+#   firefox profile via the bundled hypr-webapps extension, so web apps share
+#   the main browser's logins. Links clicked inside the web app are routed to
+#   a normal browser window by the extension. app_name is used to focus an
+#   already-open app instead of spawning a duplicate (state file).
+#   --ensure-extension  Install the hypr-webapps extension into the default
+#                       profile (idempotent) and exit.
+
+set -euo pipefail
+
+PROFILES_INI="$HOME/.config/mozilla/firefox/profiles.ini"
+STATE_FILE="/tmp/hypr-firefox-pwa-state"
+EXT_ID="hypr-webapps@dotfiles.local"
+
+SCRIPT_DIR="$(cd "$(dirname "$(realpath "$0")")" && pwd)"
+DOTFILES_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+[ -d "$DOTFILES_DIR/firefox-webapps" ] || DOTFILES_DIR="$HOME/.dotfiles"
+# The extension source is a stow package: firefox-webapps/.config/firefox-webapps
+EXT_SRC_DIR="$DOTFILES_DIR/firefox-webapps/.config/firefox-webapps"
+[ -d "$EXT_SRC_DIR" ] || EXT_SRC_DIR="$HOME/.config/firefox-webapps"
+
+default_profile_dir() {
+  # Resolve the default profile directory from profiles.ini.
+  local base name dir=""
+  base=$(dirname "$PROFILES_INI")
+  name=$(awk -v RS='' '/^\[Install/ { for (i = 1; i <= NF; i++) if ($i ~ /^Default=/) { sub(/^Default=/, "", $i); print $i; exit } }' "$PROFILES_INI" 2>/dev/null | head -1 || true)
+  if [ -n "$name" ]; then
+    dir=$(awk -v RS='' -v n="Name=$name" '
+      index($0, n) { for (i = 1; i <= NF; i++) if ($i ~ /^Path=/) { sub(/^Path=/, "", $i); print $i; exit } }
+    ' "$PROFILES_INI" 2>/dev/null | head -1 || true)
+    # Some profiles.ini files put the profile dir name in Default= directly.
+    if [ -z "$dir" ] && [ -d "$base/$name" ]; then dir="$name"; fi
+  fi
+  if [ -z "$dir" ]; then
+    dir=$(awk -v RS='' '/Default=1/ { for (i = 1; i <= NF; i++) if ($i ~ /^Path=/) { sub(/^Path=/, "", $i); print $i; exit } }' "$PROFILES_INI" 2>/dev/null | head -1 || true)
+  fi
+  if [ -z "$dir" ]; then
+    dir=$(awk -v RS='' '/Name=default-release/ { for (i = 1; i <= NF; i++) if ($i ~ /^Path=/) { sub(/^Path=/, "", $i); print $i; exit } }' "$PROFILES_INI" 2>/dev/null | head -1 || true)
+  fi
+  if [ -z "$dir" ]; then
+    dir=$(awk -v RS='' '/^\[Profile/ { for (i = 1; i <= NF; i++) if ($i ~ /^Path=/) { sub(/^Path=/, "", $i); print $i; exit } }' "$PROFILES_INI" 2>/dev/null | head -1 || true)
+  fi
+  if [ -n "$dir" ] && [ "${dir#/}" = "$dir" ]; then dir="$base/$dir"; fi
+  [ -d "$dir" ] && printf '%s\n' "$dir"
+}
+
+ensure_extension() {
+  # Idempotent: clean up the dead userChrome.css rules from the old CSS
+  # approach, enable sideloaded extensions, and install the AMO-signed
+  # hypr-webapps extension (bundled in the repo) into the default profile.
+  local dir
+  dir=$(default_profile_dir) || true
+  [ -n "$dir" ] || { echo "Warning: could not locate the default firefox profile." >&2; return 0; }
+
+  local css="$dir/chrome/userChrome.css"
+  if [ -f "$css" ]; then
+    sed -i '/^\/\* == hypr-webapp: /,/^\/\* == \/hypr-webapp: /d; /^\/\* == hypr-webapps base ==\*\/$/d' "$css" 2>/dev/null || true
+    if ! grep -q '[^[:space:]]' "$css" 2>/dev/null; then
+      rm -f "$css"
+      rmdir "$dir/chrome" 2>/dev/null || true
+    fi
+  fi
+
+  if ! grep -qs 'extensions.autoDisableScopes' "$dir/user.js" 2>/dev/null; then
+    printf 'user_pref("extensions.autoDisableScopes", 0);\n' >> "$dir/user.js"
+  fi
+
+  local extdir="$dir/extensions"
+  mkdir -p "$extdir"
+  local src_xpi="$EXT_SRC_DIR/hypr-webapps@dotfiles.local.xpi"
+  local dst_xpi="$extdir/$EXT_ID.xpi"
+  if [ -f "$src_xpi" ]; then
+    if [ ! -f "$dst_xpi" ] || ! cmp -s "$src_xpi" "$dst_xpi"; then
+      cp "$src_xpi" "$dst_xpi"
+      echo "Installed the hypr-webapps extension (restart firefox to load it)." >&2
+    fi
+  else
+    echo "Warning: $src_xpi not found. Sign the extension via addons.mozilla.org" >&2
+    echo "(Self-hosted) and place the signed xpi in firefox-webapps/ first." >&2
+  fi
+}
+
+record() {
+  # Record which window address serves this app (dedupe on next launch).
+  [ -n "$APP_NAME" ] || return 0
+  awk -F'\t' -v n="$APP_NAME" '$1 != n' "$STATE_FILE" 2>/dev/null > "$STATE_FILE.tmp" || true
+  printf '%s\t%s\n' "$APP_NAME" "$1" >> "$STATE_FILE.tmp"
+  mv "$STATE_FILE.tmp" "$STATE_FILE"
+}
+
+focus_addr() {
+  hyprctl eval "hl.dispatch(hl.dsp.focus({ window = 'address:$1' }))" >/dev/null 2>&1 || true
+  record "$1"
+  exit 0
+}
+
+# While a launch is in flight, the transient launcher window would flash on
+# screen with full browser chrome. Send it to a hidden workspace silently
+# (no workspace switch), then move the popup back to the active workspace.
+RULE_NAME="hypr-webapps-launcher"
+HIDDEN_WS="special:minimized"
+
+rule_set() {
+  hyprctl eval "hl.window_rule({ name = \"$RULE_NAME\", enabled = $1 })" >/dev/null 2>&1 || true
+}
+
+rule_disable() {
+  rule_set false
+}
+
+rule_enable() {
+  hyprctl eval "hl.window_rule({ name = \"$RULE_NAME\", match = { class = \"^(firefox)$\" }, workspace = \"$HIDDEN_WS silent\", suppress_event = \"activate activatefocus\", no_initial_focus = true, no_anim = true, animation = \"none\" })" >/dev/null 2>&1 || true
+}
+
+if [ "${1:-}" = "--ensure-extension" ]; then
+  ensure_extension
+  exit 0
+fi
+
+URL="${1:-}"
+APP_NAME="${2:-}"
+
+if [ -z "$URL" ]; then
+  echo "Usage: hypr-firefox-pwa <url> [app_name]" >&2
+  echo "       hypr-firefox-pwa --ensure-extension" >&2
+  exit 1
+fi
+
+ensure_extension
+
+# 1. State-file dedupe: exact app -> window address from a previous launch.
+if [ -n "$APP_NAME" ]; then
+  saved=$(awk -F'\t' -v n="$APP_NAME" '$1 == n {print $2}' "$STATE_FILE" 2>/dev/null | tail -1 || true)
+  if [ -n "$saved" ]; then
+    # Verify the window is actually this app: addresses get reused after
+    # windows close, so a stale entry can otherwise match the wrong window.
+    exists=$(hyprctl clients -j 2>/dev/null | jq -r --arg a "$saved" --arg t "${APP_NAME,,}" \
+      '.[] | select(.class == "firefox" and .address == $a and ((.title | ascii_downcase) | contains($t))) | .address' | head -1)
+    [ -n "$exists" ] && focus_addr "$exists"
+  fi
+
+  # 2. Title fallback: match app name or full domain (minus TLD) in the title.
+  domain=$(printf '%s' "$URL" | sed -E 's|^[a-z]+://||; s|^www\.||; s|[/?#].*$||')
+  # Build match candidates: app name + subdomain.domain (e.g. "music.youtube")
+  # This avoids matching "youtube" alone which would hit youtube.com windows.
+  match_domain=$(printf '%s' "$domain" | sed -E 's/\.[^.]+$//')
+  if [ -n "$match_domain" ]; then
+    matched=$(hyprctl clients -j 2>/dev/null | jq -r --arg t "$APP_NAME" --arg d "$match_domain" \
+      '.[] | select(.class == "firefox") |
+        select((.title | ascii_downcase) as $title |
+          ([$t, $d] | any(. as $s | $title | contains(($s | ascii_downcase))))) | .address' | head -1)
+  else
+    matched=$(hyprctl clients -j 2>/dev/null | jq -r --arg t "$APP_NAME" \
+      '.[] | select(.class == "firefox" and (.title | ascii_downcase | contains($t | ascii_downcase))) | .address' | head -1)
+  fi
+  [ -n "$matched" ] && focus_addr "$matched"
+fi
+
+# Snapshot current firefox windows so we can spot the ones we open.
+before_json=$(hyprctl clients -j 2>/dev/null | jq -c '[.[] | select(.class == "firefox") | .address]')
+[ "$before_json" = "null" ] && before_json="[]"
+
+enc_url=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$URL")
+enc_name=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$APP_NAME")
+
+# Open the reserved launch URL; the extension intercepts it, opens the real
+# URL as a chromeless popup, and closes this transient tab/window.
+rule_enable
+trap rule_disable EXIT
+setsid firefox --new-window "https://hypr-webapps.invalid/launch?url=$enc_url&name=$enc_name" >/dev/null 2>&1 &
+
+# 2. Wait for the web app popup to appear so we can focus it and remember
+#    it for dedupe. The popup is the new firefox window that isn't the
+#    transient launcher window (which is titled "Mozilla Firefox" until the
+#    extension closes it).
+popup=""
+for _ in $(seq 1 250); do
+  popup=$(hyprctl clients -j 2>/dev/null | jq -r --argjson b "$before_json" '
+    [.[] | select(.class == "firefox") | select((.address as $a | ($b | index($a)) | not))
+     | select((.title | length) > 0 and .title != "Mozilla Firefox")
+     | .address] | .[0] // empty')
+  [ -n "$popup" ] && break
+  sleep 0.05
+done
+
+rule_disable
+trap - EXIT
+
+finalize_popup() {
+  local popup="$1"
+  # Move the popup from the hidden workspace to the active workspace.
+  local ws
+  ws=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.name' 2>/dev/null || true)
+  if [ -n "$ws" ]; then
+    hyprctl eval "hl.dispatch(hl.dsp.window.move({ workspace = \"$ws\", follow = false, window = \"address:$popup\" }))" >/dev/null 2>&1 || true
+  fi
+  sleep 0.05
+  # Close any leftover placeholder on the hidden workspace.
+  hyprctl clients -j 2>/dev/null | jq -r --arg p "$popup" --arg ws "$HIDDEN_WS" '
+    .[] | select(.class == "firefox" and .address != $p
+      and (.workspace.name == $ws)
+      and .title == "Mozilla Firefox") | .address' | while read -r addr; do
+    [ -n "$addr" ] && hyprctl eval "hl.dispatch(hl.dsp.window.close({ window = \"address:$addr\" }))" >/dev/null 2>&1 || true
+  done
+  hyprctl eval "hl.dispatch(hl.dsp.focus({ window = 'address:$popup' }))" >/dev/null 2>&1 || true
+  record "$popup"
+}
+
+if [ -n "$popup" ]; then
+  finalize_popup "$popup"
+fi
+exit 0
