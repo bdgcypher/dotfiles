@@ -1,5 +1,5 @@
 auto_cleanup = 0
-command = 'wl-copy'
+command = 'wl-copy && clipboard-paste'
 ignore_symbols = true
 image_editor_cmd = ''
 max_items = 100

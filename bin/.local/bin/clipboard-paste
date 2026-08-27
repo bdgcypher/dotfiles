@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# clipboard-paste - Wait for walker to close, then paste the clipboard
+# contents into the focused window. Handles text, image, and file (uri-list)
+# entries - the target app decides how to handle the pasted content.
+
+# Elephant appends "-t 'text/uri-list'" for file entries. The hint lands on
+# this script, while wl-copy (first in the chain) copied the URIs as plain
+# text. Re-copy with the correct MIME type so apps see real file URIs.
+if [ "$1" = "-t" ] && [ "$2" = "text/uri-list" ]; then
+  wl-paste 2>/dev/null | wl-copy -t 'text/uri-list'
+fi
+
+# Walker renders as a layer surface. Poll until its layer is gone (closed).
+for _ in $(seq 1 40); do
+  ns=$(hyprctl layers -j 2>/dev/null | jq -r '.. | objects | .namespace? // empty' 2>/dev/null)
+  if ! printf '%s\n' "$ns" | grep -qx 'walker'; then
+    break
+  fi
+  sleep 0.05
+done
+
+# Settling time for focus to fully return.
+sleep 0.1
+
+# Ghostty drops synthetic pastes that contain newlines - type those instead.
+text=$(wl-paste 2>/dev/null)
+cls=$(hyprctl activewindow -j 2>/dev/null | jq -r '.class' 2>/dev/null)
+case "$text" in
+  *$'\n'*)
+    if printf '%s' "$cls" | grep -q ghostty; then
+      printf '%s' "$text" | wtype -
+      exit 0
+    fi
+    ;;
+esac
+
+# Real paste: send Shift+Insert to the focused window.
+hyprctl dispatch 'hl.dsp.send_shortcut({ mods = "SHIFT", key = "Insert" })'
