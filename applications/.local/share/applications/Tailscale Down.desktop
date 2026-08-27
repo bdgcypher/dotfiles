@@ -2,7 +2,7 @@
 Name=Tailscale Down
 Comment=Disconnect Tailscale VPN
 Exec=ts-down
-Icon=network-vpn-disconnected
+Icon=network-offline
 Terminal=false
 Type=Application
 Categories=Network;

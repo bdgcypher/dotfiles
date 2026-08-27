@@ -1,5 +1,5 @@
 auto_cleanup = 0
-command = 'wl-copy && wtype -M shift -P Insert -m shift'
+command = 'wl-copy && sleep 0.1 && wtype -M shift -P Insert -m shift'
 ignore_symbols = true
 image_editor_cmd = ''
 max_items = 100

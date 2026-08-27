@@ -188,7 +188,7 @@ ttf-zed-mono-nerd
 unimatrix-git
 usbutils
 uwsm
-vencord
+vesktop-bin
 walker
 waybar
 wev
