@@ -88,8 +88,8 @@
           "command": "walker -m menus:power"
         },
         {
-          "label": "󱋆",
-          "command": "ghostty -e bash -c 'cd ~/.config/hypr/ && nvim monitors.lua'"
+          "label": "󰝝",
+          "command": "ghostty --class=floating.VolumeBoost -e volume-boost-toggle"
         },
         {
           "label": "󰲎",
@@ -103,9 +103,9 @@
           "label": "",
           "command": "~/.local/bin/set-random-wallpaper"
         },
-        {
-          "label": "",
-          "command": "hyprlock"
+                {
+          "label": "󱋆",
+          "command": "ghostty -e bash -c 'cd ~/.config/hypr/ && nvim monitors.lua'"
         }
       ]
     }
