@@ -136,6 +136,14 @@ hl.window_rule({
   size = "900 650",
 })
 
+-- Volume Boost toggle (floating)
+hl.window_rule({
+  match = { initial_class = "floating.VolumeBoost" },
+  float = true,
+  center = true,
+  size = "400 300",
+})
+
 -- Screensaver (TTE)
 hl.window_rule({
   match = { class = "org.hypr.screensaver" },

@@ -7,7 +7,7 @@
   "height": 26,
   "margin": "6 12 0 12",
   "modules-left": ["custom/menu", "hyprland/workspaces", "custom/workspace-layout", "custom/tiling-direction"],
-  "modules-center": ["clock", "custom/voxtype", "custom/screen-recording-indicator"],
+  "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screen-recording-indicator"],
   "modules-right": [
     "group/tray-expander",
     "bluetooth",
@@ -145,6 +145,14 @@
     "return-type": "json",
     "signal": 8,
     "on-click": "screen-record"
+  },
+  "custom/update": {
+    "exec": "~/.config/waybar/scripts/updates.sh",
+    "return-type": "json",
+    "signal": 12,
+    "interval": 3600,
+    "tooltip": true,
+    "on-click": "ghostty --class=floating.Pacman -e piu"
   },
   "custom/voxtype": {
     "exec": "voxtype-status",

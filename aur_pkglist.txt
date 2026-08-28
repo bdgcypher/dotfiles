@@ -12,7 +12,6 @@ gazelle-tui
 iriunwebcam-bin
 jellyfin-tui
 jellyfin-tui-debug
-matugen-bin
 piper-tts-bin
 piper-tts-bin-debug
 piper-voices-common
@@ -23,7 +22,6 @@ plymouth-theme-cuts-alt-git
 plymouth-theme-monoarch
 python-anyascii
 python-imageio-ffmpeg
-python-material-color-utilities
 python-pywal16
 python-pywalfox
 python-screeninfo

@@ -34,8 +34,8 @@ weight = 88
 
 [[entries]]
 text = "Update"
-icon = "󰑓 "
-actions = { "default" = "walker -m menus:system/update --width 250" }
+icon = " "
+actions = { "default" = "ghostty --class=floating.Pacman -e piu" }
 weight = 87
 
 [[entries]]

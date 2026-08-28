@@ -62,7 +62,6 @@ linux
 linux-firmware
 linux-headers
 materia-gtk-theme
-matugen-bin
 mise
 nemo
 neovim

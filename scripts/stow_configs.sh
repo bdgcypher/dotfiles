@@ -164,6 +164,14 @@ else
     echo "Note: cargo not found — skipping Rust helper build (install the 'rust' package)."
 fi
 
+# Restart PipeWire/WirePlumber so the speaker-boost filter-chain config from
+# the new 'pipewire' stow package is loaded and applied.
+if command -v pipewire &> /dev/null && systemctl --user restart pipewire pipewire-pulse wireplumber 2>/dev/null; then
+    echo "PipeWire and WirePlumber restarted (speaker boost filter loaded)."
+else
+    echo "Note: Could not restart PipeWire/WirePlumber (may need to run after login)."
+fi
+
 # Enable Waybar systemd user service
 if command -v waybar &> /dev/null && systemctl --user enable --now waybar.service 2>/dev/null; then
     echo "Waybar service enabled and started."

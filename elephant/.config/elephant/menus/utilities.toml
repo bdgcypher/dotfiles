@@ -37,3 +37,9 @@ text = "Emoji Picker"
 icon = " "
 actions = { "default" = "walker -m symbols --width 400" }
 weight = 60
+
+[[entries]]
+text = "Volume Boost"
+icon = "󰕾 "
+actions = { "default" = "ghostty --class=floating.VolumeBoost -e volume-boost-toggle" }
+weight = 50

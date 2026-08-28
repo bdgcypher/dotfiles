@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# volume-boost — volume control that allows up to 125% via wpctl
+# Shows the standard swayosd volume bar OSD.
+# Usage: volume-boost [up|down|mute]
+
+MAX_VOL=1.25   # 125% max volume
+STEP=0.05      # 5% step
+
+get_volume() {
+    wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk '{print $2}'
+}
+
+show_osd() {
+    swayosd-client --output-volume +0 2>/dev/null
+}
+
+case "${1:-up}" in
+    up)
+        CURRENT=$(get_volume)
+        NEW=$(echo "$CURRENT $STEP" | awk '{v=$1+$2; print (v>'"$MAX_VOL"') ? '"$MAX_VOL"' : v}')
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ "$NEW"
+        show_osd
+        ;;
+    down)
+        CURRENT=$(get_volume)
+        NEW=$(echo "$CURRENT $STEP" | awk '{v=$1-$2; print (v<0) ? 0 : v}')
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ "$NEW"
+        show_osd
+        ;;
+    mute)
+        wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+        show_osd
+        ;;
+    *)
+        echo "Usage: volume-boost [up|down|mute]"
+        exit 1
+        ;;
+esac

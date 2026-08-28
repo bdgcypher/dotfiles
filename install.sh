@@ -47,11 +47,13 @@ case $choice in
             "$SCRIPTS_DIR/setup_services.sh"
             "$SCRIPTS_DIR/setup_timezone.sh"
             "$SCRIPTS_DIR/stow_configs.sh"
+            "$SCRIPTS_DIR/restart_launcher.sh"
         else
             echo "Starting Update..."
             "$SCRIPTS_DIR/install_packages.sh"
             "$SCRIPTS_DIR/setup_plugins.sh"
             "$SCRIPTS_DIR/stow_configs.sh"
+            "$SCRIPTS_DIR/restart_launcher.sh"
         fi
         ;;
     3)

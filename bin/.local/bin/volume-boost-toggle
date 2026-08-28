@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# volume-boost-toggle — TUI picker for volume boost level
+# Saves pre-boost volume so "Off" can restore it.
+
+source "$HOME/.local/bin/fzf-colors"
+
+VOLUME_BACKUP="/tmp/volume-boost-backup"
+
+# Build options
+OPTIONS="Off\n+10%\n+25%"
+
+SELECTED=$(echo -e "$OPTIONS" | fzf \
+    --header "Volume Boost" \
+    --prompt "Select level: " \
+    --layout=reverse \
+    --height=100% \
+    --border=rounded \
+    --margin=1 \
+    --color=fg+:yellow \
+    --bind "ctrl-j:down,ctrl-k:up")
+
+# Exit if nothing selected
+[ -z "$SELECTED" ] && exit 0
+
+CURRENT=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk '{print $2}')
+
+case "$SELECTED" in
+    "Off")
+        if [ -f "$VOLUME_BACKUP" ]; then
+            SAVED=$(cat "$VOLUME_BACKUP")
+            # Cap at 1.0 (100%) if the saved volume was above
+            NEW=$(echo "$SAVED" | awk '{print ($1>1.0) ? 1.0 : $1}')
+            wpctl set-volume @DEFAULT_AUDIO_SINK@ "$NEW"
+            rm -f "$VOLUME_BACKUP"
+        elif (( $(echo "$CURRENT > 1.0" | bc -l) )); then
+            # No backup but volume is above 100%, cap it
+            wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.0
+        fi
+        ;;
+    "+10%")
+        echo "$CURRENT" > "$VOLUME_BACKUP"
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.10
+        ;;
+    "+25%")
+        echo "$CURRENT" > "$VOLUME_BACKUP"
+        wpctl set-volume @DEFAULT_AUDIO_SINK@ 1.25
+        ;;
+    *)
+        exit 0
+        ;;
+esac
+
+# Show standard swayosd volume bar
+swayosd-client --output-volume +0 2>/dev/null

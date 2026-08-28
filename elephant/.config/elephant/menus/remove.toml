@@ -13,3 +13,4 @@ text = "Web App"
 icon = "󰈹 "
 actions = { "default" = "ghostty --class=floating.WebAppInstall -e hypr-firefox-pwa-remove" }
 weight = 90
+

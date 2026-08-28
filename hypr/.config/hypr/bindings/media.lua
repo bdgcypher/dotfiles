@@ -5,14 +5,14 @@
 swayosd_client = [[swayosd-client --monitor "$(hyprctl monitors -j | jq -r '.[] | select(.focused == true).name')"]]
 
 -- Toggle mute (speakers)
-hl.bind("XF86AudioMute", hl.dsp.exec_cmd(swayosd_client .. " --output-volume mute-toggle"), { locked = true })
+hl.bind("XF86AudioMute", hl.dsp.exec_cmd("volume-boost mute"), { locked = true })
 
 -- Toggle mute (mic)
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd(swayosd_client .. " --input-volume mute-toggle"), { locked = true })
 
 -- Volume raise/lower with custom value
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd(swayosd_client .. " --output-volume 5"), { locked = true, repeating = true })
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd(swayosd_client .. " --output-volume -5"), { locked = true, repeating = true })
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("volume-boost up"), { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("volume-boost down"), { locked = true, repeating = true })
 
 -- Cycle keyboard backlight
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd(swayosd_client .. " --brightness raise --device intel_backlight"), { locked = true, repeating = true })

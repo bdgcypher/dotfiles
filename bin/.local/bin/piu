@@ -3,10 +3,24 @@
 echo "Full System Update..."
 
 # Run the update
-if sudo pacman -Syu --noconfirm; then
+if yay -Syu --noconfirm; then
   echo -e "\n\033[0;32mSystem update completed!\033[0m"
+
+  # Remove orphaned dependencies
+  orphans=$(yay -Qtdq)
+  if [ -n "$orphans" ]; then
+    echo -e "\nRemoving orphaned packages..."
+    echo "$orphans" | xargs -r yay -Rns --noconfirm
+    echo -e "\033[0;32mOrphan cleanup completed!\033[0m"
+  else
+    echo -e "\n\033[0;32mNo orphaned packages to clean.\033[0m"
+  fi
+
   echo "Press any key to close..."
   read -n 1
+  # Force the waybar update module to recheck.
+  rm -f /tmp/waybar-updates
+  pkill -RTMIN+12 waybar 2>/dev/null
 else
   echo -e "\n\033[0;31mError: System update failed.\033[0m"
   echo "Press any key to close..."
