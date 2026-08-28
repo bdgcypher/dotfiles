@@ -4,6 +4,15 @@
 
 set -e
 
+# Cache sudo once so all subsequent sudo calls don't prompt repeatedly.
+# Works both when run via install.sh (sudo already cached) and standalone.
+if sudo -n true 2>/dev/null; then
+    echo "sudo already cached."
+else
+    echo "Please enter sudo password (will be cached for driver setup):"
+    sudo -v
+fi
+
 echo "Detecting GPU..."
 
 # Detect GPU type

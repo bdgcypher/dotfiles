@@ -8,6 +8,15 @@ DOTFILES_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
 PKGLIST="$DOTFILES_DIR/pkglist.txt"
 AUR_PKGLIST="$DOTFILES_DIR/aur_pkglist.txt"
 
+# Cache sudo once so subsequent sudo calls don't prompt repeatedly.
+# Handles both install.sh (sudo already cached) and standalone runs.
+if sudo -n true 2>/dev/null; then
+    echo "sudo already cached."
+else
+    echo "Please enter sudo password (will be cached for package install):"
+    sudo -v
+fi
+
 echo "Checking for AUR helper (yay)..."
 if ! command -v yay &> /dev/null; then
     echo "Installing yay..."

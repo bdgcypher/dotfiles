@@ -6,6 +6,14 @@ echo "=========================================="
 echo "      Timezone Configuration             "
 echo "=========================================="
 
+# Cache sudo once so subsequent sudo calls don't prompt repeatedly.
+if sudo -n true 2>/dev/null; then
+    echo "sudo already cached."
+else
+    echo "Please enter sudo password (will be cached for timezone setup):"
+    sudo -v
+fi
+
 # Check if timedatectl is available
 if ! command -v timedatectl &> /dev/null; then
     echo "Error: timedatectl not found. This script requires systemd."

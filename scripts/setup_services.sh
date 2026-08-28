@@ -8,6 +8,15 @@ DOTFILES_DIR="$(dirname "$(dirname "$(realpath "$0")")")"
 SYSTEM_DIR="$DOTFILES_DIR/system"
 REBUILD_NEEDED=false
 
+# Cache sudo once so all subsequent sudo calls don't prompt repeatedly.
+# Handles both install.sh (sudo already cached) and standalone runs.
+if sudo -n true 2>/dev/null; then
+    echo "sudo already cached."
+else
+    echo "Please enter sudo password (will be cached for service setup):"
+    sudo -v
+fi
+
 echo "Setting up system services..."
 
 # 0. Hardware-Aware Swap File (Btrfs)
@@ -228,11 +237,21 @@ sudo chmod 440 "$SUDOERS_FILE"
 echo "Configuring Sunshine udev rules..."
 sudo mkdir -p /etc/udev/rules.d
 sudo cp "$SYSTEM_DIR/etc/udev/rules.d/85-sunshine.rules" /etc/udev/rules.d/85-sunshine.rules
-sudo udevadm control --reload-rules && sudo udevadm trigger
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=misc --sysname-match=uinput 2>/dev/null \
+    || echo "Warning: udev trigger for uinput failed."
 
 # 8. Tailscale
 echo "Enabling Tailscale service..."
 sudo systemctl enable --now tailscaled.service
+
+# 8.5 OpenSSH Server
+echo "Configuring OpenSSH server..."
+sudo mkdir -p /etc/ssh/sshd_config.d
+if [ -f "$SYSTEM_DIR/etc/ssh/sshd_config.d/10-dotfiles.conf" ]; then
+    sudo cp "$SYSTEM_DIR/etc/ssh/sshd_config.d/10-dotfiles.conf" /etc/ssh/sshd_config.d/10-dotfiles.conf
+fi
+sudo systemctl enable --now sshd.service
 
 # 9. Mouseless Wayland Input Permissions
 echo "Configuring Mouseless input permissions..."
@@ -245,7 +264,9 @@ sudo cp "$SYSTEM_DIR/etc/udev/rules.d/99-mouseless-input.rules" /etc/udev/rules.
 echo "uinput" | sudo tee /etc/modules-load.d/uinput.conf > /dev/null
 sudo modprobe uinput 2>/dev/null || true
 # Reload udev rules
-sudo udevadm control --reload-rules && sudo udevadm trigger
+sudo udevadm control --reload-rules
+sudo udevadm trigger --subsystem-match=misc --sysname-match=uinput 2>/dev/null \
+    || echo "Warning: udev trigger for uinput failed."
 echo "Mouseless permissions configured. Log out and back in for group changes to take effect."
 
 # 10. Iriunwebcam: reload v4l2loopback module
