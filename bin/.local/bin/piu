@@ -2,8 +2,8 @@
 
 echo "Full System Update..."
 
-# Run the update (overwrite debug symbols to avoid conflicts between packages like vesktop-debug and bitwarden-bin-debug)
-if yay -Syu --overwrite '/usr/lib/debug/.build-id/*' --noconfirm; then
+# Run the update (debug packages ignored via IgnorePkg in pacman.conf)
+if yay -Syu --noconfirm; then
   echo -e "\n\033[0;32mSystem update completed!\033[0m"
 
   # Remove orphaned dependencies

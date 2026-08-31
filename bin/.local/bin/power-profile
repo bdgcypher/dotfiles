@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# power-profile — TUI picker for power profiles via powerprofilesctl
+
+source "$HOME/.local/bin/fzf-colors"
+
+# Get current profile
+CURRENT=$(powerprofilesctl get 2>/dev/null)
+
+# Build options with current marker
+OPTIONS=""
+for profile in power-saver balanced performance; do
+    if [ "$profile" = "$CURRENT" ]; then
+        OPTIONS="${OPTIONS}${profile}  ●\n"
+    else
+        OPTIONS="${OPTIONS}${profile}\n"
+    fi
+done
+
+SELECTED=$(printf "%b" "$OPTIONS" | sed '/^$/d' | fzf \
+    --header "Power Profile" \
+    --prompt "Select profile: " \
+    --layout=reverse \
+    --height=100% \
+    --border=rounded \
+    --margin=1 \
+    --color=fg+:green \
+    --bind "ctrl-j:down,ctrl-k:up" | awk '{print $1}')
+
+# Exit if nothing selected or same as current
+[ -z "$SELECTED" ] && exit 0
+[ "$SELECTED" = "$CURRENT" ] && exit 0
+
+powerprofilesctl set "$SELECTED" 2>/dev/null
+echo "Switched to $SELECTED"

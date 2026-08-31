@@ -1,5 +1,4 @@
 arc-gtk-theme
-bitwarden-bin
 bun
 breezex-cursor-theme
 clocktemp
@@ -34,7 +33,6 @@ unimatrix-git
 xdg-desktop-portal-termfilechooser
 vencord
 vesktop
-vesktop-debug
 walker
 walker-debug
 yay

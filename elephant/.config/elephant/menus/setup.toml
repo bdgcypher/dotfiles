@@ -33,6 +33,12 @@ actions = { "default" = "swaync-client -t -sw" }
 weight = 80
 
 [[entries]]
+text = "Power Profile"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Power -e power-profile" }
+weight = 77
+
+[[entries]]
 text = "Resource Monitor"
 icon = " "
 actions = { "default" = "ghostty --class=floating.Btop -e btop" }

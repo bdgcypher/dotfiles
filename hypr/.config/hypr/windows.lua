@@ -128,6 +128,14 @@ hl.window_rule({
   size = "800 900",
 })
 
+-- Power Profile TUI (floating)
+hl.window_rule({
+  match = { initial_class = "floating.Power" },
+  float = true,
+  center = true,
+  size = "400 300",
+})
+
 -- Web app installer / remover (floating)
 hl.window_rule({
   match = { initial_class = "floating.WebAppInstall" },

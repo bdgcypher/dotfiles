@@ -5,7 +5,7 @@ awww
 base
 base-devel
 bc
-bitwarden-bin
+bitwarden
 bluetui
 bluez
 bluez-utils
