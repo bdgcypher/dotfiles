@@ -180,10 +180,7 @@ fi
 echo "Press any key to close..."
 read -n 1
 
-# Reload configs AFTER the user has seen the result and pressed a key.
-# pkill walker must come after read because killing walker can close
-# the ghostty window that spawned this script.
+# Reload hypr, then restart elephant + walker in their own systemd unit so
+# the elephant restart cannot kill walker (this script runs in elephant's cgroup).
 hyprctl reload >/dev/null 2>&1 || true
-systemctl --user restart elephant.service >/dev/null 2>&1 || true
-pkill -x walker 2>/dev/null || true
-setsid walker --gapplication-service >/dev/null 2>&1 &
+systemd-run --user --quiet --collect -- bash -c 'systemctl --user restart elephant.service || true; killall -9 walker 2>/dev/null || true; exec walker --gapplication-service' >/dev/null 2>&1 || true

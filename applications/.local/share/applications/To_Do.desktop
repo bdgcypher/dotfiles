@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=To Do
+Comment=Web app (firefox)
+Exec=hypr-firefox-pwa "https://to-do.live.com/tasks/" "To Do"
+Icon=/home/benjamingoddard/.local/share/icons/To_Do.png
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;

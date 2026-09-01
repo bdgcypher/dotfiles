@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Youtube Music
+Comment=Web app (firefox)
+Exec=hypr-firefox-pwa "https://music.youtube.com/" "Youtube Music"
+Icon=/home/benjamingoddard/.local/share/icons/Youtube_Music.png
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;

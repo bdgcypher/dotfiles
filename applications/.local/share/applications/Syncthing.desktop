@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Syncthing
+Comment=Web app (firefox)
+Exec=hypr-firefox-pwa "https://127.0.0.1:8384/" "Syncthing"
+Icon=/home/benjamingoddard/.local/share/icons/Syncthing.png
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;

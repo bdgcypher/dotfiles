@@ -41,11 +41,6 @@ icon = ""
 actions = { "default" = "walker --close" }
 
 [[entries]]
-text = "YouTube Music                              →          SUPER + SHIFT + M"
-icon = ""
-actions = { "default" = "walker --close" }
-
-[[entries]]
 text = "Google Messages                            →          SUPER + SHIFT + G"
 icon = ""
 actions = { "default" = "walker --close" }
@@ -446,8 +441,8 @@ text = "To Do                                      →          SUPER + SHIFT + 
 icon = ""
 actions = { "default" = "walker --close" }
 
+
 [[entries]]
 text = "Youtube Music                              →          SUPER + SHIFT + M"
 icon = ""
 actions = { "default" = "walker --close" }
-

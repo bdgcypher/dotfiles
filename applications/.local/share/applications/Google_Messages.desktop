@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Google Messages
+Comment=Web app (firefox)
+Exec=hypr-firefox-pwa "https://messages.google.com/web/conversations" "Google Messages"
+Icon=/home/benjamingoddard/.local/share/icons/Google_Messages.png
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;

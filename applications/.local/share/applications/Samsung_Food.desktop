@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Samsung Food
+Comment=Web app (firefox)
+Exec=hypr-firefox-pwa "https://app.samsungfood.com/feed" "Samsung Food"
+Icon=/home/benjamingoddard/.local/share/icons/Samsung_Food.png
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;

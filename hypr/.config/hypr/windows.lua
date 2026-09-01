@@ -179,14 +179,14 @@ hl.window_rule({
   tile = true,
 })
 
--- Web App: SSamsung Food
-hl.window_rule({
-  match = { class = "firefox", title = ".*SSamsung Food.*" },
-  tile = true,
-})
-
 -- Web App: Samsung Food
 hl.window_rule({
   match = { class = "firefox", title = ".*Samsung Food.*" },
+  tile = true,
+})
+
+-- Web App: Syncthing
+hl.window_rule({
+  match = { class = "firefox", title = ".*Syncthing.*" },
   tile = true,
 })
