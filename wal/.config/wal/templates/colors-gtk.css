@@ -12,9 +12,9 @@
 @define-color headerbar_fg_color {color7};
 @define-color headerbar_border_color {color8};
 @define-color headerbar_backdrop_color {color0};
-@define-color card_bg_color {color1};
+@define-color card_bg_color {color0};
 @define-color card_fg_color {color7};
-@define-color popover_bg_color {color1};
+@define-color popover_bg_color {color0};
 @define-color popover_fg_color {color7};
 
 @define-color accent_color {color4};
