@@ -23,14 +23,14 @@ PLUGIN_NAME="scrolloverview"
 # Check if plugin is already enabled
 if hyprpm list 2>/dev/null | grep -qi "$PLUGIN_NAME" && hyprpm list 2>/dev/null | grep -A1 "$PLUGIN_NAME" | grep -qi "enabled"; then
     echo "  $PLUGIN_NAME is already enabled. Checking for updates..."
-    yes | hyprpm update || echo "  WARNING: hyprpm update failed."
+    yes | hyprpm update -f || echo "  WARNING: hyprpm update failed."
     echo "Hyprland plugin setup complete."
     exit 0
 fi
 
 # Headers must be compiled before `add` (hyprpm rejects add with outdated headers)
 echo "  Updating hyprpm headers..."
-yes | hyprpm update || echo "  WARNING: hyprpm update failed."
+yes | hyprpm update -f || echo "  WARNING: hyprpm update failed."
 
 # Add the plugin repo if not already present
 if ! hyprpm list 2>/dev/null | grep -qi "$PLUGIN_NAME"; then
@@ -40,7 +40,7 @@ fi
 
 # Compile the plugin against the current Hyprland
 echo "  Building plugins..."
-yes | hyprpm update || echo "  WARNING: hyprpm update failed."
+yes | hyprpm update -f || echo "  WARNING: hyprpm update failed."
 
 # Enable it
 echo "  Enabling $PLUGIN_NAME..."
