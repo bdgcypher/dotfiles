@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+# windows-vm-remove - TUI remover for Windows 11 VM
+# Uses gum for styled confirmation prompts
+
+set -uo pipefail
+
+DOTFILES_DIR="$(cd "$(dirname "$(realpath "$0")")/../.." && pwd)"
+[ -d "$DOTFILES_DIR/hypr" ] || DOTFILES_DIR="$HOME/.dotfiles"
+
+WINDOWS_LUA="$DOTFILES_DIR/hypr/.config/hypr/windows.lua"
+APPS_DIR="$HOME/.local/share/applications"
+ICONS_DIR="$HOME/.local/share/icons"
+VM_NAME="Windows 11"
+VM_DISPLAY_NAME="Windows 11"
+VM_ICON_NAME="windows-11"
+WEB_PORT="8006"
+CONTAINER_NAME="windows"
+
+# Determine output device - prefer /dev/tty but fall back to stdout
+if [ -e /dev/tty ] && [ -c /dev/tty ]; then
+  TTY_OUTPUT="/dev/tty"
+else
+  TTY_OUTPUT="/dev/stdout"
+fi
+
+command -v gum >/dev/null 2>&1 || {
+  echo "Error: gum is required but not installed." >&2
+  exit 1
+}
+command -v docker >/dev/null 2>&1 || {
+  echo "Error: docker is required but not installed." >&2
+  exit 1
+}
+
+# Check for TTY (required by gum)
+if [ ! -e /dev/tty ] || [ ! -c /dev/tty ]; then
+  echo "Error: No TTY available. This script requires an interactive terminal." >&2
+  echo "Please run from a terminal emulator (e.g., ghostty)." >&2
+  exit 1
+fi
+
+ACCENT_COLOR="196"
+if [ -f "${XDG_CACHE_HOME:-$HOME/.cache}/wal/colors" ]; then
+  raw=$(sed -n '7p' "${XDG_CACHE_HOME:-$HOME/.cache}/wal/colors" 2>/dev/null | tr -d '#')
+  [ -n "$raw" ] && ACCENT_COLOR="$raw"
+fi
+
+gum_confirm() {
+  local prompt="$1"
+  gum confirm "$prompt" --affirmative="Remove" --negative="Cancel" \
+    --prompt.foreground 7 --selected.foreground "#$ACCENT_COLOR" 2>/dev/tty
+}
+
+# Determine terminal size and calculate width
+cols=$(tput cols 2>/dev/null || stty size 2>/dev/null | awk '{print $2}')
+cols=${cols:-80}
+box_width=$((cols - 2))
+
+echo ""
+
+# Helper: print a full-width box line
+print_box_line() {
+  local content="$1"
+  local content_len=${#content}
+  local padding=$((box_width - content_len))
+  [ "$padding" -lt 0 ] && padding=0
+  printf '│ %s' "$content"
+  for ((i = 0; i < padding; i++)); do printf ' '; done
+  printf '│\n'
+}
+
+# Keybinds bar (top 3 rows)
+{
+  printf '\033[1;1H╭'
+  for ((i = 0; i < box_width; i++)); do printf '\xe2\x94\x80'; done
+  printf '╮\n'
+  
+  printf '\033[2;1H│  enter: confirm     esc: cancel'
+  # Fill rest of line with spaces to match box width
+  hint_len=26
+  fill=$((box_width - hint_len))
+  for ((i = 0; i < fill; i++)); do printf ' '; done
+  printf '│\n'
+  
+  printf '\033[3;1H╰'
+  for ((i = 0; i < box_width; i++)); do printf '\xe2\x94\x80'; done
+  printf '╯\n'
+} >/dev/tty
+
+# Summary section
+echo ""
+printf '╭'
+for ((i = 0; i < box_width; i++)); do printf '\xe2\x94\x80'; done
+printf '╮\n'
+
+print_box_line "  This will remove:"
+print_box_line "  • Docker container: $CONTAINER_NAME"
+print_box_line "  • Docker compose: ~/WindowsVM/docker-compose.yml"
+print_box_line "  • App launcher: $VM_DISPLAY_NAME"
+print_box_line "  • App icon: ${VM_ICON_NAME}.png"
+print_box_line "  • Launch script: ~/.local/bin/windows-vm-launch"
+print_box_line "  • Hyprland window rule (if exists)"
+print_box_line "  Your VM data in ~/WindowsVM will be preserved."
+
+printf '╰'
+for ((i = 0; i < box_width; i++)); do printf '\xe2\x94\x80'; done
+printf '╯\n'
+echo ""
+
+if ! gum_confirm "Remove Windows 11 VM?"; then
+  echo "Removal cancelled."
+  exit 0
+fi
+
+echo ""
+echo -e "\033[1;33mStopping and removing container...\033[0m"
+
+if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+  docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
+  docker rm "$CONTAINER_NAME" >/dev/null 2>&1 || true
+  echo -e "  ✓ Container removed"
+else
+  echo -e "  ✓ Container not found (already removed)"
+fi
+
+echo ""
+echo -e "\033[1;33mRemoving compose file...\033[0m"
+
+COMPOSE_FILE="$HOME/WindowsVM/docker-compose.yml"
+if [ -f "$COMPOSE_FILE" ]; then
+  rm -f "$COMPOSE_FILE"
+  echo -e "  ✓ Compose file removed"
+else
+  echo -e "  ✓ Compose file not found"
+fi
+
+echo ""
+echo -e "\033[1;33mRemoving application launcher...\033[0m"
+
+DESKTOP_FILE="$APPS_DIR/${VM_NAME// /_}.desktop"
+if [ -f "$DESKTOP_FILE" ]; then
+  rm -f "$DESKTOP_FILE"
+  echo -e "  ✓ Desktop file removed"
+else
+  echo -e "  ✓ Desktop file not found"
+fi
+
+echo ""
+echo -e "\033[1;33mRemoving app icon...\033[0m"
+
+ICON_PATH="$ICONS_DIR/${VM_ICON_NAME}.png"
+if [ -f "$ICON_PATH" ]; then
+  rm -f "$ICON_PATH"
+  echo -e "  ✓ Icon removed"
+else
+  echo -e "  ✓ Icon not found"
+fi
+
+echo ""
+echo -e "\033[1;33mRemoving launch script...\033[0m"
+
+LAUNCH_SCRIPT="$HOME/.local/bin/windows-vm-launch"
+if [ -f "$LAUNCH_SCRIPT" ] || [ -L "$LAUNCH_SCRIPT" ]; then
+  rm -f "$LAUNCH_SCRIPT"
+  echo -e "  ✓ Launch script removed"
+else
+  echo -e "  ✓ Launch script not found"
+fi
+
+echo ""
+echo -e "\033[1;32m✓ Windows 11 VM removal complete!\033[0m"
+echo ""
+echo "  Preserved: ~/WindowsVM/ (VM disk image and data)"
+echo ""
+echo "  Press any key to close..."
+read -n 1
+
+hyprctl reload >/dev/null 2>&1 || true
+systemd-run --user --quiet --collect -- bash -c 'systemctl --user restart elephant.service || true; killall -9 walker 2>/dev/null || true; exec walker --gapplication-service' >/dev/null 2>&1 || true

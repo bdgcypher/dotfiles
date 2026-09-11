@@ -65,6 +65,14 @@ hl.window_rule({
   size = "1200 800",
 })
 
+-- Configs (flaoting, via ghostty)
+hl.window_rule({
+  match = { initial_class = "floating.Ghostty" },
+  float = true,
+  center = true,
+  size = "1200 800",
+})
+
 -- Wallpaper picker (floating)
 hl.window_rule({
   match = { initial_class = "floating.Wallpaper" },
@@ -189,4 +197,20 @@ hl.window_rule({
 hl.window_rule({
   match = { class = "firefox", title = ".*Syncthing.*" },
   tile = true,
+})
+
+-- Windows 11 VM (dockur/windows web UI)
+hl.window_rule({
+  match = { class = "firefox", title = ".*Windows 11.*" },
+  float = true,
+  center = true,
+  size = "1400 900",
+})
+
+-- Windows VM Installer/Remover terminal (floating)
+hl.window_rule({
+  match = { initial_class = "floating.WindowsVM" },
+  float = true,
+  center = true,
+  size = "600 700",
 })

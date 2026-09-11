@@ -14,3 +14,9 @@ icon = "󰈹 "
 actions = { "default" = "ghostty --class=floating.WebAppInstall -e hypr-firefox-pwa-remove" }
 weight = 90
 
+[[entries]]
+text = "Windows VM"
+icon = " "
+actions = { "default" = "ghostty --class=floating.WindowsVM -e windows-vm-remove" }
+weight = 80
+

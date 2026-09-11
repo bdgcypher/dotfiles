@@ -1,0 +1,434 @@
+#!/usr/bin/env bash
+# windows-vm-install - TUI installer for Windows 11 VM via Docker + KVM
+# Uses gum for styled text input (consistent with firefox-pwa installer)
+
+set -uo pipefail
+
+DOTFILES_DIR="$(cd "$(dirname "$(realpath "$0")")/../.." && pwd)"
+[ -d "$DOTFILES_DIR/hypr" ] || DOTFILES_DIR="$HOME/.dotfiles"
+
+WINDOWS_LUA="$DOTFILES_DIR/hypr/.config/hypr/windows.lua"
+APPS_DIR="$HOME/.local/share/applications"
+ICONS_DIR="$HOME/.local/share/icons"
+VM_NAME="Windows 11"
+VM_DISPLAY_NAME="Windows 11"
+VM_ICON_NAME="windows-11"
+VM_ICON_URL=""  # Deprecated - using local icon instead
+DEFAULT_RAM_GB=6
+DEFAULT_CPU=2
+DEFAULT_DISK_GB=48
+DEFAULT_STORAGE="$HOME/WindowsVM"
+DEFAULT_USERNAME="admin"
+DEFAULT_PASSWORD="admin"
+DOCKER_IMAGE="dockurr/windows"
+CONTAINER_NAME="windows"
+WEB_PORT="8006"
+
+# ── Dependency check ─────────────────────────────────────────────────────
+for cmd in gum docker docker-compose; do
+  command -v "$cmd" >/dev/null 2>&1 || {
+    echo "Error: $cmd is required but not installed." >&2
+    exit 1
+  }
+done
+
+# Check KVM
+if [ ! -e /dev/kvm ]; then
+  echo "Error: KVM not available. Hardware virtualization must be enabled in BIOS." >&2
+  exit 1
+fi
+
+# Check Docker daemon is running
+if ! docker info >/dev/null 2>&1; then
+  echo "Error: Docker daemon is not running or accessible." >&2
+  echo "Start Docker with: sudo systemctl start docker" >&2
+  exit 1
+fi
+
+# Check for TTY (required by gum)
+if [ ! -e /dev/tty ] || [ ! -c /dev/tty ]; then
+  echo "Error: No TTY available. This script requires an interactive terminal." >&2
+  echo "Please run from a terminal emulator (e.g., ghostty)." >&2
+  exit 1
+fi
+
+# Read pywal color6 for accent (falls back to blue)
+ACCENT_COLOR="10"
+if [ -f "${XDG_CACHE_HOME:-$HOME/.cache}/wal/colors" ]; then
+  raw=$(sed -n '7p' "${XDG_CACHE_HOME:-$HOME/.cache}/wal/colors" 2>/dev/null | tr -d '#')
+  [ -n "$raw" ] && ACCENT_COLOR="$raw"
+fi
+
+# ── Draw a full-width keybinds bar at the top of the terminal ────────────
+draw_keybinds_bar() {
+  local rows cols title
+  read -r rows cols < <(stty size 2>/dev/null)
+  cols=${cols:-100}
+  title="$1"
+  len=${#title}
+
+  # Row 1: Title bar with rounded corners
+  local inner_width=$((cols - 2)) # Content between ╭ and ╮
+  local side_padding=$(((inner_width - len) / 2))
+  [ "$side_padding" -lt 0 ] && side_padding=0
+  local right_fill=$((inner_width - side_padding - len))
+  [ "$right_fill" -lt 0 ] && right_fill=0
+
+  # Row 2: Keybind hints (left-aligned like firefox-pwa)
+  local hint_text="enter: confirm     esc: back/close"
+  local hint_text_len=${#hint_text}
+
+  {
+    # Title bar
+    printf '\033[1;1H╭'
+    awk -v n="$side_padding" 'BEGIN { for (i = 0; i < n; i++) printf "─" }'
+    printf '%s' "$title"
+    awk -v n="$right_fill" 'BEGIN { for (i = 0; i < n; i++) printf "─" }'
+    printf '╮\n'
+    # Keybind hints bar (left-aligned with single space padding)
+    printf '\033[2;1H│  %s' "$hint_text"
+    awk -v n="$((inner_width - hint_text_len - 2))" 'BEGIN { for (i = 0; i < n; i++) printf " " }'
+    printf '│\n'
+    # Bottom bar
+    printf '\033[3;1H╰'
+    awk -v n="$((cols - 2))" 'BEGIN { for (i = 0; i < n; i++) printf "─" }'
+    printf '╯\n'
+  } >/dev/tty 2>/dev/null || true
+  # Clear any remaining lines below the keybinds bar
+  for ((i = 4; i <= rows; i++)); do
+    printf '\033[%d;1H\033[%dK' "$i" "$i" >/dev/tty 2>/dev/null || true
+  done
+}
+
+# ── Gum input wrapper ────────────────────────────────────────────────────
+# Usage: gum_input <label> <placeholder> [unit]
+# Shows placeholder text (not prefilled value)
+gum_input() {
+  local prompt="$1" placeholder="${2:-}" unit="${3:-}"
+  local full_prompt="$prompt"
+  [ -n "$unit" ] && full_prompt="$prompt ($unit): " || full_prompt="$prompt: "
+  STEP_RESULT=$(gum input \
+    --prompt "$full_prompt" \
+    --prompt.foreground 7 \
+    --cursor.foreground "#$ACCENT_COLOR" \
+    --placeholder "$placeholder" \
+    2>/dev/tty) || return 1
+  return 0
+}
+
+# ── Gum confirm wrapper ──────────────────────────────────────────────────
+gum_confirm() {
+  local prompt="$1"
+  gum confirm "$prompt" --affirmative="Install" --negative="Cancel" \
+    --prompt.foreground 7 --selected.foreground "#$ACCENT_COLOR" 2>/dev/tty
+}
+
+# ── State variables ──────────────────────────────────────────────────────
+RAM_GB=""
+CPU_CORES=""
+DISK_GB=""
+STORAGE_LOCATION=""
+VM_USERNAME=""
+VM_PASSWORD=""
+STEP=1
+TOTAL_STEPS=6
+
+# ── Main loop ────────────────────────────────────────────────────────────
+draw_keybinds_bar "Windows 11 VM Installer"
+
+while [ "$STEP" -le "$TOTAL_STEPS" ]; do
+  printf '\033[5;1H\033[2K' >/dev/tty 2>/dev/null || true
+
+  case $STEP in
+  1)
+    gum_input "RAM" "6" "GB" || {
+      clear
+      exit 0
+    }
+    # Use default if user pressed Enter without typing
+    RAM_GB="${STEP_RESULT:-$DEFAULT_RAM_GB}"
+    if ! [[ "$RAM_GB" =~ ^[0-9]+$ ]] || [ "$RAM_GB" -lt 4 ] || [ "$RAM_GB" -gt 128 ]; then
+      echo -e "\033[1;31mInvalid. Enter a number between 4 and 128\033[0m"
+      continue
+    fi
+    STEP=$((STEP + 1))
+    ;;
+  2)
+    gum_input "CPU cores" "2" || {
+      STEP=$((STEP - 1))
+      continue
+    }
+    CPU_CORES="${STEP_RESULT:-$DEFAULT_CPU}"
+    if ! [[ "$CPU_CORES" =~ ^[0-9]+$ ]] || [ "$CPU_CORES" -lt 1 ] || [ "$CPU_CORES" -gt 32 ]; then
+      echo -e "\033[1;31mInvalid. Enter a number between 1 and 32\033[0m"
+      continue
+    fi
+    STEP=$((STEP + 1))
+    ;;
+  3)
+    gum_input "Disk size" "48" "GB" || {
+      STEP=$((STEP - 1))
+      continue
+    }
+    DISK_GB="${STEP_RESULT:-$DEFAULT_DISK_GB}"
+    if ! [[ "$DISK_GB" =~ ^[0-9]+$ ]] || [ "$DISK_GB" -lt 32 ] || [ "$DISK_GB" -gt 1024 ]; then
+      echo -e "\033[1;31mInvalid. Enter a number between 32 and 1024\033[0m"
+      continue
+    fi
+    STEP=$((STEP + 1))
+    ;;
+  4)
+    gum_input "Storage path" "~/WindowsVM" || {
+      STEP=$((STEP - 1))
+      continue
+    }
+    STORAGE_LOCATION="${STEP_RESULT:-$DEFAULT_STORAGE}"
+    STORAGE_LOCATION=$(eval echo "$STORAGE_LOCATION")
+    if [ ! -d "$STORAGE_LOCATION" ]; then
+      mkdir -p "$STORAGE_LOCATION" 2>/dev/null || {
+        echo -e "\033[1;31mCannot create storage directory\033[0m"
+        continue
+      }
+    fi
+    STEP=$((STEP + 1))
+    ;;
+  5)
+    gum_input "Username" "$DEFAULT_USERNAME" || {
+      STEP=$((STEP - 1))
+      continue
+    }
+    VM_USERNAME="${STEP_RESULT:-$DEFAULT_USERNAME}"
+    if [ -z "$VM_USERNAME" ]; then
+      echo -e "\033[1;31mUsername cannot be empty\033[0m"
+      continue
+    fi
+    STEP=$((STEP + 1))
+    ;;
+  6)
+    gum_input "Password" "$DEFAULT_PASSWORD" || {
+      STEP=$((STEP - 1))
+      continue
+    }
+    VM_PASSWORD="${STEP_RESULT:-$DEFAULT_PASSWORD}"
+    if [ -z "$VM_PASSWORD" ]; then
+      echo -e "\033[1;31mPassword cannot be empty\033[0m"
+      continue
+    fi
+    STEP=$((STEP + 1))
+    ;;
+  esac
+done
+
+# ── Summary and confirmation ─────────────────────────────────────────────
+clear
+
+echo ""
+echo "╭─ Installation Summary ───────────────────────────────────────────╮"
+echo "│                                                                  │"
+echo "│   Windows 11 Pro will be installed with:                          "
+echo "│                                                                  │"
+echo "│   RAM:            ${RAM_GB}GB "
+echo "│   CPU:            $CPU_CORES cores "
+echo "│   Disk:           ${DISK_GB}GB "
+echo "│   Storage:        $STORAGE_LOCATION "
+echo "│   Username:       $VM_USERNAME "
+echo "│   Password:       $VM_PASSWORD "
+echo "│                                                                  │"
+echo "╰──────────────────────────────────────────────────────────────────╯"
+echo ""
+
+if ! gum_confirm "Proceed with installation?"; then
+  echo "Installation cancelled."
+  exit 0
+fi
+
+# ── Prerequisites check ──────────────────────────────────────────────────
+echo ""
+echo -e "\033[1;33mChecking prerequisites...\033[0m"
+
+PREREQ_PASS=true
+
+if command -v docker >/dev/null 2>&1; then
+  echo -e "  ✓ Docker: available"
+else
+  echo -e "  ✗ Docker: not found"
+  PREREQ_PASS=false
+fi
+
+if [ -e /dev/kvm ]; then
+  echo -e "  ✓ KVM: available"
+else
+  echo -e "  ✗ KVM: not available"
+  PREREQ_PASS=false
+fi
+
+required_disk_gb=$((DISK_GB + 10))
+
+available_kb=$(df -k "$HOME" | tail -1 | awk '{print $4}')
+available_gb=$((available_kb / 1024 / 1024))
+
+if [ "$available_gb" -ge "$required_disk_gb" ]; then
+  echo -e "  ✓ Disk space: sufficient ($available_gb GB available)"
+else
+  echo -e "  ✗ Disk space: insufficient (need ~$required_disk_gb GB, have $available_gb GB)"
+  PREREQ_PASS=false
+fi
+
+if [ "$PREREQ_PASS" = false ]; then
+  echo ""
+  echo -e "\033[1;31mPrerequisites check failed. Cannot continue.\033[0m"
+  exit 1
+fi
+
+# ── Check if VM already exists ───────────────────────────────────────────
+if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
+  echo ""
+  echo -e "\033[1;33mExisting Windows VM container detected.\033[0m"
+  if ! gum_confirm "Remove existing VM and reinstall?"; then
+    echo "Installation cancelled."
+    exit 0
+  fi
+  echo "Stopping and removing existing container..."
+  docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
+  docker rm "$CONTAINER_NAME" >/dev/null 2>&1 || true
+fi
+
+# ── Create compose file ──────────────────────────────────────────────────
+echo ""
+echo -e "\033[1;33mCreating Docker compose file...\033[0m"
+
+COMPOSE_DIR="$STORAGE_LOCATION"
+mkdir -p "$COMPOSE_DIR"
+
+# Resolve storage path to absolute so the volume mount is stable
+STORAGE_ABS="$(cd "$STORAGE_LOCATION" 2>/dev/null && pwd || true)"
+[ -z "$STORAGE_ABS" ] && STORAGE_ABS="$STORAGE_LOCATION"
+# Ensure Shared directory exists for the :/shared volume
+mkdir -p "$STORAGE_ABS/Shared" 2>/dev/null || true
+
+cat >"$COMPOSE_DIR/docker-compose.yml" <<EOF
+services:
+  windows:
+    image: $DOCKER_IMAGE
+    container_name: $CONTAINER_NAME
+    environment:
+      VERSION: "11"
+      RAM_SIZE: "${RAM_GB}G"
+      CPU_CORES: "$CPU_CORES"
+      DISK_SIZE: "${DISK_GB}GB"
+      USERNAME: "$VM_USERNAME"
+      PASSWORD: "$VM_PASSWORD"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "${WEB_PORT}:${WEB_PORT}"
+      - "3389:3389/tcp"
+      - "3389:3389/udp"
+    volumes:
+      - "$STORAGE_ABS:/storage"
+      - "$STORAGE_ABS/Shared:/shared"
+    restart: always
+    stop_grace_period: 5m
+EOF
+
+# Pull the image before starting so we know it's available
+echo ""
+echo -e "\033[1;33mPulling Docker image ($DOCKER_IMAGE)...\033[0m"
+if docker pull "$DOCKER_IMAGE" >/dev/null 2>&1; then
+  echo -e "  ✓ Image pulled"
+else
+  echo -e "  ✗ Failed to pull image. Check your internet connection."
+  exit 1
+fi
+
+# ── Icon path (uses local icon from dotfiles) ──────────────────────────
+ICON_PATH="$DOTFILES_DIR/icons/.local/share/icons/${VM_ICON_NAME}.png"
+[ -f "$ICON_PATH" ] || ICON_PATH=""
+
+# ── Create desktop file ──────────────────────────────────────────────────
+echo ""
+echo -e "\033[1;33mCreating application launcher...\033[0m"
+
+mkdir -p "$APPS_DIR"
+DESKTOP_FILE="$APPS_DIR/${VM_NAME// /_}.desktop"
+
+cat > "$DESKTOP_FILE" << EOF
+[Desktop Entry]
+Type=Application
+Name=$VM_DISPLAY_NAME
+Comment=Windows 11 VM (Docker/KVM)
+Exec=$HOME/.local/bin/windows-vm-launch
+Icon=${ICON_PATH:-$VM_ICON_NAME}
+StartupWMClass=firefox
+Terminal=false
+Categories=System;Virtualization;
+EOF
+
+if [ -f "$DESKTOP_FILE" ]; then
+  echo -e "  ✓ Desktop file created: $DESKTOP_FILE"
+else
+  echo -e "  ✗ Failed to create desktop file"
+  exit 1
+fi
+
+
+# ── Start the VM ─────────────────────────────────────────────────────────
+echo ""
+echo -e "\033[1;33mStarting Windows 11 VM...\033[0m"
+
+cd "$COMPOSE_DIR"
+if ! docker compose up -d 2>&1; then
+  echo -e "\033[1;31m✗ Failed to start Windows 11 VM\033[0m"
+  echo ""
+  echo "  Check Docker logs for details:"
+  echo "    cd $COMPOSE_DIR && docker compose logs"
+  echo ""
+  echo "  Press any key to close..."
+  read -n 1
+  exit 1
+fi
+
+# Give the container a moment to initialize, then verify it's running
+sleep 3
+CONTAINER_STATE="$(docker ps -a --filter "name=${CONTAINER_NAME}" --format '{{.Status}}' 2>/dev/null)"
+if [ -z "$CONTAINER_STATE" ]; then
+  echo -e "\033[1;31m✗ Container not found after start.\033[0m"
+  echo ""
+  echo "  Check Docker logs for details:"
+  echo "    cd $COMPOSE_DIR && docker compose logs"
+  echo ""
+  echo "  Press any key to close..."
+  read -n 1
+  exit 1
+fi
+
+if echo "$CONTAINER_STATE" | grep -qE 'Up|running'; then
+  echo -e "\033[1;32m✓ Windows 11 VM started successfully!\033[0m"
+  echo ""
+  echo "  Container status: $CONTAINER_STATE"
+  echo ""
+  echo "  Access the VM via:"
+  echo "    • App launcher: Windows 11 (in your application menu)"
+  echo "    • Web UI: http://localhost:${WEB_PORT}"
+  echo ""
+  echo "  Credentials: $VM_USERNAME / $VM_PASSWORD"
+  echo ""
+  echo "  Press any key to close this window..."
+  read -n 1
+
+  hyprctl reload >/dev/null 2>&1 || true
+  systemd-run --user --quiet --collect -- bash -c 'systemctl --user restart elephant.service || true; killall -9 walker 2>/dev/null || true; exec walker --gapplication-service' >/dev/null 2>&1 || true
+else
+  echo -e "\033[1;31m✗ Windows 11 VM container exists but is not running.\033[0m"
+  echo "  Container status: $CONTAINER_STATE"
+  echo ""
+  echo "  Check Docker logs for details:"
+  echo "    cd $COMPOSE_DIR && docker compose logs"
+  echo ""
+  echo "  Press any key to close..."
+  read -n 1
+  exit 1
+fi

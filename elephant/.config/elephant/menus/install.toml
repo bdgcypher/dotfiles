@@ -13,3 +13,9 @@ text = "Web App"
 icon = "󰈹 "
 actions = { "default" = "ghostty --class=floating.WebAppInstall -e hypr-firefox-pwa-install" }
 weight = 90
+
+[[entries]]
+text = "Windows VM"
+icon = " "
+actions = { "default" = "ghostty --class=floating.WindowsVM -e windows-vm-install" }
+weight = 80

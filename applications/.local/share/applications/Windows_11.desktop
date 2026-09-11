@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Windows 11
+Comment=Windows 11 VM (Docker/KVM)
+Exec=/home/benjamingoddard/.local/bin/windows-vm-launch
+Icon=/home/benjamingoddard/.dotfiles/icons/.local/share/icons/windows-11.png
+StartupWMClass=firefox
+Terminal=false
+Categories=System;Virtualization;

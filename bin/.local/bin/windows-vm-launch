@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# windows-vm-launch - Launch Windows 11 VM and open Firefox, stop container when Firefox closes
+set -uo pipefail
+
+CONTAINER_NAME="windows"
+WEB_PORT="8006"
+COMPOSE_DIR="$HOME/WindowsVM"
+
+# Ensure VM is running
+cd "$COMPOSE_DIR"
+if ! docker compose up -d >/dev/null 2>&1; then
+  echo "Failed to start Windows VM" >&2
+  exit 1
+fi
+
+# Open Firefox to the web UI (non-blocking - returns after launching)
+hypr-firefox-pwa "http://localhost:${WEB_PORT}" "Windows 11"
+
+# Wait for the Firefox VM web UI window to close
+while true; do
+  # Check if any Firefox window with the dockurr web UI title is open
+  if ! hyprctl clients -j 2>/dev/null | jq -r '.[] | select(.class == "firefox" and (.title | ascii_downcase | (contains("dockur/windows") or contains("windows inside a docker")))) | .address' 2>/dev/null | grep -q .; then
+    break
+  fi
+  sleep 2
+done
+
+# Firefox closed - stop the container
+docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true

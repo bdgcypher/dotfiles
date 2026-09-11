@@ -28,6 +28,8 @@ dkms
 efibootmgr
 elephant-all-git
 espeak-ng
+docker
+docker-compose
 fastfetch
 fd
 ffmpeg

@@ -100,3 +100,6 @@ __pycache__/
 bin/.local/bin/hypr-tiling-direction-watch
 bin/.local/bin/rebalance-pywal-colorscheme
 rust/target/
+
+# Windows VM storage (dockur/windows)
+WindowsVM/
