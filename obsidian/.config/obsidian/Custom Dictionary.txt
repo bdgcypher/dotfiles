@@ -3,7 +3,9 @@ Journaling
 Lamanites
 MOC
 MOC's
+Pachad
 SuperShe
+Yirah
 Zerubbabel
 structuralized
-checksum_v1 = ceb6d4551da660bf7937e255d916ced1
+checksum_v1 = e5a17d6b0ba173640b1de7892549869c

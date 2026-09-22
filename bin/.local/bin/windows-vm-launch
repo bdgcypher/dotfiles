@@ -1,29 +1,230 @@
 #!/usr/bin/env bash
-# windows-vm-launch - Launch Windows 11 VM and open Firefox, stop container when Firefox closes
+# windows-vm-launch - Launch Windows 11 VM and open its web UI in Firefox.
+# The VM is started with a pinned Docker Compose project so repeated launches
+# reuse the same project/network instead of creating new ones.
+#
+# Expected usage:
+#   • Start:   windows-vm-launch  (or the Windows 11 PWA entry in walker)
+#   • Stop:    close the Firefox web UI window; the script then runs
+#              docker compose --project-name windows11 down
 set -uo pipefail
 
-CONTAINER_NAME="windows"
-WEB_PORT="8006"
 COMPOSE_DIR="$HOME/WindowsVM"
+PROJECT_NAME="windows11"
+WEB_PORT="8006"
+VM_URL="http://localhost:${WEB_PORT}"
+VM_PWA_TITLE_MARKER="http://localhost:${WEB_PORT} - Windows - noVNC"
+CONTAINER_NAME="windows"
 
-# Ensure VM is running
-cd "$COMPOSE_DIR"
-if ! docker compose up -d >/dev/null 2>&1; then
-  echo "Failed to start Windows VM" >&2
+POLL_INTERVAL_SEC=2
+STARTUP_CHECK_MAX=45
+STARTUP_CHECK_INTERVAL=3
+
+# Give the PWA window a moment to register with Hyprland after launch.
+VM_WINDOW_DELAY_SEC=6
+
+die() {
+  echo "$*" >&2
+  exit 1
+}
+
+# Ensure the compose project directory exists.
+if [ ! -d "$COMPOSE_DIR" ]; then
+  die "Compose project directory not found: $COMPOSE_DIR\nExpected: ~/WindowsVM/docker-compose.yml for project '$PROJECT_NAME'."
+fi
+
+# Pin working directory and compose project name so the network/project is stable.
+cd "$COMPOSE_DIR" || die "Cannot enter compose directory: $COMPOSE_DIR"
+
+# 1. Start the VM compose project.
+echo "Starting Windows 11 VM (compose project: $PROJECT_NAME)..."
+if ! docker compose --project-name "$PROJECT_NAME" up -d >/dev/null 2>&1; then
+  echo "Failed to start Windows 11 VM." >&2
+  echo "Compose dir: $COMPOSE_DIR" >&2
+  echo "Check logs with: cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME logs" >&2
   exit 1
 fi
 
-# Open Firefox to the web UI (non-blocking - returns after launching)
-hypr-firefox-pwa "http://localhost:${WEB_PORT}" "Windows 11"
-
-# Wait for the Firefox VM web UI window to close
+# 2. Wait for the web UI to become reachable.
+echo "Waiting for VM web UI: $VM_URL"
+CHECK_START=$(date +%s)
+UI_UP=false
 while true; do
-  # Check if any Firefox window with the dockurr web UI title is open
-  if ! hyprctl clients -j 2>/dev/null | jq -r '.[] | select(.class == "firefox" and (.title | ascii_downcase | (contains("dockur/windows") or contains("windows inside a docker")))) | .address' 2>/dev/null | grep -q .; then
+  NOW=$(date +%s)
+  if [ $((NOW - CHECK_START)) -ge "$STARTUP_CHECK_MAX" ]; then
+    echo "Timed out waiting for VM web UI: $VM_URL" >&2
+    echo "Container is running. Check it manually:" >&2
+    echo "  Web UI: $VM_URL" >&2
+    echo "  Logs:   cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME logs" >&2
+    exit 1
+  fi
+
+  if curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$VM_URL" 2>/dev/null | grep -qE '^[0-9]{3}$'; then
+    UI_UP=true
     break
   fi
-  sleep 2
+
+  sleep "$STARTUP_CHECK_INTERVAL"
 done
 
-# Firefox closed - stop the container
-docker stop "$CONTAINER_NAME" >/dev/null 2>&1 || true
+echo "Windows 11 VM web UI is reachable: $VM_URL"
+
+# 3. Launch the Firefox PWA to the VM web UI (non-blocking).
+echo "Opening Firefox PWA for $VM_URL"
+hypr-firefox-pwa "$VM_URL" "Windows 11" || echo "Warning: hypr-firefox-pwa returned non-zero."
+
+# Give Hyprland a moment to advertise the new window before polling.
+sleep "$VM_WINDOW_DELAY_SEC"
+
+# Helper: find the VM PWA window by matching the expected PWA title marker.
+# Based on your hyprctl output, the PWA window looks like:
+#   title: "http://localhost:8006 - Windows - noVNC — Mozilla Firefox"
+#   address: "0x..."
+# So we match on the title text, not on the window address.
+find_vm_firefox_window() {
+  hyprctl clients -j 2>/dev/null | jq -r --arg marker "$VM_PWA_TITLE_MARKER" '
+    [.[] | select(.class == "firefox") |
+      select((.title // "") | test($marker; "i")) |
+      "\(.address // "") | \(.title // "")"
+    ] | .[0]
+  ' 2>/dev/null || true
+}
+
+# Helper: print all Firefox windows for debugging.
+debug_firefox_windows() {
+  hyprctl clients -j 2>/dev/null | jq -r '
+    [.[] | select(.class == "firefox") |
+      {class, address: (.address // ""), title: (.title // "")}] | .[]
+  ' 2>/dev/null || true
+}
+
+# Helper: return 0 if the VM PWA window is open, 1 if not.
+# Also sets VM_POLL_DEBUG_LAST to a copy of the raw matcher output for debugging.
+vm_pwa_window_open() {
+  local line
+  line=$(find_vm_firefox_window)
+  VM_POLL_DEBUG_LAST="$line"
+  # Treat empty output and the literal string "null" as "no window".
+  if [ -z "$line" ] || [ "$line" = "null" ]; then
+    return 1
+  fi
+  local addr title
+  addr=$(printf '%s' "$line" | sed 's/ *| .*//')
+  title=$(printf '%s' "$line" | sed 's/.*| //')
+  if [ -z "$addr" ] && [ -z "$title" ]; then
+    return 1
+  fi
+  return 0
+}
+
+# 4. Wait for the VM PWA window to appear.
+STARTED_AT=$(date +%s)
+VM_WINDOW_LINE=""
+while true; do
+  NOW=$(date +%s)
+  if [ $((NOW - STARTED_AT)) -ge "$STARTUP_CHECK_MAX" ]; then
+    echo "Timed out waiting for the Firefox VM PWA window to appear." >&2
+    echo "VM is running. Use the terminal or compose project to stop it:" >&2
+    echo "  cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME ps" >&2
+    echo "  cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME down" >&2
+    exit 1
+  fi
+
+  VM_WINDOW_LINE=$(find_vm_firefox_window)
+
+  if [ -n "$VM_WINDOW_LINE" ]; then
+    break
+  fi
+
+  sleep "$POLL_INTERVAL_SEC"
+done
+
+# Parse the matched window info.
+VM_WINDOW_ADDR=$(echo "$VM_WINDOW_LINE" | sed 's/ *| .*//')
+VM_WINDOW_TITLE=$(echo "$VM_WINDOW_LINE" | sed 's/.*| //')
+
+if [ -z "$VM_WINDOW_ADDR" ] && [ -z "$VM_WINDOW_TITLE" ]; then
+  echo "Detected a Firefox window but it had no address or title. That should not happen." >&2
+  echo "VM is running. Use the terminal or compose project to stop it:" >&2
+  echo "  cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME ps" >&2
+  echo "  cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME down" >&2
+  exit 1
+fi
+
+echo "Detected Firefox VM PWA window: $VM_WINDOW_ADDR | $VM_WINDOW_TITLE"
+
+# 5. Wait for that VM PWA window to close, then stop the compose project.
+echo "Waiting for Firefox VM PWA window to close..."
+CLOSE_WAIT_START=$(date +%s)
+CLOSE_WAIT_MAX=120
+POLL_DEBUG_COUNT=0
+while true; do
+  if ! vm_pwa_window_open; then
+    echo "poll: VM PWA window gone"
+    break
+  fi
+
+  # Periodic debug line so we can see what the launcher is actually seeing.
+  POLL_DEBUG_COUNT=$((POLL_DEBUG_COUNT + 1))
+  if [ $((POLL_DEBUG_COUNT % 5)) -eq 0 ]; then
+    echo "poll: VM PWA window still open (raw: ${VM_POLL_DEBUG_LAST})"
+  fi
+
+  NOW=$(date +%s)
+  if [ $((NOW - CLOSE_WAIT_START)) -ge "$CLOSE_WAIT_MAX" ]; then
+    echo "Timed out waiting for the Firefox VM PWA window to close." >&2
+    echo "VM is still running. Stop it manually with:" >&2
+    echo "  cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME down" >&2
+    echo "Last raw matcher output: ${VM_POLL_DEBUG_LAST}" >&2
+    exit 1
+  fi
+
+  sleep "$POLL_INTERVAL_SEC"
+done
+
+echo "Firefox VM PWA window closed. Stopping VM compose project: $PROJECT_NAME"
+echo "Running: docker compose --project-name $PROJECT_NAME down"
+echo "--------------------------------------------------"
+STOP_OUT=$(docker compose --project-name "$PROJECT_NAME" down 2>&1)
+STOP_RC=$?
+echo "$STOP_OUT"
+echo "--------------------------------------------------"
+if [ $STOP_RC -eq 0 ]; then
+  echo "Windows 11 VM compose project stopped."
+else
+  echo "Warning: docker compose down failed for project '$PROJECT_NAME' (exit code $STOP_RC)." >&2
+  echo "Check state manually:" >&2
+  echo "  cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME ps -a" >&2
+  echo "  cd $COMPOSE_DIR && docker compose --project-name $PROJECT_NAME down" >&2
+fi
+
+# ── timing-test helper ─────────────────────────────────────────────────────
+# Run this separately to see how long after PWA launch the window becomes
+# visible to Hyprland. It polls hyprctl for a Firefox window matching the
+# VM PWA title marker until it appears or the timeout expires.
+#   windows-vm-launch --timing-test
+if [ "${1:-}" = "--timing-test" ]; then
+  echo "Timing test: waiting for Firefox VM PWA window to appear..."
+  t0=$(date +%s)
+  line=""
+  while true; do
+    now_t=$(date +%s)
+    if [ $((now_t - t0)) -ge "$STARTUP_CHECK_MAX" ]; then
+      echo "Timeout: VM PWA Firefox window did not appear within ${STARTUP_CHECK_MAX}s." >&2
+      echo "Current Firefox windows:" >&2
+      debug_firefox_windows
+      exit 1
+    fi
+
+    line=$(find_vm_firefox_window)
+
+    if [ -n "$line" ]; then
+      addr_t=$(echo "$line" | sed 's/ *| .*//')
+      title_t=$(echo "$line" | sed 's/.*| //')
+      printf "Window detected after %s seconds: %s | %s\n" "$((now_t - t0))" "$addr_t" "$title_t"
+      exit 0
+    fi
+
+    sleep "$POLL_INTERVAL_SEC"
+  done
+fi
