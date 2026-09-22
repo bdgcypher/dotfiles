@@ -65,8 +65,7 @@ done
 echo "Stowing complete."
 
 # Post-stow: Create absolute symlinks for pywal cache themes, GTK theme, and wallpaper.
-# These MUST be absolute because stow creates directory symlinks (e.g.,
-# ~/.config/btop -> ~/.dotfiles/btop/.config/btop) which changes the physical
+# These MUST be absolute because stow creates directory symlinks (e.g.,\n# ~/.config/btop -> ~/.dotfiles/btop/.config/btop) which changes the physical
 # path depth, causing relative symlinks (../../../.cache/wal/...) to resolve
 # incorrectly through the .dotfiles tree instead of from $HOME.
 echo "Creating pywal/theme absolute symlinks..."
@@ -180,11 +179,75 @@ else
 fi
 
 # Enable Syncthing systemd user service (preferred over Hyprland exec-once —
-# starts at login, survives compositor restarts, and has built-in restart logic)
-if command -v syncthing &> /dev/null && systemctl --user enable --now syncthing.service 2>/dev/null; then
-    echo "Syncthing service enabled and started."
-elif command -v syncthing &> /dev/null; then
-    echo "Note: Could not enable syncthing.service (may need to run after login)."
+# starts at login, survives compositor restarts, and has built-in restart logic).
+# The package provides the unit file; the repo only manages the enablement symlink.
+#
+# On this machine, syncthing.service's [Install] section still says WantedBy=default.target,
+# but the running user manager does not honor default.target enablement for it. Other enabled
+# user services here are wanted by graphical-session.target and are enabled through that path,
+# so we use the same enablement model syncthing would need to behave like the other enabled
+# dotfiles services on this machine.
+if command -v syncthing &> /dev/null; then
+    # Mimic the same enablement model used by the other enabled dotfiles services here:
+    # waybar, voxtype, hypr-tiling-direction-watch, elephant.
+    GRAPHICAL_WANTS_DIR="$HOME/.config/systemd/user/graphical-session.target.wants"
+    GRAPHICAL_LINK="$GRAPHICAL_WANTS_DIR/syncthing.service"
+    SYNCTHING_UNIT="/usr/lib/systemd/user/syncthing.service"
+
+    if [ -f "$SYNCTHING_UNIT" ]; then
+        mkdir -p "$GRAPHICAL_WANTS_DIR"
+
+        if [ ! -L "$GRAPHICAL_LINK" ] || [ "$(readlink "$GRAPHICAL_LINK")" != "$SYNCTHING_UNIT" ]; then
+            ln -sfn "$SYNCTHING_UNIT" "$GRAPHICAL_LINK"
+        fi
+
+        systemctl --user daemon-reload 2>/dev/null || true
+
+        if systemctl --user enable syncthing.service 2>/dev/null; then
+            systemctl --user daemon-reload 2>/dev/null || true
+            echo "Syncthing service enabled."
+        else
+            echo "Note: Could not enable syncthing.service via systemctl."
+        fi
+
+        # If the manager still does not honor this as enabled, fall back to a reliable
+        # local enablement path and start the service.
+        if systemctl --user is-enabled syncthing.service >/dev/null 2>&1; then
+            echo "Syncthing user service state: enabled."
+        else
+            echo "Note: Syncthing service not recognized as enabled by the user manager."
+            echo "  Falling back to reliable local enablement path and starting the service."
+
+            # Try once more after ensuring the symlink is present.
+            if [ ! -L "$GRAPHICAL_LINK" ] || [ "$(readlink "$GRAPHICAL_LINK")" != "$SYNCTHING_UNIT" ]; then
+                ln -sfn "$SYNCTHING_UNIT" "$GRAPHICAL_LINK"
+            fi
+
+            systemctl --user daemon-reload 2>/dev/null || true
+            systemctl --user reset-failed syncthing.service 2>/dev/null || true
+            systemctl --user stop syncthing.service 2>/dev/null || true
+
+            if systemctl --user enable syncthing.service 2>/dev/null; then
+                systemctl --user daemon-reload 2>/dev/null || true
+            fi
+
+            if systemctl --user start syncthing.service 2>/dev/null; then
+                echo "Syncthing service started."
+            else
+                echo "Note: Could not start syncthing.service immediately (will start with the graphical session if enabled)."
+            fi
+
+            if systemctl --user is-enabled syncthing.service >/dev/null 2>&1; then
+                echo "Syncthing user service state: enabled."
+            else
+                echo "Syncthing user service state: not enabled by the user manager."
+            fi
+        fi
+    else
+        echo "Note: syncthing is installed, but its user unit was not found at $SYNCTHING_UNIT."
+    fi
+else
+    echo "Note: syncthing not found — skipping service enablement."
 fi
 
 # Enable Voxtype systemd user service
