@@ -28,6 +28,15 @@ read -p "Selection [1-8]: " choice
 
 case $choice in
     1|2)
+        # Say up front if this session's Hyprland already cannot load plugins
+        # (its binary was replaced by an earlier package upgrade), and check
+        # again right after install_packages.sh, which is what actually
+        # performs the upgrade. See scripts/hyprland_restart_check.sh.
+        HYPRLAND_RESTART_NEEDED=0
+        if [ -x "$SCRIPTS_DIR/hyprland_restart_check.sh" ]; then
+            "$SCRIPTS_DIR/hyprland_restart_check.sh" || HYPRLAND_RESTART_NEEDED=1
+        fi
+
         # Safety check: If any key directory is empty, trigger a repair first
         if [[ ! -f "$SCRIPTS_DIR/install_packages.sh" ]] || [[ -z "$(ls -A "$DOTFILES_DIR/hypr" 2>/dev/null)" ]]; then
             echo "Warning: Repository looks incomplete. Running auto-repair..."
@@ -41,30 +50,44 @@ case $choice in
             # Keep-alive sudo
             while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-            echo "[1/7] Installing packages..."
+            echo "[1/8] Installing packages..."
             "$SCRIPTS_DIR/install_packages.sh"
-            echo "[2/7] Stowing dotfile configs..."
+            # This step may have just upgraded hyprland; report the restart
+            # requirement as soon as it becomes true (once is enough).
+            if [ "$HYPRLAND_RESTART_NEEDED" = 0 ] && [ -x "$SCRIPTS_DIR/hyprland_restart_check.sh" ]; then
+                "$SCRIPTS_DIR/hyprland_restart_check.sh" || HYPRLAND_RESTART_NEEDED=1
+            fi
+            echo "[2/8] Stowing dotfile configs..."
             "$SCRIPTS_DIR/stow_configs.sh"
-            echo "[3/7] Setting up GPU drivers..."
+            echo "[3/8] Setting up GPU drivers..."
             "$SCRIPTS_DIR/setup_gpu.sh" || echo "WARNING: GPU driver setup failed, continuing with remaining steps..."
-            echo "[4/7] Configuring system services..."
+            echo "[4/8] Configuring system services..."
             "$SCRIPTS_DIR/setup_services.sh"
-            echo "[5/7] Setting up timezone..."
+            echo "[5/8] Setting up timezone..."
             "$SCRIPTS_DIR/setup_timezone.sh"
-            echo "[6/7] Restarting launcher services..."
+            echo "[6/8] Restarting launcher services..."
             "$SCRIPTS_DIR/restart_launcher.sh"
-            echo "[7/7] Enabling Hyprland plugins..."
+            echo "[7/8] Enabling Hyprland plugins..."
             "$SCRIPTS_DIR/setup_plugins.sh"
+            echo "[8/8] Configuring Sunshine virtual display..."
+            "$SCRIPTS_DIR/setup_sunshine.sh"
         else
             echo "Starting Update..."
-            echo "[1/4] Installing/updating packages..."
+            echo "[1/5] Installing/updating packages..."
             "$SCRIPTS_DIR/install_packages.sh"
-            echo "[2/4] Stowing dotfile configs..."
+            # install_packages.sh may upgrade hyprland mid-session; if so, its
+            # plugins cannot load until the compositor restarts.
+            if [ "$HYPRLAND_RESTART_NEEDED" = 0 ] && [ -x "$SCRIPTS_DIR/hyprland_restart_check.sh" ]; then
+                "$SCRIPTS_DIR/hyprland_restart_check.sh" || HYPRLAND_RESTART_NEEDED=1
+            fi
+            echo "[2/5] Stowing dotfile configs..."
             "$SCRIPTS_DIR/stow_configs.sh"
-            echo "[3/4] Restarting launcher services..."
+            echo "[3/5] Restarting launcher services..."
             "$SCRIPTS_DIR/restart_launcher.sh"
-            echo "[4/4] Enabling Hyprland plugins..."
+            echo "[4/5] Enabling Hyprland plugins..."
             "$SCRIPTS_DIR/setup_plugins.sh"
+            echo "[5/5] Configuring Sunshine virtual display..."
+            "$SCRIPTS_DIR/setup_sunshine.sh"
         fi
         ;;
     3)
@@ -101,6 +124,10 @@ case $choice in
 esac
 
 echo ""
+if [ "${HYPRLAND_RESTART_NEEDED:-0}" = 1 ]; then
+    echo "Hyprland plugins are not loaded yet: log out or reboot to load them."
+    echo ""
+fi
 echo "=========================================="
 echo "   Installation Complete"
 echo "=========================================="

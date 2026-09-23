@@ -85,7 +85,7 @@
         },
         {
           "label": "",
-          "command": "walker -m menus:power"
+          "command": "walker -m menus:system/power --width 250"
         },
         {
           "label": "󰝝",

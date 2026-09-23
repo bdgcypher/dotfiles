@@ -250,11 +250,82 @@ else
     echo "Note: syncthing not found — skipping service enablement."
 fi
 
-# Enable Voxtype systemd user service
-if command -v voxtype &> /dev/null && systemctl --user enable --now voxtype.service 2>/dev/null; then
-    echo "Voxtype service enabled and started."
-elif command -v voxtype &> /dev/null; then
-    echo "Note: Could not enable voxtype.service (may need to run after login)."
+# Enable Voxtype systemd user service.
+#
+# The whisper model is a separate download (the package unit documents it as a
+# prerequisite). Without it the daemon exits 1 on every start, so
+# Restart=on-failure loops every RestartSec and the journal fills with
+# "Removing stale pid file" - make sure the model is there first.
+if command -v voxtype &> /dev/null; then
+    # The whisper model is a separate download (the package unit documents
+    # `voxtype setup --download` as a prerequisite). Without it the daemon exits
+    # 1 on every start and Restart=on-failure loops every RestartSec.
+    #
+    # `setup --download` fetches whatever whisper.model is configured and is a
+    # no-op when it is already present, so this is safe on every run and also
+    # picks up a model the config was switched to.
+    VOXTYPE_MODEL="$(voxtype config get whisper.model 2>/dev/null | head -1)"
+    echo "Ensuring the Voxtype whisper model (${VOXTYPE_MODEL:-default}) is present..."
+    if voxtype setup --download --quiet >/dev/null 2>&1; then
+        echo "Voxtype model ready (${VOXTYPE_MODEL:-default})."
+    else
+        echo "Note: Could not download the Voxtype model - run 'voxtype setup --download' later,"
+        echo "      otherwise voxtype.service will restart in a loop."
+    fi
+
+    # Voxtype's generated user config enables its built-in evdev hotkey
+    # (ScrollLock) by default. This setup drives dictation from compositor
+    # keybindings instead (SUPER+D -> `voxtype record toggle` in
+    # hypr/.config/hypr/bindings/utilities.lua), which is also what the
+    # package's /etc/voxtype/config.toml pins with hotkey.enabled = false.
+    voxtype config set hotkey.enabled false >/dev/null 2>&1 || true
+
+    # Voice Activity Detection (Silero, ~0.8 MB).
+    #
+    # Without it, a silent or mis-pressed recording is still transcribed and
+    # Whisper hallucinates on it (classic: "Thanks for watching!"); since
+    # output.mode is "type", that hallucinated text is then typed at the
+    # cursor. VAD drops recordings with no detected speech instead.
+    #
+    # `setup vad` is a no-op when the model is already downloaded, so this is
+    # safe on every run.
+    if voxtype setup vad --status 2>/dev/null | grep -q "model installed"; then
+        echo "Voxtype VAD model ready."
+    elif voxtype setup vad >/dev/null 2>&1; then
+        echo "Voxtype VAD model downloaded."
+    else
+        echo "Note: Could not download the Voxtype VAD model - run 'voxtype setup vad' later,"
+        echo "      otherwise silent recordings will still be transcribed."
+    fi
+    voxtype config set vad.enabled true >/dev/null 2>&1 || true
+    voxtype config set vad.backend whisper >/dev/null 2>&1 || true
+
+    # Waveform OSD off. The floating panel duplicates what the waybar module
+    # already shows, and waybar reads the daemon's state file directly, so
+    # recording state lives in the bar only and nothing overlays the screen.
+    voxtype config set osd.enabled false >/dev/null 2>&1 || true
+
+    # Desktop notifications off, so dictation is silent apart from the waybar
+    # icon and the text typed at the cursor. on_transcription was the only one
+    # left on (start/stop already default to false).
+    voxtype config set output.notification.on_transcription false >/dev/null 2>&1 || true
+
+    # Clear a stale start-limit-hit left by the pre-model crash loop.
+    systemctl --user reset-failed voxtype.service 2>/dev/null || true
+
+    if systemctl --user enable --now voxtype.service 2>/dev/null; then
+        echo "Voxtype service enabled and started."
+        # Verify it actually stayed up: a missing/unloadable model only shows as
+        # an exit a moment after start.
+        sleep 3
+        if systemctl --user is-active --quiet voxtype.service; then
+            echo "Voxtype daemon is running."
+        else
+            echo "Warning: voxtype.service is not running - check 'journalctl --user -u voxtype.service'."
+        fi
+    else
+        echo "Note: Could not enable voxtype.service (may need to run after login)."
+    fi
 fi
 
 # Enable the waybar tiling/layout event watcher (signals waybar on Hyprland events)
@@ -265,9 +336,29 @@ elif command -v hyprctl &> /dev/null; then
 fi
 
 # Re-enable Sunshine systemd user service (its .wants symlink gets cleaned
-# up by conflict handling since it's excluded from stow via .stow-local-ignore)
-if command -v sunshine &> /dev/null && systemctl --user enable --now app-dev.lizardbyte.app.Sunshine.service 2>/dev/null; then
-    echo "Sunshine service enabled and started."
-elif command -v sunshine &> /dev/null; then
-    echo "Note: Could not enable Sunshine service (may need to run after login)."
+# up by conflict handling since it's excluded from stow via .stow-local-ignore).
+#
+# This service is the ONLY thing that starts Sunshine - it must not also be
+# launched from a Hyprland autostart, because two instances race for the RTSP
+# port and the loser aborts (SIGABRT), which leaves the unit in
+# start-limit-hit until it is reset.
+if command -v sunshine &> /dev/null; then
+    # Clear a stale start-limit-hit from an earlier failed start.
+    systemctl --user reset-failed app-dev.lizardbyte.app.Sunshine.service 2>/dev/null || true
+
+    if systemctl --user enable app-dev.lizardbyte.app.Sunshine.service 2>/dev/null; then
+        echo "Sunshine service enabled."
+    else
+        echo "Note: Could not enable Sunshine service (may need to run after login)."
+    fi
+
+    # Only start when nothing is running: pgrep also matches an instance that
+    # the service itself owns, so this never spawns a duplicate.
+    if pgrep -x sunshine >/dev/null 2>&1; then
+        echo "Sunshine is already running."
+    elif systemctl --user start app-dev.lizardbyte.app.Sunshine.service 2>/dev/null; then
+        echo "Sunshine service started."
+    else
+        echo "Note: Could not start Sunshine service (it will start with the graphical session)."
+    fi
 fi

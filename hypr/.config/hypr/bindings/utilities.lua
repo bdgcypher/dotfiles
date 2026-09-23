@@ -138,11 +138,11 @@ hl.bind(
 	{ description = "Full system update" }
 )
 
--- Dictation
+-- Dictation (toggle: press once to start recording, press again to stop and
+-- transcribe). `voxtype record toggle` reads the daemon's state file, so a
+-- single keybinding is enough - no separate press/release pair needed.
 
-hl.bind("SUPER + CTRL + X", hl.dsp.exec_cmd("voxtype record start"), { description = "Start dictation" })
-
-hl.bind("SUPER + CTRL + X", hl.dsp.exec_cmd("voxtype record stop"), { release = true, description = "Stop dictation" })
+hl.bind("SUPER + D", hl.dsp.exec_cmd("voxtype record toggle"), { description = "Toggle dictation" })
 
 -- Power menu
 

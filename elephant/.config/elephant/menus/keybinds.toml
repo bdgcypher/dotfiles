@@ -426,7 +426,7 @@ icon = ""
 actions = { "default" = "true" }
 
 [[entries]]
-text = "Start/Stop Dictation                       →          SUPER + CTRL + X"
+text = "Start/Stop Dictation                       →          SUPER + D"
 icon = ""
 actions = { "default" = "walker --close" }
 

@@ -131,8 +131,22 @@ tooltip {
   margin: 0 0 0 7.5px;
 }
 
-#custom-voxtype.recording {
-  color: #a55555;
+/* Dictation indicator (mic while recording, hourglass while transcribing).
+   Pulses exactly like the screen recording indicator: a transparent base
+   colour animated up to #a55555 by the shared `blink` keyframes below, which
+   also fades it fully out at the trough of each cycle. A static colour here
+   would animate to itself and never visibly pulse.
+
+   Both dictation states share the rule so the indicator keeps one colour
+   across the whole flow; the mic and hourglass glyphs still tell them apart.
+   font-weight matches the screen indicator's dot so the two pulses carry the
+   same visual weight, and min-width on #custom-voxtype reserves the glyph's
+   space so the bar does not shift as it fades. */
+#custom-voxtype.recording,
+#custom-voxtype.transcribing {
+  color: transparent;
+  font-weight: bold;
+  animation: blink 1.5s infinite alternate;
 }
 
 #custom-notification.active {

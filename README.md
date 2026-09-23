@@ -42,7 +42,10 @@ chmod +x ./install.sh
 - **System-Level Tweak Automation:**
     - SDDM Autologin (Hyprland-uwsm)
     - Plymouth Splash Screen (`arch-charge`)
-    - Suspend-then-Hibernate (15min delay)
+    - Suspend-then-Hibernate (battery: suspend, then hibernate after 15min; AC: suspend only, plus `HandleLidSwitch` wiring in `system/etc/systemd/logind.conf.d`)
     - Limine Bootloader management
     - Tailscale Mesh VPN
+- **Sunshine/Moonlight Virtual Display:** Streams from a Hyprland headless output created to match the Moonlight client's resolution, so the physical screen is left alone. The output and an idle/sleep inhibitor are managed by `bin/.local/bin/sunshine-display` through Sunshine's `global_prep_cmd` (configured by `scripts/setup_sunshine.sh`).
+- **Local Dictation (Voxtype):** Whisper `small.en` on the Vulkan/iGPU backend, toggled with `SUPER+D`. Silero VAD drops silent or mis-pressed recordings so Whisper cannot hallucinate text at your cursor. The whisper model, VAD model, and hotkey settings are ensured by `scripts/stow_configs.sh`.
+- **Hyprland Plugin Guard:** Detects when the running Hyprland was upgraded mid-session - its binary is `(deleted)`, so it cannot load plugins at all and `hyprpm` still reports success - and says up front that a restart is required, instead of finishing an install whose plugin setup never took effect.
 - **Conflict Management:** Backs up existing configs before stowing.

@@ -23,7 +23,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("walker --gapplication-service")
     hl.exec_cmd("uwsm-app -- hypridle")
     -- hl.exec_cmd("uwsm-app -- fcitx5 --disable notificationitem")
-    hl.exec_cmd("uwsm-app -- sunshine")
+    -- Sunshine is deliberately NOT started here: the systemd user service
+    -- app-dev.lizardbyte.app.Sunshine.service owns it (enabled by
+    -- stow_configs.sh). Starting both here and from systemd makes two
+    -- instances race for the RTSP port and the loser aborts (SIGABRT),
+    -- leaving the unit in start-limit-hit.
     hl.exec_cmd("uwsm-app -- swaync")
     hl.exec_cmd("uwsm-app -- swayosd-server")
     hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")

@@ -142,6 +142,20 @@ echo "Configuring Suspend-then-Hibernate delay..."
 sudo mkdir -p /etc/systemd/sleep.conf.d
 sudo cp "$SYSTEM_DIR/etc/systemd/sleep.conf.d/hibernate.conf" /etc/systemd/sleep.conf.d/hibernate.conf
 
+# 3.01 Lid switch: suspend-then-hibernate on battery, plain suspend on AC.
+# HibernateOnACPower=no (in the drop-in above) keeps AC suspends in RAM.
+echo "Configuring lid switch behavior..."
+sudo mkdir -p /etc/systemd/logind.conf.d
+sudo cp "$SYSTEM_DIR/etc/systemd/logind.conf.d/lid.conf" /etc/systemd/logind.conf.d/lid.conf
+
+# HibernateOnACPower= only exists in systemd >= 257; older versions ignore it,
+# which would make suspend-then-hibernate hibernate on AC too.
+SYSTEMD_MAJOR=$(systemctl --version | awk 'NR==1 {print $2}')
+if [ "${SYSTEMD_MAJOR:-0}" -lt 257 ] 2>/dev/null; then
+    echo "Warning: systemd $SYSTEMD_MAJOR predates HibernateOnACPower= (257); AC suspends may hibernate."
+fi
+echo "Note: logind lid settings apply after a reboot (or 'systemctl restart systemd-logind')."
+
 # 3.1 Quiet Boot/Shutdown (Sysctl)
 echo "Configuring quiet printk for silent shutdown..."
 sudo mkdir -p /etc/sysctl.d
@@ -275,5 +289,23 @@ echo "Reloading v4l2loopback for iriunwebcam..."
 sudo rmmod v4l2loopback 2>/dev/null || true
 sudo modprobe v4l2loopback 2>/dev/null || echo "v4l2loopback not available yet -- will load after reboot"
 echo "Iriunwebcam v4l2loopback setup complete."
+
+# 11. Voxtype GPU acceleration (Vulkan) for Whisper
+# Voxtype ships tiered binaries and activates the CPU AVX-512 build by default;
+# `setup gpu --enable` switches the active variant to the Vulkan build so
+# transcription runs on the GPU. It auto-detects the best backend and a failure
+# is non-fatal - voxtype simply stays on the CPU variant.
+if command -v voxtype &> /dev/null; then
+    if lspci 2>/dev/null | grep -qiE "vga|3d|display"; then
+        echo "Enabling Voxtype GPU acceleration (Vulkan)..."
+        if sudo voxtype setup gpu --enable >/dev/null 2>&1; then
+            echo "Voxtype GPU variant enabled (verify with 'voxtype info accel')."
+        else
+            echo "Note: Could not enable the Voxtype GPU variant - staying on the CPU build."
+        fi
+    else
+        echo "No GPU detected - keeping Voxtype on the CPU build."
+    fi
+fi
 
 echo "System services configuration complete."

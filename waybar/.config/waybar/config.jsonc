@@ -155,7 +155,7 @@
     "on-click": "ghostty --class=floating.Pacman -e piu"
   },
   "custom/voxtype": {
-    "exec": "voxtype-status",
+    "exec": "voxtype status --format json --follow --extended",
     "return-type": "json",
     "format": "{icon}",
     "format-icons": {
@@ -164,8 +164,8 @@
       "transcribing": "󰔟"
     },
     "tooltip": true,
-    "on-click-right": "voxtype-config",
-    "on-click": "voxtype-model"
+    "on-click": "voxtype record toggle",
+    "on-click-right": "voxtype-configure-launcher"
   },
   "custom/vpn": {
     "exec": "~/.config/waybar/scripts/vpn-status.sh",
