@@ -4,17 +4,24 @@
 
 echo "Setting up Hyprland plugins (hyprpm)..."
 
-if ! command -v hyprpm &> /dev/null; then
-    echo "  hyprpm not found. Skipping plugin setup."
-    exit 0
-fi
-
 # Cache sudo once to avoid multiple password prompts during hyprpm builds
 if sudo -n true 2>/dev/null; then
     echo "  sudo already cached."
 else
     echo "  Please enter sudo password (will be cached for plugin setup):"
     sudo -v
+fi
+
+# hyprpm used to ship inside the 'hyprland' package, but as of the 0.56
+# split it is its own package and 'hyprland' only lists it as an optional
+# dependency. Without it, plugin setup silently did nothing, so make sure
+# it is actually present before continuing.
+if ! command -v hyprpm &> /dev/null; then
+    echo "  hyprpm not found. Installing the 'hyprpm' package..."
+    if ! sudo pacman -S --needed --noconfirm hyprpm; then
+        echo "  WARNING: Failed to install hyprpm. Skipping plugin setup."
+        exit 0
+    fi
 fi
 
 REPO_URL="https://github.com/yayuuu/hyprland-scroll-overview.git"

@@ -48,6 +48,7 @@ hypridle
 hyprland
 hyprlock
 hyprpicker
+hyprpm
 hyprshot
 hyprsunset
 imagemagick
