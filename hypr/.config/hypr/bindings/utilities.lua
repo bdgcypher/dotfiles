@@ -4,7 +4,7 @@ hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("walker --width 250"), { description 
 
 hl.bind("SUPER + PERIOD", hl.dsp.exec_cmd("walker -m symbols --width 400"), { description = "Emoji picker" })
 
-hl.bind("XF86Calculator", hl.dsp.exec_cmd("gnome-calculator"), { description = "Calculator" })
+hl.bind("XF86Calculator", hl.dsp.exec_cmd(terminal .. " --class=floating.Calculator --keybind=escape=close_surface -e calculator"), { description = "Calculator" })
 
 hl.bind("SUPER + K", hl.dsp.exec_cmd("walker -m menus:system/keybinds --theme keybinds --width 780"), { description = "Keybinds Overview" })
 
@@ -139,10 +139,12 @@ hl.bind(
 )
 
 -- Dictation (toggle: press once to start recording, press again to stop and
--- transcribe). `voxtype record toggle` reads the daemon's state file, so a
--- single keybinding is enough - no separate press/release pair needed.
+-- transcribe). `voxtype-dictate` wraps `voxtype record toggle` and shows a
+-- SwayOSD pill on start/stop, matching the screen recorder. It reads the
+-- daemon's state file, so a single keybinding is enough - no separate
+-- press/release pair needed.
 
-hl.bind("SUPER + D", hl.dsp.exec_cmd("voxtype record toggle"), { description = "Toggle dictation" })
+hl.bind("SUPER + D", hl.dsp.exec_cmd("voxtype-dictate"), { description = "Toggle dictation" })
 
 -- Power menu
 

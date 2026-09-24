@@ -11,7 +11,7 @@ weight = 100
 [[entries]]
 text = "Calculator"
 icon = " "
-actions = { "default" = "walker -m calc" }
+actions = { "default" = "ghostty --class=floating.Calculator --keybind=escape=close_surface -e calculator" }
 weight = 90
 
 [[entries]]

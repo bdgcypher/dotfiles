@@ -248,19 +248,11 @@ SUDOERS_FILE="/etc/sudoers.d/vpn-scripts"
 echo "%wheel ALL=(ALL) NOPASSWD: /usr/bin/openconnect, /usr/bin/pkill, /usr/bin/tailscale" | sudo tee "$SUDOERS_FILE" > /dev/null
 sudo chmod 440 "$SUDOERS_FILE"
 
-# 7. Sunshine udev rules
-echo "Configuring Sunshine udev rules..."
-sudo mkdir -p /etc/udev/rules.d
-sudo cp "$SYSTEM_DIR/etc/udev/rules.d/85-sunshine.rules" /etc/udev/rules.d/85-sunshine.rules
-sudo udevadm control --reload-rules
-sudo udevadm trigger --subsystem-match=misc --sysname-match=uinput 2>/dev/null \
-    || echo "Warning: udev trigger for uinput failed."
-
-# 8. Tailscale
+# 7. Tailscale
 echo "Enabling Tailscale service..."
 sudo systemctl enable --now tailscaled.service
 
-# 8.5 OpenSSH Server
+# 8. OpenSSH Server
 echo "Configuring OpenSSH server..."
 sudo mkdir -p /etc/ssh/sshd_config.d
 if [ -f "$SYSTEM_DIR/etc/ssh/sshd_config.d/10-dotfiles.conf" ]; then

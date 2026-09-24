@@ -29,7 +29,10 @@ hl.bind(
 
 hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("uwsm-app -- slack"), { description = "SLack" })
 
-hl.bind("SUPER + SHIFT + SLASH", hl.dsp.exec_cmd("uwsm-app -- bitwarden"), { description = "Passwords" })
+-- The Arch 'bitwarden' package installs /usr/bin/bitwarden-desktop (there is
+-- no 'bitwarden' executable); the window still reports class "Bitwarden",
+-- which is what hypr/.config/hypr/apps/bitwarden.lua matches on.
+hl.bind("SUPER + SHIFT + SLASH", hl.dsp.exec_cmd("uwsm-app -- bitwarden-desktop"), { description = "Passwords" })
 
 -- Web App bindings
 

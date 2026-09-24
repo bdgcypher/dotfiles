@@ -17,6 +17,15 @@ show_osd() {
   fi
 }
 
+# Fail loudly when the recorder isn't installed instead of reporting a false
+# success. Without this the script announced "Recording Started", lit the
+# Waybar indicator and then silently produced nothing, because the background
+# `wf-recorder` call exited immediately with "command not found".
+if ! command -v wf-recorder >/dev/null 2>&1; then
+  show_osd "Screen recorder not installed - run: sudo pacman -S wf-recorder"
+  exit 1
+fi
+
 # 1. Stop recording if currently active
 if pgrep -x "wf-recorder" >/dev/null; then
   pkill -x --signal SIGINT "wf-recorder"
@@ -59,8 +68,6 @@ esac
 touch "$LOCK_FILE"
 pkill -RTMIN+8 waybar &>/dev/null
 
-show_osd "Recording Started"
-
 # Background watcher to launch wf-recorder and ensure lockfile cleanup when finished
 (
   if [ -n "$GEOM" ]; then
@@ -73,3 +80,16 @@ show_osd "Recording Started"
   rm -f "$LOCK_FILE"
   pkill -RTMIN+8 waybar &>/dev/null
 ) &
+RECORDER_JOB=$!
+
+# Only claim success once the recorder has survived startup: a bad geometry or
+# an unusable audio source kills it within milliseconds, and this used to be
+# announced as "Recording Started" too. The subshell outlives wf-recorder only
+# while it is actually capturing, so its liveness is the signal we want.
+sleep 0.3
+if kill -0 "$RECORDER_JOB" 2>/dev/null; then
+  show_osd "Recording Started"
+else
+  show_osd "Recording failed - check that your display and audio are available"
+  exit 1
+fi

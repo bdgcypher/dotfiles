@@ -1,6 +1,7 @@
 [mgr]
-# Set 'show_hidden' to true to display hidden files and directories by default.
-show_hidden = true
+# Hidden files are hidden by default; toggle them with the default keybind (`.`)
+# or set 'show_hidden' to true to display them from the start.
+show_hidden = false
 
 [plugin]
 prepend_preloaders = [

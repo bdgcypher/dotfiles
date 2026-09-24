@@ -164,7 +164,7 @@
       "transcribing": "󰔟"
     },
     "tooltip": true,
-    "on-click": "voxtype record toggle",
+    "on-click": "voxtype-dictate",
     "on-click-right": "voxtype-configure-launcher"
   },
   "custom/vpn": {

@@ -152,6 +152,14 @@ hl.window_rule({
   size = "900 650",
 })
 
+-- Calculator, qalc TUI (floating)
+hl.window_rule({
+  match = { initial_class = "floating.Calculator" },
+  float = true,
+  center = true,
+  size = "500 700",
+})
+
 -- Volume Boost toggle (floating)
 hl.window_rule({
   match = { initial_class = "floating.VolumeBoost" },

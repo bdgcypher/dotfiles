@@ -275,8 +275,9 @@ if command -v voxtype &> /dev/null; then
 
     # Voxtype's generated user config enables its built-in evdev hotkey
     # (ScrollLock) by default. This setup drives dictation from compositor
-    # keybindings instead (SUPER+D -> `voxtype record toggle` in
-    # hypr/.config/hypr/bindings/utilities.lua), which is also what the
+    # keybindings instead (SUPER+D -> `voxtype-dictate` in
+    # hypr/.config/hypr/bindings/utilities.lua, which wraps `voxtype record
+    # toggle` and shows the SwayOSD start/stop pill), which is also what the
     # package's /etc/voxtype/config.toml pins with hotkey.enabled = false.
     voxtype config set hotkey.enabled false >/dev/null 2>&1 || true
 
@@ -335,30 +336,19 @@ elif command -v hyprctl &> /dev/null; then
     echo "Note: Could not enable hypr-tiling-direction-watch.service (may need to run after login)."
 fi
 
-# Re-enable Sunshine systemd user service (its .wants symlink gets cleaned
-# up by conflict handling since it's excluded from stow via .stow-local-ignore).
+# Enable the Hyprland polkit authentication agent.
 #
-# This service is the ONLY thing that starts Sunshine - it must not also be
-# launched from a Hyprland autostart, because two instances race for the RTSP
-# port and the loser aborts (SIGABRT), which leaves the unit in
-# start-limit-hit until it is reset.
-if command -v sunshine &> /dev/null; then
-    # Clear a stale start-limit-hit from an earlier failed start.
-    systemctl --user reset-failed app-dev.lizardbyte.app.Sunshine.service 2>/dev/null || true
-
-    if systemctl --user enable app-dev.lizardbyte.app.Sunshine.service 2>/dev/null; then
-        echo "Sunshine service enabled."
+# hypr/.config/hypr/autostart.lua used to exec polkit-gnome's agent at a
+# hardcoded path, but polkit-gnome is not in pkglist.txt, so no authentication
+# agent was ever running and GUI privilege prompts had nothing to render them.
+# hyprpolkitagent is the Hyprland-native agent, and because this session runs
+# under uwsm the Hyprland wiki recommends running it as a systemd user service
+# (`systemctl --user enable --now hyprpolkitagent.service`) rather than exec'ing
+# it from the compositor. The package ships the unit, so only enablement is ours.
+if [ -f /usr/lib/systemd/user/hyprpolkitagent.service ]; then
+    if systemctl --user enable --now hyprpolkitagent.service 2>/dev/null; then
+        echo "Polkit authentication agent enabled and started."
     else
-        echo "Note: Could not enable Sunshine service (may need to run after login)."
-    fi
-
-    # Only start when nothing is running: pgrep also matches an instance that
-    # the service itself owns, so this never spawns a duplicate.
-    if pgrep -x sunshine >/dev/null 2>&1; then
-        echo "Sunshine is already running."
-    elif systemctl --user start app-dev.lizardbyte.app.Sunshine.service 2>/dev/null; then
-        echo "Sunshine service started."
-    else
-        echo "Note: Could not start Sunshine service (it will start with the graphical session)."
+        echo "Note: Could not enable hyprpolkitagent.service (may need to run after login)."
     fi
 fi

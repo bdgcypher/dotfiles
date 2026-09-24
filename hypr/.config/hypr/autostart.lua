@@ -23,14 +23,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("walker --gapplication-service")
     hl.exec_cmd("uwsm-app -- hypridle")
     -- hl.exec_cmd("uwsm-app -- fcitx5 --disable notificationitem")
-    -- Sunshine is deliberately NOT started here: the systemd user service
-    -- app-dev.lizardbyte.app.Sunshine.service owns it (enabled by
-    -- stow_configs.sh). Starting both here and from systemd makes two
-    -- instances race for the RTSP port and the loser aborts (SIGABRT),
-    -- leaving the unit in start-limit-hit.
     hl.exec_cmd("uwsm-app -- swaync")
     hl.exec_cmd("uwsm-app -- swayosd-server")
-    hl.exec_cmd("/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1")
+    -- Polkit authentication agent: not exec'd here. hyprpolkitagent runs as a
+    -- systemd user service (hyprpolkitagent.service), enabled by
+    -- scripts/stow_configs.sh - the Hyprland wiki's recommended setup under uwsm.
 
     -- Force dark color-scheme. The GTK theme itself comes from
     -- restore-wallpaper/apply-wallpaper (oomox-pywal); don't reset it here or
@@ -46,6 +43,6 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("flatpak run net.sonuscape.mouseless")
 
     -- KDE Connect
-    hl.exec_cmd("/usr/lib/kdeconnectd")
+    hl.exec_cmd("/usr/bin/kdeconnectd")
     hl.exec_cmd("/usr/bin/kdeconnect-indicator")
 end)

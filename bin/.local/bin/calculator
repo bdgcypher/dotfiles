@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# Floating calculator: a small rounded title bar above the qalc REPL.
+#
+# Styled after the other TUIs in this dotfiles (see draw_keybinds_bar in
+# bin/.local/bin/windows-vm-install): pywal's color6 accents the title, and the
+# bar spans the full terminal width.
+
+# Missing dependency: say so and wait, rather than flashing a window and dying.
+if ! command -v qalc >/dev/null 2>&1; then
+  echo "qalc not found - install it with: sudo pacman -S qalculate-qt" >&2
+  echo
+  read -r -n 1 -s -p "Press any key to close..." 
+  echo
+  exit 1
+fi
+
+# pywal color6 is the accent used by the other TUIs (falls back to no colour)
+ACCENT=""
+RESET=""
+WAL="${XDG_CACHE_HOME:-$HOME/.cache}/wal/colors"
+if [ -f "$WAL" ]; then
+  raw=$(sed -n '7p' "$WAL" 2>/dev/null | tr -d '#')
+  if [ "${#raw}" -eq 6 ]; then
+    ACCENT="\033[38;2;$((16#${raw:0:2}));$((16#${raw:2:2}));$((16#${raw:4:2}))m"
+    RESET="\033[0m"
+  fi
+fi
+
+# Only draw the title bar on a real terminal.
+if [ -t 1 ]; then
+  cols=$(tput cols 2>/dev/null || echo 80)
+  title="Calculator"
+  hint="  esc: close"
+
+  inner=$((cols - 2))
+  # Title sits at the left of the bar, like the other TUI panels (╭─ Title ──╮)
+  fill=$((inner - ${#title} - 3))
+  [ "$fill" -lt 0 ] && fill=0
+  hint_fill=$((inner - ${#hint}))
+  [ "$hint_fill" -lt 0 ] && hint_fill=0
+
+  printf '\033[2J\033[H' # start from a clean screen
+  printf '╭─ %b%s%b ' "$ACCENT" "$title" "$RESET"
+  printf '─%.0s' $(seq 1 "$fill")
+  printf '╮\n'
+  printf '│%s%*s│\n' "$hint" "$hint_fill" ""
+  printf '╰'
+  printf '─%.0s' $(seq 1 "$inner")
+  printf '╯\n\n'
+fi
+
+exec qalc

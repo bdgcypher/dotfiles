@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Toggle dictation, with the same on-screen feedback as the screen recorder.
+#
+# The keybind (SUPER+D) and the Waybar module's click call this instead of
+# `voxtype record toggle` directly, so the OSD follows the daemon's real state.
+# voxtype has no hook/exec setting of its own, so it cannot drive SwayOSD.
+
+ICON="audio-input-microphone"
+
+# The daemon writes idle/recording/transcribing here (state_file = "auto").
+STATE_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/voxtype/state"
+
+# On-screen overlay helper (uses SwayOSD if available, falls back to transient notify-send)
+show_osd() {
+  local msg="$1"
+  if command -v swayosd-client &>/dev/null; then
+    swayosd-client --custom-message "$msg" --custom-icon "$ICON"
+  else
+    notify-send "Dictation" "$msg" -i "$ICON" -t 2000 -a "voxtype-dictate"
+  fi
+}
+
+read_state() {
+  head -c 32 "$STATE_FILE" 2>/dev/null | tr -d '\n'
+}
+
+before="$(read_state)"
+
+# No state file means the daemon isn't running. Nothing to toggle or report.
+[ -n "$before" ] || exit 1
+
+voxtype record toggle >/dev/null 2>&1 || exit 1
+
+# The daemon updates the state file asynchronously, so wait for it to settle
+# before deciding which way the toggle went.
+after="$before"
+for _ in $(seq 1 30); do
+  after="$(read_state)"
+  [ "$after" != "$before" ] && break
+  sleep 0.05
+done
+
+# recording -> we just started. Anything else (transcribing, or straight back to
+# idle when VAD drops a recording that contained no speech) means we stopped.
+# An unchanged state means the daemon ignored the toggle (e.g. pressed again
+# mid-transcription), so show nothing rather than a misleading message.
+if [ "$after" = "recording" ]; then
+  show_osd "Dictation Started"
+elif [ "$after" != "$before" ]; then
+  show_osd "Dictation Stopped"
+fi
