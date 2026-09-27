@@ -50,39 +50,49 @@ case $choice in
             # Keep-alive sudo
             while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-            echo "[1/7] Installing packages..."
+            echo "[1/8] Installing packages..."
             "$SCRIPTS_DIR/install_packages.sh"
             # This step may have just upgraded hyprland; report the restart
             # requirement as soon as it becomes true (once is enough).
             if [ "$HYPRLAND_RESTART_NEEDED" = 0 ] && [ -x "$SCRIPTS_DIR/hyprland_restart_check.sh" ]; then
                 "$SCRIPTS_DIR/hyprland_restart_check.sh" || HYPRLAND_RESTART_NEEDED=1
             fi
-            echo "[2/7] Stowing dotfile configs..."
+            # Before stowing: the packages and services this removes were replaced
+            # by cypher-shell, and stow cannot unlink a package that no longer
+            # exists in the repo, so this clears its symlinks out of $HOME first.
+            # A no-op on a machine that has already migrated.
+            echo "[2/8] Retiring the pre-Quickshell stack (if present)..."
+            "$SCRIPTS_DIR/retire_legacy_stack.sh" || echo "WARNING: legacy stack retirement reported a problem, continuing..."
+            echo "[3/8] Stowing dotfile configs..."
             "$SCRIPTS_DIR/stow_configs.sh"
-            echo "[3/7] Setting up GPU drivers..."
+            echo "[4/8] Setting up GPU drivers..."
             "$SCRIPTS_DIR/setup_gpu.sh" || echo "WARNING: GPU driver setup failed, continuing with remaining steps..."
-            echo "[4/7] Configuring system services..."
+            echo "[5/8] Configuring system services..."
             "$SCRIPTS_DIR/setup_services.sh"
-            echo "[5/7] Setting up timezone..."
+            echo "[6/8] Setting up timezone..."
             "$SCRIPTS_DIR/setup_timezone.sh"
-            echo "[6/7] Restarting launcher services..."
+            echo "[7/8] Restarting launcher services..."
             "$SCRIPTS_DIR/restart_launcher.sh"
-            echo "[7/7] Enabling Hyprland plugins..."
+            echo "[8/8] Enabling Hyprland plugins..."
             "$SCRIPTS_DIR/setup_plugins.sh"
         else
             echo "Starting Update..."
-            echo "[1/4] Installing/updating packages..."
+            echo "[1/5] Installing/updating packages..."
             "$SCRIPTS_DIR/install_packages.sh"
             # install_packages.sh may upgrade hyprland mid-session; if so, its
             # plugins cannot load until the compositor restarts.
             if [ "$HYPRLAND_RESTART_NEEDED" = 0 ] && [ -x "$SCRIPTS_DIR/hyprland_restart_check.sh" ]; then
                 "$SCRIPTS_DIR/hyprland_restart_check.sh" || HYPRLAND_RESTART_NEEDED=1
             fi
-            echo "[2/4] Stowing dotfile configs..."
+            # See the note in the full install: this is what converts a machine
+            # still running waybar/swaync/swayosd/walker to cypher-shell alone.
+            echo "[2/5] Retiring the pre-Quickshell stack (if present)..."
+            "$SCRIPTS_DIR/retire_legacy_stack.sh" || echo "WARNING: legacy stack retirement reported a problem, continuing..."
+            echo "[3/5] Stowing dotfile configs..."
             "$SCRIPTS_DIR/stow_configs.sh"
-            echo "[3/4] Restarting launcher services..."
+            echo "[4/5] Restarting launcher services..."
             "$SCRIPTS_DIR/restart_launcher.sh"
-            echo "[4/4] Enabling Hyprland plugins..."
+            echo "[5/5] Enabling Hyprland plugins..."
             "$SCRIPTS_DIR/setup_plugins.sh"
         fi
         ;;

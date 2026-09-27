@@ -19,10 +19,13 @@ FONT_SIZE="${HYPR_SCREENSAVER_FONT_SIZE:-18}"
 STATE="${HYPR_SCREENSAVER_STATE:-${XDG_RUNTIME_DIR:-/tmp}/screensaver.started}"
 GRACE_PERIOD="${HYPR_SCREENSAVER_GRACE:-5}"  # seconds to ignore stop() after launch
 
+# On-screen overlay helper: cypher-osd draws it through the Quickshell shell,
+# with notify-send as the last resort for a session where the shell is not
+# running at all.
 show_osd() {
   local msg="$1"
-  if command -v swayosd-client >/dev/null 2>&1; then
-    swayosd-client --custom-message "$msg" --custom-icon "preferences-desktop-screensaver" 2>/dev/null
+  if command -v cypher-osd >/dev/null 2>&1; then
+    cypher-osd --custom-message "$msg" --custom-icon "preferences-desktop-screensaver" 2>/dev/null
   else
     notify-send "Screensaver" "$msg" -i "preferences-desktop-screensaver" -t 2000 -a "screensaver" 2>/dev/null
   fi

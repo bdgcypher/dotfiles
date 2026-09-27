@@ -7,19 +7,21 @@ FILENAME="$SAVE_DIR/recording_$(date +'%Y-%m-%d_%H-%M-%S').mp4"
 AUDIO_SOURCE="$(pactl get-default-sink).monitor"
 LOCK_FILE="/tmp/wf_recording_active"
 
-# On-screen overlay helper (uses SwayOSD if available, falls back to transient notify-send)
+# On-screen overlay helper: cypher-osd draws it through the Quickshell shell,
+# with notify-send as the last resort for a session where the shell is not
+# running at all.
 show_osd() {
   local msg="$1"
-  if command -v swayosd-client &>/dev/null; then
-    swayosd-client --custom-message "$msg" --custom-icon "camera-video"
+  if command -v cypher-osd &>/dev/null; then
+    cypher-osd --custom-message "$msg" --custom-icon "camera-video"
   else
     notify-send "Screen Recorder" "$msg" -i "camera-video" -t 2000 -a "screen-record"
   fi
 }
 
 # Fail loudly when the recorder isn't installed instead of reporting a false
-# success. Without this the script announced "Recording Started", lit the
-# Waybar indicator and then silently produced nothing, because the background
+# success. Without this the script announced "Recording Started", lit the bar's
+# indicator and then silently produced nothing, because the background
 # `wf-recorder` call exited immediately with "command not found".
 if ! command -v wf-recorder >/dev/null 2>&1; then
   show_osd "Screen recorder not installed - run: sudo pacman -S wf-recorder"
@@ -30,16 +32,16 @@ fi
 if pgrep -x "wf-recorder" >/dev/null; then
   pkill -x --signal SIGINT "wf-recorder"
 
-  # Clean up state lock and signal Waybar
+  # Clean up the state lock; the bar's indicator polls for it.
   rm -f "$LOCK_FILE"
-  pkill -RTMIN+8 waybar &>/dev/null
 
   show_osd "Recording Stopped & Saved"
   exit 0
 fi
 
-# 2. Select mode via Walker
-CHOICE=$(printf "Screen\nWindow\nRegion" | walker --dmenu)
+# 2. Select mode via the launcher, which takes the list on stdin and prints the
+#    pick, dmenu-style.
+CHOICE=$(printf "Screen\nWindow\nRegion" | cypher-menu --dmenu)
 
 case "$CHOICE" in
 "Screen")
@@ -64,9 +66,8 @@ case "$CHOICE" in
   ;;
 esac
 
-# Create state lock and trigger instant Waybar refresh
+# Create the state lock the bar's indicator polls for.
 touch "$LOCK_FILE"
-pkill -RTMIN+8 waybar &>/dev/null
 
 # Background watcher to launch wf-recorder and ensure lockfile cleanup when finished
 (
@@ -78,7 +79,6 @@ pkill -RTMIN+8 waybar &>/dev/null
 
   # Cleanup lockfile on exit (whether stopped manually or killed)
   rm -f "$LOCK_FILE"
-  pkill -RTMIN+8 waybar &>/dev/null
 ) &
 RECORDER_JOB=$!
 

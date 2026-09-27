@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Toggle the active workspace's layout between dwindle and scrolling.
 
+# On-screen overlay helper: cypher-osd draws it through the Quickshell shell.
+# notify-send is the last resort, for a session where the shell is not running at
+# all (a bare Hyprland, or the split second around a restart).
 show_osd() {
   local msg="$1"
-  if command -v swayosd-client &>/dev/null; then
-    swayosd-client --custom-message "$msg" --custom-icon "view-grid-symbolic"
+  if command -v cypher-osd &>/dev/null; then
+    cypher-osd --custom-message "$msg" --custom-icon "view-grid-symbolic"
   else
     notify-send "Workspace layout" "$msg" -i "view-grid-symbolic" -t 2000 -a "hypr-toggle-layout"
   fi
@@ -20,5 +23,12 @@ case "$current" in
 esac
 
 hyprctl eval "hl.workspace_rule({ workspace = 'name:$name', layout = '$new' })"
-pkill -RTMIN+10 waybar &>/dev/null
+
+# Poke the bar. It watches this file because Hyprland publishes no event when a
+# workspace's layout changes (verified against its event socket -- a toggle emits
+# nothing at all, so there is no event for the bar to subscribe to). The file's
+# contents are only there to make the last change legible when debugging;
+# FileView fires on any change, including the same value written again.
+printf '%s\n' "$new" > /tmp/hypr-bar.signal 2>/dev/null || true
+
 show_osd "Workspace $name layout: $new"

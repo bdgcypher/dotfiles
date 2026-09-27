@@ -23,5 +23,5 @@ hl.curve("easeOutExpo",   { type = "bezier", points = { { 0.16, 1 },    { 0.3, 1
 hl.animation({ leaf = "windows",          enabled = true, speed = 3,   bezier = "md3_decel",  style = "popin 60%" })
 hl.animation({ leaf = "border",           enabled = true, speed = 10,  bezier = "default" })
 hl.animation({ leaf = "fade",             enabled = true, speed = 2.5, bezier = "md3_decel" })
-hl.animation({ leaf = "workspaces",       enabled = true, speed = 3.5, bezier = "easeOutExpo", style = "slide" })
+hl.animation({ leaf = "workspaces",       enabled = true, speed = 3.5, bezier = "easeOutExpo", style = "slidefade" })
 hl.animation({ leaf = "specialWorkspace", enabled = true, speed = 3,   bezier = "md3_decel",  style = "slidevert" })

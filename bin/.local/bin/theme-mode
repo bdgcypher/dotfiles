@@ -40,7 +40,8 @@ osd_default() {
   local mode
   mode="$(default_mode)"
   echo "Default mode: $mode"
-  swayosd-client --custom-message "Default Theme mode: $mode" --custom-icon "preferences-desktop-theme" 2>/dev/null
+  # cypher-osd draws through the Quickshell shell.
+  cypher-osd --custom-message "Default Theme mode: $mode" --custom-icon "preferences-desktop-theme" 2>/dev/null
 }
 
 VAL="$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')"

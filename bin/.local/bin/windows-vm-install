@@ -420,7 +420,9 @@ if echo "$CONTAINER_STATE" | grep -qE 'Up|running'; then
   read -n 1
 
   hyprctl reload >/dev/null 2>&1 || true
-  systemd-run --user --quiet --collect -- bash -c 'systemctl --user restart elephant.service || true; killall -9 walker 2>/dev/null || true; exec walker --gapplication-service' >/dev/null 2>&1 || true
+
+  # Re-bake the launcher's menu caches so any menu edits show up immediately.
+  command -v cypher-menu >/dev/null 2>&1 && cypher-menu --refresh >/dev/null 2>&1 || true
 else
   echo -e "\033[1;31m✗ Windows 11 VM container exists but is not running.\033[0m"
   echo "  Container status: $CONTAINER_STATE"

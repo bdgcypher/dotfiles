@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # volume-boost — volume control that allows up to 125% via wpctl
-# Shows the standard swayosd volume bar OSD.
+# Shows the standard volume bar OSD.
 # Usage: volume-boost [up|down|mute]
 
 MAX_VOL=1.25   # 125% max volume
@@ -10,8 +10,10 @@ get_volume() {
     wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk '{print $2}'
 }
 
+# cypher-osd is the front door for the OSD: it draws through the Quickshell
+# shell. The volume change itself does not depend on the shell being up.
 show_osd() {
-    swayosd-client --output-volume +0 2>/dev/null
+    cypher-osd --output-volume +0 2>/dev/null
 }
 
 case "${1:-up}" in

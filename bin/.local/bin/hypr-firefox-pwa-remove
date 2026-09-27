@@ -8,7 +8,7 @@ DOTFILES_DIR="$(cd "$(dirname "$(dirname "$(realpath "$0")")")" && pwd)"
 [ -d "$DOTFILES_DIR/hypr" ] || DOTFILES_DIR="$HOME/.dotfiles"
 WINDOWS_LUA="$DOTFILES_DIR/hypr/.config/hypr/windows.lua"
 APPS_LUA="$DOTFILES_DIR/hypr/.config/hypr/bindings/applications.lua"
-KEYBINDS_TOML="$DOTFILES_DIR/elephant/.config/elephant/menus/keybinds.toml"
+KEYBINDS_TOML="$DOTFILES_DIR/quickshell/.config/quickshell/cypher-shell/menus/keybinds.toml"
 APPS_DIR="$HOME/.local/share/applications"
 ICONS_DIR="$HOME/.local/share/icons"
 
@@ -138,7 +138,7 @@ fi
 echo "Press any key to close..."
 read -n 1
 
-# Reload hypr, then restart elephant + walker in their own systemd unit so
-# the elephant restart cannot kill walker (this script runs in elephant's cgroup).
 hyprctl reload >/dev/null 2>&1 || true
-systemd-run --user --quiet --collect -- bash -c 'systemctl --user restart elephant.service || true; killall -9 walker 2>/dev/null || true; exec walker --gapplication-service' >/dev/null 2>&1 || true
+
+# Drop the removed keybinds entry from the launcher's cached menu snapshot.
+command -v cypher-menu >/dev/null 2>&1 && cypher-menu --refresh >/dev/null 2>&1 || true

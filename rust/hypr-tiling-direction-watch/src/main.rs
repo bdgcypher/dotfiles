@@ -1,4 +1,4 @@
-// Watch Hyprland events and signal waybar to refresh the tiling-direction and
+// Watch Hyprland events and poke the bar to refresh the tiling-direction and
 // workspace-layout indicators on focus, window, and workspace changes.
 // Also handles the scrolling "consume next" flag: when armed for a workspace,
 // the next tiled window that opens there is moved into the active column
@@ -16,8 +16,11 @@ use std::time::Duration;
 
 const CONSUME_FILE: &str = "/tmp/scrolling-consume";
 
+// Watched by the bar; see poke_bar().
+const SIGNAL_FILE: &str = "/tmp/hypr-bar.signal";
+
 // Events that can affect the tiling/layout indicators. windowtitle is
-// deliberately excluded — it fires constantly and would hammer waybar.
+// deliberately excluded — it fires constantly and would hammer the bar.
 const RELEVANT: &[&str] = &[
     "activewindow",
     "activewindowv2",
@@ -39,15 +42,16 @@ fn uid() -> u32 {
         .unwrap_or(1000)
 }
 
-fn signal_waybar() {
-    for sig in ["-RTMIN+10", "-RTMIN+11"] {
-        let _ = Command::new("pkill")
-            .arg(sig)
-            .arg("waybar")
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn();
-    }
+// The bar's tiling-direction and workspace-layout modules read state Hyprland
+// publishes no event for, so they re-run a probe whenever this file changes:
+// quickshell watches /tmp/hypr-bar.signal with inotify and fires on any write.
+// Writing the file is the whole poke, and it costs nothing while idle -- including
+// when the file does not exist yet, which is the state after a fresh boot.
+//
+// It used to signal waybar here (pkill -RTMIN+10/-11); the scripts that change
+// layout by hand write the same file, so there is one mechanism for both.
+fn poke_bar(what: &str) {
+    let _ = fs::write(SIGNAL_FILE, format!("{what}\n"));
 }
 
 fn eval_cmd(lua: &str) {
@@ -160,7 +164,7 @@ fn consume_new_window(new_addr: &str, ws: i64, anchor_addr: &str) {
     }
 
     unarm(ws);
-    signal_waybar();
+    poke_bar("consume");
 }
 
 // Debounces bursts of related events (e.g. openwindow + activewindow fire
@@ -187,7 +191,7 @@ impl Debouncer {
         let handle = thread::spawn(move || {
             thread::sleep(Duration::from_millis(150));
             if f.load(Ordering::SeqCst) {
-                signal_waybar();
+                poke_bar("events");
             }
         });
         *self.handle.lock().unwrap() = Some((flag, handle));

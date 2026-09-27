@@ -2,5 +2,6 @@
 # Disable default libnotify notifications
 disable-notifications = true
 
-# Override copy-command to copy data AND invoke SwayOSD
-copy-command = "sh -c 'wl-copy && swayosd-client --custom-message \"  Screenshot Copied to clipboard\"'"
+# Override copy-command to copy data AND invoke the OSD (cypher-osd, which
+# falls back to swayosd-client when the Quickshell shell is not running)
+copy-command = "sh -c 'wl-copy && cypher-osd --custom-message \"  Screenshot Copied to clipboard\"'"

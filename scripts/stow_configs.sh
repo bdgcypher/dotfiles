@@ -171,13 +171,6 @@ else
     echo "Note: Could not restart PipeWire/WirePlumber (may need to run after login)."
 fi
 
-# Enable Waybar systemd user service
-if command -v waybar &> /dev/null && systemctl --user enable --now waybar.service 2>/dev/null; then
-    echo "Waybar service enabled and started."
-else
-    echo "Note: Could not enable waybar.service (may need to run after login)."
-fi
-
 # Enable Syncthing systemd user service (preferred over Hyprland exec-once —
 # starts at login, survives compositor restarts, and has built-in restart logic).
 # The package provides the unit file; the repo only manages the enablement symlink.
@@ -189,7 +182,7 @@ fi
 # dotfiles services on this machine.
 if command -v syncthing &> /dev/null; then
     # Mimic the same enablement model used by the other enabled dotfiles services here:
-    # waybar, voxtype, hypr-tiling-direction-watch, elephant.
+    # voxtype and hypr-tiling-direction-watch.
     GRAPHICAL_WANTS_DIR="$HOME/.config/systemd/user/graphical-session.target.wants"
     GRAPHICAL_LINK="$GRAPHICAL_WANTS_DIR/syncthing.service"
     SYNCTHING_UNIT="/usr/lib/systemd/user/syncthing.service"
@@ -301,12 +294,12 @@ if command -v voxtype &> /dev/null; then
     voxtype config set vad.enabled true >/dev/null 2>&1 || true
     voxtype config set vad.backend whisper >/dev/null 2>&1 || true
 
-    # Waveform OSD off. The floating panel duplicates what the waybar module
-    # already shows, and waybar reads the daemon's state file directly, so
+    # Waveform OSD off. The floating panel duplicates what the bar's dictation
+    # module already shows, and the bar reads the daemon's state file directly, so
     # recording state lives in the bar only and nothing overlays the screen.
     voxtype config set osd.enabled false >/dev/null 2>&1 || true
 
-    # Desktop notifications off, so dictation is silent apart from the waybar
+    # Desktop notifications off, so dictation is silent apart from the bar's
     # icon and the text typed at the cursor. on_transcription was the only one
     # left on (start/stop already default to false).
     voxtype config set output.notification.on_transcription false >/dev/null 2>&1 || true
@@ -329,7 +322,7 @@ if command -v voxtype &> /dev/null; then
     fi
 fi
 
-# Enable the waybar tiling/layout event watcher (signals waybar on Hyprland events)
+# Enable the tiling/layout event watcher (pokes the bar on Hyprland events)
 if command -v hyprctl &> /dev/null && systemctl --user enable --now hypr-tiling-direction-watch.service 2>/dev/null; then
     echo "Tiling direction watcher service enabled and started."
 elif command -v hyprctl &> /dev/null; then

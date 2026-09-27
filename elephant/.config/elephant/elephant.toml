@@ -1,2 +1,0 @@
-# Terminal used to launch Terminal=true desktop entries (e.g. yazi) from walker
-terminal_cmd = "ghostty -e"

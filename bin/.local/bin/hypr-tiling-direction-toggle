@@ -18,7 +18,8 @@ if [ "$layout" = "scrolling" ]; then
         printf '%s\n' "$ws_id" >> "$state_file"
     fi
 
-    pkill -RTMIN+11 waybar &>/dev/null
+    # Poke the bar (see hypr-toggle-layout for why the signal file exists).
+    printf '%s\n' "consume" > /tmp/hypr-bar.signal 2>/dev/null || true
     exit 0
 fi
 
@@ -54,4 +55,5 @@ hyprctl eval "hl.dispatch(hl.dsp.layout('preselect $new'))"
 
 printf '%s %s %s\n' "$ws_id" "$new" "$tiled" > "$state_file"
 
-pkill -RTMIN+11 waybar &>/dev/null
+# Poke the bar (see hypr-toggle-layout for why the signal file exists).
+printf '%s\n' "$new" > /tmp/hypr-bar.signal 2>/dev/null || true

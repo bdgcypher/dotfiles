@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Google Home
+Comment=Web app (firefox)
+Exec=hypr-firefox-pwa "https://home.google.com/u/0/home/1-533e52f1e86a6b86abec9815c1912a750cfaed854b4ff4323aa3b8d25b4ca5f5/devices" "Google Home"
+Icon=/home/benjamingoddard/.local/share/icons/Google_Home.png
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Gospel Library
+Comment=Web app (firefox)
+Exec=hypr-firefox-pwa "https://www.churchofjesuschrist.org/study?lang=eng" "Gospel Library"
+Icon=/home/benjamingoddard/.local/share/icons/Gospel_Library.png
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;

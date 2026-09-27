@@ -1,6 +1,5 @@
 breezex-cursor-theme
 clocktemp
-elephant-all-git
 freebuff-bin
 gazelle-tui
 iriunwebcam-bin
@@ -25,7 +24,6 @@ unimatrix-git
 vencord
 vesktop-bin
 voxtype-bin
-walker
 xdg-desktop-portal-termfilechooser
 yay
 zoom

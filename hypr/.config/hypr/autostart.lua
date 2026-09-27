@@ -19,12 +19,13 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("hyprpm reload")
 
     -- All other autostarts
-    hl.exec_cmd("systemctl --user start elephant.service")
-    hl.exec_cmd("walker --gapplication-service")
     hl.exec_cmd("uwsm-app -- hypridle")
     -- hl.exec_cmd("uwsm-app -- fcitx5 --disable notificationitem")
-    hl.exec_cmd("uwsm-app -- swaync")
-    hl.exec_cmd("uwsm-app -- swayosd-server")
+    -- The desktop chrome: the bar, the launcher, notifications and the OSD are all
+    -- this one shell. Started through the control command rather than `qs -c`
+    -- directly, so a shell that is already up (a config reload re-running this
+    -- block) is left alone instead of being started twice.
+    hl.exec_cmd("cypher-shell start")
     -- Polkit authentication agent: not exec'd here. hyprpolkitagent runs as a
     -- systemd user service (hyprpolkitagent.service), enabled by
     -- scripts/stow_configs.sh - the Hyprland wiki's recommended setup under uwsm.

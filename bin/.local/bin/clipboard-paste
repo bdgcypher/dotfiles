@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# clipboard-paste - Wait for walker to close, then paste the clipboard
+# clipboard-paste - Wait for the launcher to close, then paste the clipboard
 # contents into the focused window. Handles text, image, and file (uri-list)
 # entries - the target app decides how to handle the pasted content.
 
@@ -10,10 +10,12 @@ if [ "$1" = "-t" ] && [ "$2" = "text/uri-list" ]; then
   wl-paste 2>/dev/null | wl-copy -t 'text/uri-list'
 fi
 
-# Walker renders as a layer surface. Poll until its layer is gone (closed).
+# The launcher renders as cypher-shell's own layer surface, quickshell:launcher.
+# Poll until it is off screen, i.e. the picker closed and focus has gone back to
+# the window we are pasting into.
 for _ in $(seq 1 40); do
   ns=$(hyprctl layers -j 2>/dev/null | jq -r '.. | objects | .namespace? // empty' 2>/dev/null)
-  if ! printf '%s\n' "$ns" | grep -qx 'walker'; then
+  if ! printf '%s\n' "$ns" | grep -qxE 'quickshell:launcher'; then
     break
   fi
   sleep 0.05
@@ -23,16 +25,24 @@ done
 sleep 0.1
 
 # Ghostty drops synthetic pastes that contain newlines - type those instead.
-text=$(wl-paste 2>/dev/null)
-cls=$(hyprctl activewindow -j 2>/dev/null | jq -r '.class' 2>/dev/null)
-case "$text" in
-  *$'\n'*)
-    if printf '%s' "$cls" | grep -q ghostty; then
-      printf '%s' "$text" | wtype -
-      exit 0
-    fi
-    ;;
-esac
+#
+# Only for a clipboard that actually holds text. wl-paste with no -t falls back
+# to whatever type the source offers, so an image entry comes back as the raw
+# PNG (44 KB of it, NUL bytes dropped by the shell) - which "contains newlines"
+# and would otherwise be typed into the focused terminal as garbage instead of
+# being pasted as an image.
+if wl-paste --list-types 2>/dev/null | grep -qE '^text/|^(TEXT|STRING|UTF8_STRING)$'; then
+  text=$(wl-paste 2>/dev/null)
+  cls=$(hyprctl activewindow -j 2>/dev/null | jq -r '.class' 2>/dev/null)
+  case "$text" in
+    *$'\n'*)
+      if printf '%s' "$cls" | grep -q ghostty; then
+        printf '%s' "$text" | wtype -
+        exit 0
+      fi
+      ;;
+  esac
+fi
 
 # Real paste: send Shift+Insert to the focused window.
 hyprctl dispatch 'hl.dsp.send_shortcut({ mods = "SHIFT", key = "Insert" })'

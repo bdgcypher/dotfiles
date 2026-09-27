@@ -82,9 +82,13 @@ if pgrep -f "obsidian" >/dev/null; then # obsidian
   obsidian reload                       # also obsidian
 fi                                      # also obsidian
 
-swaync-client -rs                            # swaync
-killall -9 swayosd-server                    # swayosd
-uwsm-app -- swayosd-server >/dev/null 2>&1 & # also swayosd
+# Notifications. cypher-notify re-reads the palette for the notification centre.
+# The shell watches the pywal output itself, so this is a nudge rather than the
+# mechanism; it costs nothing when the shell is not running.
+cypher-notify -rs
+
+# The OSD needs no reload: the shell reads the pywal palette directly, so a
+# wallpaper change re-tints it along with everything else.
 
 # Reload Vesktop (Discord) theme
 VENCORD_CSS="$HOME/.cache/wal/colors-discord.css"

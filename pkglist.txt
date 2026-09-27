@@ -32,6 +32,7 @@ ffmpeg
 firefox
 firefoxpwa
 flatpak
+fuse2
 fzf
 ghostty
 github-cli
@@ -91,6 +92,7 @@ pipewire
 pipewire-alsa
 pipewire-jack
 pipewire-pulse
+playerctl
 plymouth
 power-profiles-daemon
 python-pipx
@@ -99,6 +101,7 @@ qt5ct
 qt5-wayland
 qt6ct
 qt6-wayland
+quickshell
 remmina
 resvg
 ripgrep
@@ -113,8 +116,6 @@ starship
 steam
 stow
 sudo
-swaync
-swayosd
 syncthing
 system-config-printer
 tailscale
@@ -176,7 +177,6 @@ ttf-victor-mono-nerd
 ttf-zed-mono-nerd
 usbutils
 uwsm
-waybar
 wev
 wf-recorder
 wiremix
@@ -184,6 +184,7 @@ wireplumber
 wl-clipboard
 woff2-font-awesome
 wpa_supplicant
+wtype
 xdg-desktop-portal-gtk
 xdg-desktop-portal-hyprland
 yazi

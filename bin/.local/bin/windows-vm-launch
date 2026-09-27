@@ -4,7 +4,7 @@
 # reuse the same project/network instead of creating new ones.
 #
 # Expected usage:
-#   • Start:   windows-vm-launch  (or the Windows 11 PWA entry in walker)
+#   • Start:   windows-vm-launch  (or the Windows 11 PWA entry in the launcher)
 #   • Stop:    close the Firefox web UI window; the script then runs
 #              docker compose --project-name windows11 down
 set -uo pipefail

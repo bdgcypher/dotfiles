@@ -222,3 +222,21 @@ hl.window_rule({
   center = true,
   size = "600 700",
 })
+
+-- Web App: Home Devices
+hl.window_rule({
+  match = { class = "firefox", title = ".*Home Devices.*" },
+  tile = true,
+})
+
+-- Web App: Google Home
+hl.window_rule({
+  match = { class = "firefox", title = ".*Google Home.*" },
+  tile = true,
+})
+
+-- Web App: Gospel Library
+hl.window_rule({
+  match = { class = "firefox", title = ".*Gospel Library.*" },
+  tile = true,
+})

@@ -1,0 +1,39 @@
+name = "system/config"
+name_pretty = "System → Config"
+icon = ""
+
+[[entries]]
+text = "Shell"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Ghostty -e bash -i -c 'cd $HOME/.dotfiles/bash && y'" }
+weight = 100
+
+[[entries]]
+text = "Ghostty"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Ghostty -e bash -i -c 'cd $HOME/.config/ghostty && y'" }
+weight = 90
+
+[[entries]]
+text = "Hyprland"
+icon = "󰕮 "
+actions = { "default" = "ghostty --class=floating.Ghostty -e bash -i -c 'cd $HOME/.config/hypr && y'" }
+weight = 80
+
+[[entries]]
+text = "Quickshell"
+icon = "󱗼 "
+actions = { "default" = "ghostty --class=floating.Ghostty -e bash -i -c 'cd $HOME/.config/quickshell && y'" }
+weight = 70
+
+[[entries]]
+text = "Dotfiles"
+icon = "󱂀 "
+actions = { "default" = "ghostty --class=floating.Ghostty -e bash -i -c 'cd $HOME/.dotfiles/ && y'" }
+weight = 40
+
+[[entries]]
+text = "Pywal"
+icon = "󰏘 "
+actions = { "default" = "ghostty --class=floating.Ghostty -e bash -i -c 'cd $HOME/.config/wal && y'" }
+weight = 40

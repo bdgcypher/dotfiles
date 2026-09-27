@@ -11,11 +11,13 @@ ICON="audio-input-microphone"
 # The daemon writes idle/recording/transcribing here (state_file = "auto").
 STATE_FILE="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/voxtype/state"
 
-# On-screen overlay helper (uses SwayOSD if available, falls back to transient notify-send)
+# On-screen overlay helper: cypher-osd draws it through the Quickshell shell,
+# with notify-send as the last resort for a session where the shell is not
+# running at all.
 show_osd() {
   local msg="$1"
-  if command -v swayosd-client &>/dev/null; then
-    swayosd-client --custom-message "$msg" --custom-icon "$ICON"
+  if command -v cypher-osd &>/dev/null; then
+    cypher-osd --custom-message "$msg" --custom-icon "$ICON"
   else
     notify-send "Dictation" "$msg" -i "$ICON" -t 2000 -a "voxtype-dictate"
   fi
