@@ -93,11 +93,11 @@ Rectangle {
 					radius: Theme.gridButtonRadius
 					color: (cell.focused || area.containsMouse) ? grid.notifColors.hoverAlt : "transparent"
 					// Flat at rest; hovered or keyboard-focused a button wears the
-					// accent outline the notification cards use for the same states.
-					// A border paints inside the item, so appearing never shifts the
-					// glyph or the neighbours.
-					border.width: cell.focused ? Theme.focusBorderWidth
-						: (area.containsMouse ? Theme.controlBorderWidth : 0)
+					// accent outline the notification cards use for the same states,
+					// at the same weight -- pointed at and aimed at are one cue here,
+					// as they are on a card. A border paints inside the item, so
+					// appearing never shifts the glyph or the neighbours.
+					border.width: (cell.focused || area.containsMouse) ? Theme.focusBorderWidth : 0
 					border.color: grid.notifColors.selected
 
 					Text {

@@ -231,9 +231,10 @@ PanelWindow {
 				// notification section's own, tuned separately.
 				Layout.topMargin: Theme.centerSectionGap
 				Layout.bottomMargin: Theme.titleMarginVertical
-				// The DND switch's ring is the only child taller than the control
-				// it wraps, so it is measured too.
-				implicitHeight: Math.max(titleLabel.implicitHeight, clearButton.height, dndRing.height)
+				// Both rings stand outside the controls they wrap, so they are
+				// measured too -- the taller of the two is what the row reserves, and
+				// the control that sets it is the clear-all button (24 + 2 * 3).
+				implicitHeight: Math.max(titleLabel.implicitHeight, clearRing.height, dndRing.height)
 
 				Text {
 					id: titleLabel
@@ -303,13 +304,36 @@ PanelWindow {
 				// A ring rather than a border on the switch itself: the switch already
 				// wears the accent fill when DND is on, so a border in that colour
 				// would vanish exactly when the cursor is on it.
+				//
+				// It answers the pointer as well as the keyboard, so pointing at the
+				// switch thickens the same outline the cursor draws on it.
 				Rectangle {
 					id: dndRing
 
 					anchors.fill: dndSwitch
 					anchors.margins: -(Theme.focusBorderWidth + 1)
 					radius: height / 2
-					visible: root.stopIs("title") && root.titleControl === 0
+					visible: dndArea.containsMouse
+						|| (root.stopIs("title") && root.titleControl === 0)
+					color: "transparent"
+					border.width: Theme.focusBorderWidth
+					border.color: colors.selected
+				}
+
+				// The cursor stands off the button rather than sitting inside it, as it
+				// does on the switch beside it: the button is filled, so an inset border
+				// reads as a second fill and eats the glyph. Answered by the pointer as
+				// well as the keyboard, like every other outline in the panel.
+				Rectangle {
+					id: clearRing
+
+					anchors.fill: clearButton
+					anchors.margins: -(Theme.focusBorderWidth + 1)
+					// The corner follows the button's out by the same step, so the two
+					// read as parallel rather than as a box drawn round a box.
+					radius: Theme.cardRadius + Theme.focusBorderWidth + 1
+					visible: clearArea.containsMouse
+						|| (root.stopIs("title") && root.titleControl === 1)
 					color: "transparent"
 					border.width: Theme.focusBorderWidth
 					border.color: colors.selected
@@ -320,20 +344,14 @@ PanelWindow {
 
 					anchors.right: parent.right
 					anchors.verticalCenter: parent.verticalCenter
-					// Three times its height -- the height is the switch's, so the two
-					// controls match and the width is a plain multiple of it.
-					width: height * Theme.titleButtonAspect
-					// The switch's height, not the label's line box plus padding: the
-					// two controls share the row's right end, so the shorter one sets
-					// the height and the glyph centres in what is left (measured 20
-					// against the label's 19).
-					height: dndSwitch.height
+					// Fixed, not a multiple of the height: see titleButtonWidth.
+					width: Theme.titleButtonWidth
+					// Deliberately a step taller than the switch's track beside it --
+					// see titleButtonHeight -- and taller than the label's line box, so
+					// it is the pair of controls that sets the row's height.
+					height: Theme.titleButtonHeight
 					radius: Theme.cardRadius
 					color: clearArea.containsMouse ? colors.hoverAlt : colors.backgroundAlt
-					// The button's own fill is too close to the card's for a tint to
-					// read, so the cursor is the ring.
-					border.width: (root.stopIs("title") && root.titleControl === 1) ? Theme.focusBorderWidth : 0
-					border.color: colors.selected
 
 					Text {
 						id: clearLabel
@@ -550,7 +568,10 @@ PanelWindow {
 										height: front.implicitHeight
 										radius: Theme.cardRadius
 										color: colors.cardBackground
-										border.width: Theme.cardBorderWidth
+										// The resting weight, matching the front card's outline
+										// (see NotifCard): a pile edge is never hovered or focused,
+										// so it stays on the one it is drawn with.
+										border.width: Theme.controlBorderWidth
 										border.color: colors.border
 									}
 								}

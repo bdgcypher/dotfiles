@@ -66,11 +66,22 @@ Item {
 	Rectangle {
 		anchors.fill: parent
 		radius: Theme.mprisRadius
-		color: root.sectionFocused ? root.notifColors.backgroundAlt : "transparent"
-		// At rest the muted outline a notification card wears; with the keyboard on
-		// it, the accent one a focused card wears (and the box fills behind it).
-		border.width: root.sectionFocused ? Theme.focusBorderWidth : Theme.controlBorderWidth
-		border.color: root.sectionFocused ? root.notifColors.selected : root.notifColors.border
+
+		// The keyboard in this section, or the pointer on it: one cue, the same
+		// pair of states a notification card answers to.
+		readonly property bool pointed: sectionHover.hovered || root.sectionFocused
+
+		color: pointed ? root.notifColors.backgroundAlt : "transparent"
+		// At rest the muted outline a notification card wears; pointed at or
+		// focused, the accent one a lit card wears (and the box fills behind it).
+		border.width: pointed ? Theme.focusBorderWidth : Theme.controlBorderWidth
+		border.color: pointed ? root.notifColors.selected : root.notifColors.border
+
+		// The box is not a click target itself -- its buttons are -- so this is a
+		// HoverHandler rather than a MouseArea, which would swallow their clicks.
+		HoverHandler {
+			id: sectionHover
+		}
 
 		// ── the player box ───────────────────────────────────────────────────
 		Item {

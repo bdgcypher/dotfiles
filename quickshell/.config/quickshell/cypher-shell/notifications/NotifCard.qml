@@ -55,6 +55,17 @@ Item {
 	// timeout on hover, so a notification you are reading does not vanish.
 	readonly property bool hovered: hover.hovered
 
+	// The card is showing its outline cue: the panel's keyboard cursor is on it,
+	// or the pointer is over it. Both the border's colour and its weight key off
+	// this, so a card lit by the cursor and one lit by the pointer read the same
+	// way -- and a card can be both at once.
+	//
+	// Hover is not conditioned on the card being clickable, nor on it being a
+	// panel card: a popup answers the pointer the same way. Being pointable is
+	// what the outline describes, and a notification with no default action is
+	// still something the pointer is on.
+	readonly property bool outlined: keyFocused || hovered
+
 	// The inset from the card's own border to its content. The two variants
 	// differ, and the centre's is not even symmetric -- see NotifTheme.js for
 	// where each number comes from.
@@ -340,23 +351,25 @@ Item {
 		height: layout.implicitHeight + card.padTop + card.padBottom + Theme.cardBorderWidth * 2
 
 		radius: Theme.cardRadius
-		// Hovering outlines a panel card, because the whole card is the click
-		// target there and has to look like one: the same accent border the
-		// keyboard cursor draws. It used to tint the whole card instead, but the
-		// tint is translucent and let the cards behind a stacked group show
-		// straight through it. A popup does neither: it is transient, and its
-		// hover state is the close button fading in.
+		// Hovering thickens a card's outline to the accent border the keyboard
+		// cursor draws, because the whole card is the click target and has to
+		// look like one. It used to tint the whole card instead, but the tint is
+		// translucent and let the cards behind a stacked group show straight
+		// through it. A popup outlines on hover too; its close button fading in
+		// stays as the extra cue for the one control on it.
 		//
 		// The opacity is the drag: a popup being pulled away fades as it goes.
 		// A sweep exit swaps that for its own fade so the two never fight.
 		opacity: card.exitFades ? card.flyOpacity : (1 - card.dragProgress)
 		color: card.notifColors.cardBackground
-		border.width: Theme.cardBorderWidth
-		// The keyboard cursor and the pointer hover share the border cue, so a
-		// card can be both at once and reads the same either way.
-		border.color: (card.keyFocused || (card.clickable && card.hovered && !card.popup))
-			? card.notifColors.selected
-			: card.notifColors.border
+		// At rest the outline is the section-border weight, so a card sits in the
+		// panel at the same weight as the grid buttons and the boxes around the
+		// volume and media sections; the cursor or the pointer takes it up a step
+		// to focusBorderWidth, which is the leap every other section makes. Only
+		// the drawn width changes -- the indent the content is placed at is still
+		// cardBorderWidth, so nothing shifts when the outline thickens.
+		border.width: card.outlined ? Theme.focusBorderWidth : Theme.controlBorderWidth
+		border.color: card.outlined ? card.notifColors.selected : card.notifColors.border
 
 		// The critical border. In a popup it is a second border inset by the
 		// background's own 2px; in the centre swaync tints the card's text
@@ -464,7 +477,12 @@ Item {
 						color: actionArea.containsMouse
 							? (card.popup ? card.notifColors.hover : card.notifColors.selected)
 							: (card.popup ? card.notifColors.backgroundAlt : card.notifColors.actionBackground)
-						border.width: card.popup ? 1 : 0
+						// A popup's action wears the accent outline at rest (a centre
+						// action is a filled pill with no border), and thickens it under
+						// the pointer like every other outline in the stack.
+						border.width: card.popup
+							? (actionArea.containsMouse ? Theme.focusBorderWidth : Theme.controlBorderWidth)
+							: 0
 						border.color: card.notifColors.selected
 
 						Text {

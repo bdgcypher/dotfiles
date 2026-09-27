@@ -306,14 +306,26 @@ var titleMarginVertical = 4
 // drops it: it made the inset from the card's top to the buttons 42 where the
 // sides use 20. Without it the buttons get the same air on every side, because
 // the card's padding and the grid's own margin already add up to the sides'.
-// Horizontal only: the button's height is the DND switch's beside it, so there
-// is no vertical padding to set -- the glyph just centres in the 20px track.
+// Horizontal only: the button's height is set beside the switch (see
+// titleButtonHeight), not by padding, so there is no vertical padding to set --
+// the glyph just centres in the track.
 var titleButtonPaddingH = 16
-// The clear-all button stands beside the switch, and a square 20x20 button next
-// to a pill reads as a stray glyph. Three-to-one matches the grid's buttons, the
-// other rectangles in the panel. The width comes out of the height, which is the
-// switch's, so the two stay equal if one is retuned.
-var titleButtonAspect = 3
+// The clear-all button shares the row's right end with the DND switch, and at
+// the switch's own 20px it read as the smaller of the two: the switch's fill is
+// the accent whenever notifications are on, while the button's is a 25% tint, so
+// the brighter control of the same height wins the eye. 24 -- the switch's track
+// plus a step of its own 2px padding -- gives the button the extra it needs to
+// stand as its equal. Only the two rings are taller than what they wrap, and the
+// button's is the taller of them (24 + 2 * (focusBorderWidth + 1) = 30 against the
+// switch's 26), so that ring is what the row now measures.
+var titleButtonHeight = 24
+// The clear-all button stands beside the switch, and a square button next to a
+// pill reads as a stray glyph. The width is fixed rather than derived from the
+// height: taking the button up to 24px is about how tall it reads next to the
+// switch, and carrying the width along with it would have stretched it 12px
+// further into the row. 60 keeps the footprint it has always had -- 2.5:1
+// against the 3:1 the height would give it, both clear of square.
+var titleButtonWidth = 60
 // The DND switch sits immediately left of the clear-all button, so the row's
 // right end is a pair of controls rather than one. The switch's focus ring
 // stands 3px off it (focusBorderWidth + 1), which is the least this can be
