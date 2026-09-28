@@ -20,10 +20,11 @@ BarItem {
 	// anyway; its hardcoded tooltip is the usage alone.
 	tooltipText: percent + "%"
 
-	// style.css: #cpu { min-width: 12px; margin: 0 7.5px }
+	// style.css: #cpu { min-width: 12px; margin: 0 7.5px }. The min-width carries
+	// over; the margin is the cluster's -- see BluetoothIndicator.
 	minWidth: 12
-	marginLeft: 7.5
-	marginRight: 7.5
+	marginLeft: 6
+	marginRight: 6
 
 	onClicked: Quickshell.execDetached(["ghostty", "--class=floating.Btop", "-e", "btop"])
 

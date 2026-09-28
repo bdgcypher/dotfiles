@@ -20,9 +20,18 @@ BarItem {
 	glyph: Icons.memory
 	suffix: "  " + percent + "% "
 
+	// The cluster's margin either side. waybar set no margin on #memory, which is
+	// why this one used to sit tighter to its neighbours than the rest.
+	marginLeft: 6
+	marginRight: 6
+
 	// memory: no tooltip-format in the config, and waybar's memory module does
 	// not honour one anyway -- the string it prints is "{:.1f}GiB used".
 	tooltipText: used.toFixed(1) + "GiB used"
+
+	// The CPU module next door opens btop, which is where memory is looked at
+	// anyway: the monitors are one view, so they get one click.
+	onClicked: Quickshell.execDetached(["ghostty", "--class=floating.Btop", "-e", "btop"])
 
 	Process {
 		id: probe

@@ -126,6 +126,14 @@ hl.bind(
 	{ description = "Activity monitor" }
 )
 
+-- The bar, from the keyboard. The bar takes the keys while the mode is on and
+-- draws a ring around the module they are on: arrows or hjkl move, tab and
+-- shift-tab do the same, space or enter acts on the module, `r` is the module's
+-- right-click, and escape gives the keyboard back. Pressing the key again leaves
+-- too, and `cypher-bar state` reports whether the mode is on.
+
+hl.bind("SUPER + B", hl.dsp.exec_cmd("cypher-bar keyboard toggle"), { description = "Bar keyboard" })
+
 -- Package Management
 
 hl.bind(

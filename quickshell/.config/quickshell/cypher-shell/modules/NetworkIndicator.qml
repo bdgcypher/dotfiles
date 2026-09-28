@@ -32,8 +32,11 @@ BarItem {
 	property real downRate: 0
 	property real upRate: 0
 
-	// style.css: #network { margin-right: 13px }
-	marginRight: 13
+	// Same margin either side as the rest of the cluster -- see the note in
+	// BluetoothIndicator. waybar's #network margin-right: 13px was the inset that
+	// left this icon floating furthest from its neighbours.
+	marginLeft: 6
+	marginRight: 6
 	glyph: icon
 
 	// network: the three tooltip-format variants, in the config's own wording.

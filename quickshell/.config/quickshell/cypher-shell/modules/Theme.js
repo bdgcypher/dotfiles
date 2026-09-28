@@ -14,14 +14,60 @@ var marginTop = 6
 var marginSide = 12
 var spacing = 8
 
+// ── edges ────────────────────────────────────────────────────────────────────
+//
+// The bar can sit on any of the four edges (BarState.position). On the left and
+// right its 26px height becomes its *thickness* and the modules stack instead of
+// running end to end, so "thickness" is the one word for both the height of a
+// horizontal bar and the width of a vertical one:
+//
+//   horizontal: thickness = height, marginTop to its edge
+//   vertical:   thickness = the value below, marginTop to its edge
+//
+// marginTop and marginSide keep their meanings on every edge: the gap to the
+// edge the bar is on, and the gaps at its two ends. They place the bar's *strip*
+// inside its surface rather than placing the surface itself, because the surface
+// is the whole monitor on every edge (see Bar.qml).
+
+// A vertical bar is 6px thicker than a horizontal one is tall. The 26px height
+// was measured off waybar's bar, where nothing has to fit *across* the bar; on a
+// vertical bar the same 26px is what a module's glyph and value have to fit in.
+// 32 leaves a 26px well between the padding below, which is a whole "100%" at
+// the value size -- the widest text any module puts on its own line.
+var verticalThickness = 32
+
+// What is left of a vertical bar's width for a module once the padding is off
+// it. Every module is this width, so the modules line up down the bar.
+var verticalPadding = 3
+var verticalWell = verticalThickness - verticalPadding * 2
+
+// The value line of a module on a vertical bar, under its glyph. Smaller than
+// the glyph because it is read as a value rather than as the module: at 12px a
+// three-character "100%" is wider than the well, and at 10px it is 24 of the
+// 26px. The glyph keeps the bar's own size, so the icons still read as icons.
+var verticalValueSize = 10
+
+// The gap between stacked modules. The 8px spacing was measured between modules
+// that share one row; stacked, the modules' own leading/trailing margins already
+// hold them apart (12px, since every status module carries 6px either side),
+// so this only has to keep neighbours from touching.
+var verticalSpacing = 4
+
+// The bar's thickness on the edge it is on. Every geometry rule that needs the
+// bar's own size reads this rather than `height`, so a vertical bar is one
+// substitution away from the horizontal one rather than a second layout.
+function thicknessFor(edge) {
+	return (edge === "left" || edge === "right") ? verticalThickness : height
+}
+
+function isVertical(edge) {
+	return edge === "left" || edge === "right"
+}
+
 // #waybar { border: 1.2px solid #444444; border-radius: 8px; opacity: 0.9 }
 var radius = 8
 var borderWidth = 1.2
 
-// Physical pixels the compositor's surface box comes up short at the bottom edge.
-// The chrome insets its fill by this (converted to logical px with the monitor
-// scale) so the bottom border band matches the other three sides.
-var lostBottomPx = 1
 var borderColor = "#444444"
 var barOpacity = 0.9
 
@@ -42,10 +88,39 @@ var dimEmpty = 0.5
 var pulseColor = "#a55555"
 var pulseDuration = 1500
 
-// #tray { icon-size: 12, spacing: 17 }, drawer transition-duration: 600
+// ── the tray ────────────────────────────────────────────────────────
+//
+// The status notifier icons live in a panel of their own, off the side of the
+// bar, rather than in a drawer that opened along it: the chevron is a module in
+// the bar's row and never moves, and the icons are a flyout beside it. #tray
+// { icon-size: 12 } still sizes the icons -- the rest is the panel's own chrome,
+// drawn the way the tooltips are.
 var trayIconSize = 12
-var traySpacing = 17
-var trayDrawerDuration = 600
+// The square each icon sits in, and the gap between the squares. The square is
+// the click target, which is what makes it worth having: a bare 12px icon is a
+// small thing to hit.
+var trayPanelCell = 26
+var trayPanelSpacing = 4
+// Across, before the grid wraps. Four keeps the panel narrower than a tooltip.
+var trayPanelColumns = 4
+var trayPanelPad = 8
+var trayPanelRadius = 8
+var trayPanelBorderWidth = 1.2
+// Where the keyboard is, when the panel was opened from the launcher: an accent
+// outline around the focused icon, inset far enough to sit inside its square
+// rather than in the gap to its neighbour.
+var trayPanelFocusInset = 1
+var trayPanelFocusRadius = 5
+var trayPanelFocusBorderWidth = 1.6
+// The air between the bar and the panel. The gap is deliberately small: the
+// pointer has to cross it to reach the panel, and the close delay below is what
+// covers the crossing.
+var trayPanelGap = 6
+// How long the panel waits after the pointer leaves before folding away -- long
+// enough to cross that gap, short enough not to feel sticky.
+var trayPanelCloseDelay = 150
+// The caret's half turn when the panel opens.
+var trayPanelFlipDuration = 250
 
 // ── tooltips ─────────────────────────────────────────────────────────────────
 //
@@ -56,6 +131,43 @@ var trayDrawerDuration = 600
 // padding (`tooltip { padding: 2px }`); everything else comes from the GTK
 // theme, which has no counterpart here -- so the colours are the bar's own and a
 // tooltip reads as part of the shell rather than as a stray GTK popup.
+
+// ── moving the bar ───────────────────────────────────────────────────────────
+//
+// The bar is dragged to another edge by pressing its own background (the gap
+// between module groups; the modules keep their clicks) and releasing on the
+// edge you want. What is drawn while the drag is live is a ghost of the bar in
+// the place it would land.
+
+// How far the pointer has to travel from where it was pressed for the release
+// to count as a drag. A press that never moves is a click on the bar's
+// background, which is nothing at all -- it must not move the bar to whichever
+// edge the pointer happened to be nearest.
+var dragThreshold = 16
+
+// How far past the halfway line the pointer has to travel before the edge the
+// drag will land on changes. Near the middle of the screen two edges are equally
+// near and a hand is never quite still, so without it the target flips several
+// times a second: measured through the shell's own IPC, 22 changes in 40 samples
+// held within ±12px of the middle, and each change redraws the ghost on the
+// other edge -- a full-length band of accent appearing and vanishing, which is
+// what the middle of a drag looked like it was flashing. It also makes the drop
+// there a coin toss between the two edges. Wider than `dragThreshold` on
+// purpose: that one decides whether a press moved at all, this one decides which
+// side of the middle it settled on.
+var dragHysteresis = 24
+
+// The ghost's border and fill while a drag is live. The fill is the accent, so
+// the preview reads as "this is where the bar goes" rather than as a window
+// outline; both are transparent enough to see the desktop through.
+var dragPreviewRadius = 8
+var dragPreviewBorderWidth = 2
+var dragPreviewFillAlpha = 0.22
+var dragPreviewBorderAlpha = 0.85
+
+// How much of its own opacity the bar keeps while it is being dragged, so the
+// bar itself reads as the thing that is moving.
+var dragDim = 0.55
 
 // GTK's gtk-tooltip-delay default (500ms).
 var tooltipDelay = 500
@@ -122,3 +234,85 @@ var trayMenuSubmenuDelay = 200
 // uses two) and keeps the openers below a fixed, declarable set -- a menu cannot
 // instantiate itself in QML, so the columns are openers rather than windows.
 var trayMenuMaxDepth = 5
+
+// ── the clock's calendar ─────────────────────────────────────────────────────
+//
+// The popout the clock opens, and the one place on the bar where the type scale
+// deliberately leaves the bar's own: a month grid is read at a glance, so the
+// hero date is much larger than anything the bar draws, and the rest sits at
+// the bar's size or a shade under it.
+//
+// The box is the same rounded rect as the tray panel -- one chrome for every
+// flyout on the bar.
+var calendarRadius = 8
+var calendarBorderWidth = 1.2
+var calendarPad = 10
+// A day cell, and the week-number gutter to its left. The grid is seven cells
+// and six gaps wide plus the gutter, which is what the panel's width comes out
+// at -- see CalendarPanel.
+var calendarCellWidth = 30
+var calendarCellHeight = 26
+var calendarCellSpacing = 2
+// The corner on a day cell: only the outline today wears one, so this is the
+// grid's rounding rather than a per-cell decoration.
+var calendarCellRadius = 5
+var calendarWeekWidth = 26
+var calendarGutter = 8
+// The hero date and the two rails (year progress, and the life rail under it).
+var calendarHeroSize = 26
+var calendarRailHeight = 6
+var calendarMonthSize = 12
+// The one figure that runs vertically through the whole panel: between the
+// hero and the year rail, between the rails and the grid, and between the grid
+// and the month stepper under it. One number rather than three, so the panel
+// reads as one column of blocks.
+var calendarGap = 10
+// The hover highlight on the hero date and the "W" heading, the same bar-down-
+// the-left-edge cue every other list in the shell uses, at text height.
+var calendarMarkWidth = 2
+var calendarMarkHeight = 14
+// How far off the bar the panel starts. The tray panel's gap, because every
+// flyout on this bar begins the same distance from it.
+var calendarBarGap = trayPanelGap
+
+// ── driving the bar from the keyboard ────────────────────────────────────────
+//
+// The ring around the module the keyboard is on. The colour is the palette's
+// own accent (see Bar.qml) rather than anything here -- what is here is the
+// shape: an outline drawn just outside the module's own rectangle, so the ring
+// reads as around the module and not as a second border inside it.
+var barFocusInset = 2
+var barFocusBorderWidth = 1.6
+var barFocusRadius = 6
+
+// ── the VPN popout ───────────────────────────────────────────────────────────
+//
+// The VPN indicator's flyout. It is the same box as the calendar's -- one chrome
+// for every popout off the bar -- so the pieces the two share alias the
+// calendar's values rather than repeating the numbers, and only what is this
+// panel's own is written out here.
+//
+// The width is fixed, unlike the calendar's content-sized one: a hostname, an
+// address and a row label all change under it, and a box that resized as the VPN
+// came and went would read as the box moving rather than the reading.
+var vpnPanelWidth = 232
+var vpnPanelRadius = calendarRadius
+var vpnPanelBorderWidth = calendarBorderWidth
+var vpnPanelPad = calendarPad
+var vpnPanelBarGap = calendarBarGap
+// The panels' one vertical figure, used twice: between the reading and the action
+// under it, and between the name and the state line inside the reading.
+var vpnPanelGap = 12
+var vpnPanelLineGap = 4
+// The name is the panel's headline, a step under the calendar's hero date: a
+// hostname is a longer string than a date and does not want the size of one.
+var vpnPanelNameSize = 16
+// The state line and the row under it, at the bar's own size.
+var vpnPanelStatusSize = 12
+var vpnPanelRowHeight = 26
+// The dot that carries the state, beside the word for it.
+var vpnPanelDotSize = 7
+// The focus mark: the bar down the left edge every other list in the shell marks
+// its focused row with, at the calendar's size.
+var vpnPanelMarkWidth = calendarMarkWidth
+var vpnPanelMarkHeight = calendarMarkHeight

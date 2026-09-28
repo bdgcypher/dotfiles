@@ -28,8 +28,9 @@ import "Theme.js" as Theme
 //   * mnemonics: DBusMenu labels carry a leading underscore ("_Open Zoom
 //     Workplace"), which is a keyboard cue, not part of the label
 //
-// Activating an entry is the application's, not ours: sendTriggered() is the
-// DBusMenu "clicked" event, the same one the platform menu sends.
+// Activating an entry is the application's, not ours: emitting an entry's
+// triggered signal is the DBusMenu "clicked" event, the same one the platform
+// menu sends. (See triggerEntry() for why it is not DBusMenuItem.sendTriggered.)
 //
 // ── why this is a full-screen surface and not an anchored popup ──────────────
 //
@@ -52,14 +53,18 @@ import "Theme.js" as Theme
 // surface and offset by the bar's margins.
 //
 // ── one window, a column per level ───────────────────────────────────────────
-//
-// A submenu is not a window of its own here. A QML component cannot instantiate
-// itself -- Quickshell rejects that outright -- so a menu that opened submenus as
-// nested windows would have to be a chain of files with a hard depth, each one
-// spawning the next. Instead the whole cascade is drawn in this one surface, a
-// column per open level, laid out side by side: the same thing a GTK menu shows,
-// and it keeps the submenu's columns from being pushed around by the screen edge
-// independently of the menu they belong to.
+//	// A submenu is not a window of its own here. A QML component cannot instantiate
+	// itself -- Quickshell rejects that outright -- so a menu that opened submenus as
+	// nested windows would have to be a chain of files with a hard depth, each one
+	// spawning the next. Instead the whole cascade is drawn in this one surface, a
+	// column per open level, laid out side by side -- leftwards, except from a
+	// left-edge bar (see growsLeft): the same thing a GTK menu shows, and it keeps
+	// the submenu's columns from being pushed around by the screen edge
+	// independently of the menu they belong to -- across the screen, at least. Down
+// the screen each column is placed on its own, one row into the page from the row
+// that opened it (see columnTopOffset), rather than the whole cascade being
+// lifted to fit: a cascade longer than the space beside the icon has to give
+// somewhere, and moving the menu column would move the row under the pointer.
 //
 // The columns are fed by a fixed set of QsMenuOpener objects, one per level (see
 // level0..level4), each pointed at the entry the level above opened. That is what
@@ -81,10 +86,24 @@ PanelWindow {
 	// lands on the same monitor.
 	required property var screenModel
 
+	// Which edge of the screen the bar is on. It says where the surface's origin
+	// sits in screen space (the bar is not always in the top-left corner) and
+	// which way the menu has to leave the icon: down from a top bar, up from a
+	// bottom one, and out to the side of a vertical one.
+	required property string edge
+
 	// A counter the bar bumps whenever the tray section moves, so the position
 	// below is re-read. See TrayExpander.geometryRevision for why a binding cannot
 	// simply call mapToItem and expect to be re-evaluated.
 	required property int geometryRevision
+
+	// Where the surface the icon lives in starts on the screen. The margins below
+	// describe the *bar*, which is what an icon in the bar needs -- but a tray icon
+	// lives in the tray panel's own surface (see TrayExpander), and that surface
+	// sits off the side of the bar, so the panel hands its own origin down here
+	// instead. A negative x means "an icon in the bar": nothing on screen starts
+	// left of the screen.
+	property point surfaceOrigin: Qt.point(-1, -1)
 
 	// The menu to draw: the DBusMenuHandle the tray item publishes. A handle
 	// *is* what a QsMenuOpener opens -- its children are the top-level entries --
@@ -211,14 +230,89 @@ PanelWindow {
 		return y
 	}
 
-	// A submenu column hangs off the row that opened it rather than off the top
-	// of the menu, the way a GTK submenu does: its top edge lines up with its
-	// parent entry. Each column is offset by the one before it, so a cascade
-	// three deep steps down with each step, the same as it steps right.
-	function columnTopOffset(level) {
+	// Where a column's top edge goes, in the cascade's own coordinates: 0 is the
+	// menu's top edge, and everything below is measured from there.
+	//
+	// A submenu column hangs off the row that opened it. Each column is offset by
+	// the one before it, so a cascade three deep steps down with each step, the
+	// same as it steps right.
+	//
+	// Where exactly it hangs is a matter of taste, and the placements are tried
+	// in this order, taking the first that fits on screen:
+	//
+	//   1. One row further into the page than the row that opened it: below the
+	//      row from a top bar, above it from a bottom bar. That is the popout
+	//      reading -- the submenu carries on out of the menu instead of sitting
+	//      level with it -- and the one row of separation is what keeps it
+	//      obviously that row's submenu. Only for a top or bottom bar: from a
+	//      vertical bar a submenu comes out sideways, and there is no page
+	//      direction to step into.
+	//   2. Level with the row, the way a GTK submenu does: its top edge on the
+	//      row's top, from any bar.
+	//   3. On the row's other side, which is what a column too tall for the space
+	//      it wanted needs -- above the row from a top bar, below it otherwise.
+	//   4. Pinned to the top margin and clipped, for a column taller than the
+	//      screen, where nothing fits.
+	//
+	// A column that would simply be lifted until it fit -- which is what this did
+	// first -- ends up floating beside the menu with nothing to say which row
+	// opened it, so every placement above is preferred to that.
+	function columnTopOffset(level, columnHeight) {
 		if (level <= 0)
 			return 0
-		return columnTopOffset(level - 1) + rowOffsetInColumn(level - 1, path[level - 1])
+		var rowTop = rowTopInColumn(level)
+		var rowBottom = rowTop + Theme.trayMenuRowHeight
+		// The screen, in the cascade's coordinates: the cascade has already been
+		// placed, so its own top edge is the origin both limits are measured
+		// from, and the margin on each side is what is left for the columns.
+		var topLimit = Theme.marginSide - cascade.y
+		var lowestTop = menu.height - Theme.marginSide - cascade.y - columnHeight
+
+		var wanted = [
+			edge === "top" ? rowBottom : rowTop - columnHeight,
+			rowTop,
+			edge === "top" ? rowTop - columnHeight : rowBottom - columnHeight
+		]
+		// A vertical bar has no page side to step to, so it goes straight to the
+		// two placements around its row.
+		if (vertical)
+			wanted[0] = wanted[1]
+
+		for (var i = 0; i < wanted.length; i++) {
+			if (wanted[i] >= topLimit && wanted[i] <= lowestTop)
+				return wanted[i]
+		}
+		return topLimit
+	}
+
+	// The top of the row that opened a column: its parent column's top as drawn,
+	// plus the rows above it inside that column.
+	function rowTopInColumn(level) {
+		if (level <= 0)
+			return 0
+		return drawnTopOffsetOf(level - 1) + rowOffsetInColumn(level - 1, path[level - 1])
+	}
+
+	// The top of a column as drawn. Not simply columnTopOffset of its level: a
+	// parent that opened upwards has moved, and everything hanging off it moves
+	// with it. The drawn columns are the only place the heights are known, so
+	// the offset is recovered from them.
+	function drawnTopOffsetOf(level) {
+		return columnTopOffset(level, columnHeightAt(level))
+	}
+
+	// How tall a column is as drawn, or 0 before it exists. A column's height is
+	// its own box: nothing outside it takes part.
+	function columnHeightAt(level) {
+		var item = columnRepeater.itemAt(level)
+		return item ? item.implicitHeight : 0
+	}
+
+	// The same for a column's width, which the horizontal placement needs to know
+	// where the menu column sits inside the cascade.
+	function columnWidthAt(level) {
+		var item = columnRepeater.itemAt(level)
+		return item ? item.implicitWidth : 0
 	}
 
 	readonly property int entryCount: entriesFor(0).length
@@ -232,17 +326,79 @@ PanelWindow {
 		focused = -1
 		cascadeMaxWidth = 0
 		shown = true
+		// The menu is opened to be used, and the arrows are how the keyboard
+		// uses it, so it comes up with its first entry already on -- the row the
+		// down arrow would have landed on anyway, but without the press. Opening
+		// it from the tray panel's grid is the case this is for: enter puts the
+		// keyboard in the menu, ready to walk it.
+		focusFirstEntry()
 	}
+
+	// The first entry that can actually be used, which is what "the first one"
+	// means to the keyboard: the top of what navigable() hands move(), not the
+	// top of the menu, so a leading separator or a disabled entry is stepped over
+	// rather than shown as selected.
+	function focusFirstEntry() {
+		var list = navigable()
+		focused = list.length > 0 ? list[0] : -1
+	}
+
+	// A menu whose tree arrives late, or is rebuilt underneath it. Only ever used
+	// to fill in a menu that has no selection yet: a rebuild must not take the
+	// highlight off the row the user is on.
+	onEntryCountChanged: if (shown && focused < 0) focusFirstEntry()
 
 	function dismiss() {
 		shown = false
+		// Let the columns go with the menu. An opener pointed at an entry is what
+		// tells the application its submenu is showing (Quickshell refs the entry
+		// and the DBusMenu "opened" event follows), so releasing them here is what
+		// sends the matching "closed" -- a menu that kept them pointed would leave
+		// the application believing its submenu was still up.
+		path = []
+		focused = -1
+	}
+
+	// ── activating an entry ──────────────────────────────────────────────────
+	//
+	// Activating an entry is the application's, not ours: Quickshell surfaces the
+	// DBusMenu "clicked" event as the QsMenuEntry.triggered signal, which
+	// DBusMenuItem forwards to the D-Bus call, so emitting it is the whole of it.
+	//
+	// Not DBusMenuItem.sendTriggered, which reads like the method to call but is
+	// a private slot -- unreachable from QML, so `typeof entry.sendTriggered` is
+	// undefined and a guarded call to it silently does nothing at all. That was
+	// why clicking a menu entry used to have no effect; emitting the signal is
+	// the documented way, and it is what the platform menu does underneath.
+	function triggerEntry(entry) {
+		if (!entry || entry.isSeparator === true || entry.enabled === false)
+			return
+		entry.triggered()
+	}
+
+	// Everything that activates a leaf entry comes through here -- the pointer's
+	// click and the keyboard's enter alike -- so the menu always shuts with the
+	// activation and the owner is always told about it.
+	//
+	// The menu shutting is the ordinary thing a menu does. Telling the owner is the
+	// tray's: this menu hangs off an icon inside TrayExpander's panel, and an entry
+	// that opens an application should leave the screen to that application. A panel
+	// still sitting in its corner would cover what was just opened, and in keyboard
+	// mode it would be holding the session's keyboard as well, so it would have to
+	// be dismissed by hand before the application could be used at all.
+	function activateEntry(entry) {
+		if (!entry || entry.isSeparator === true || entry.enabled === false)
+			return
+		triggerEntry(entry)
+		dismiss()
+		entryActivated()
 	}
 
 	// ── walking the cascade ──────────────────────────────────────────────────
 
-	// Opens the submenu of a row, collapsing any column to the right of it
-	// first. Called for a hover and for a click alike, which is what makes the
-	// cascade follow the pointer as well as the keyboard.
+	// Opens the submenu of a row, collapsing any column beyond it first. Called
+	// for a hover and for a click alike, which is what makes the cascade follow
+	// the pointer as well as the keyboard.
 	function descend(level, index) {
 		if (level >= Theme.trayMenuMaxDepth - 1)
 			return
@@ -252,9 +408,9 @@ PanelWindow {
 		focused = -1
 	}
 
-	// Closes every column to the right of `level`. Hovering an entry with no
-	// children does this, so a cascade three deep folds back as soon as the
-	// pointer settles on a leaf.
+	// Closes every column deeper than `level`. Hovering an entry with no children
+	// does this, so a cascade three deep folds back as soon as the pointer settles
+	// on a leaf.
 	function collapseTo(level) {
 		if (path.length <= level)
 			return
@@ -300,9 +456,7 @@ PanelWindow {
 			descend(depth - 1, focused)
 			return
 		}
-		if (e.sendTriggered)
-			e.sendTriggered()
-		dismiss()
+		activateEntry(e)
 	}
 
 	// One column back, and the keyboard lands on the row that opened the column
@@ -316,13 +470,16 @@ PanelWindow {
 		path = path.slice(0, path.length - 1)
 	}
 
-	onShownChanged: shown ? menuOpened() : menuClosed()
-
-	// Not `opened`/`closed`: the window base type already declares a `closed`
+	onShownChanged: shown ? menuOpened() : menuClosed()	// Not `opened`/`closed`: the window base type already declares a `closed`
 	// signal, and declaring either name again is a duplicate-signal error at load
 	// time.
 	signal menuOpened()
-	signal menuClosed()
+signal menuClosed()
+
+	// A leaf entry was activated: the application has been sent its click. Not
+	// a submenu opening, which stays inside the menu. The owner shuts the tray
+	// panel on this -- see activateEntry().
+	signal entryActivated()
 
 	// ── window ───────────────────────────────────────────────────────────────
 
@@ -356,33 +513,134 @@ PanelWindow {
 
 	// ── where the box goes ───────────────────────────────────────────────────
 	//
-	// The icon's rectangle, measured in the bar's own surface, plus the bar's
-	// margins. `mapToItem(null, ...)` resolves against the bar's window, whose
-	// origin is the bar surface's top-left -- and the bar surface sits at the
-	// bar's margins in screen space, so adding them lands in screen coordinates.
+	// The icon's rectangle, measured in the surface it lives in, plus that
+	// surface's own origin in screen space. `mapToItem(null, ...)` resolves
+	// against the window the icon belongs to -- the bar's, or the tray panel's
+	// when the icon came out of there -- and that is the surface's top-left.
+	//
+	// For the bar that origin is the screen's own: Bar.qml's surface is the whole
+	// monitor on every edge, so a window coordinate *is* a screen coordinate and
+	// there is no margin to add back. The panel is a layer surface of its own at
+	// panelX/panelY, so it hands its origin down through surfaceOrigin.
 	// The same offset was measured when the tooltips were anchored to their
 	// modules.
+	readonly property bool vertical: edge === "left" || edge === "right"
+	readonly property real thickness: Theme.thicknessFor(edge)
+
+	readonly property point origin: {
+		// An icon in the tray panel: the panel says where it is, because its
+		// origin is not the screen's -- it is a layer surface of its own.
+		if (surfaceOrigin.x >= 0)
+			return surfaceOrigin
+		// An icon in the bar: the bar's surface is the screen (see Bar.qml), so
+		// its window coordinates are already screen coordinates.
+		return Qt.point(0, 0)
+	}
+
 	readonly property point anchorPoint: {
 		// Read only so this binding depends on it: see geometryRevision above.
 		var revision = geometryRevision
 		if (revision < 0 || !target)
-			return Qt.point(Theme.marginSide, Theme.marginTop)
+			return origin
 		var p = target.mapToItem(null, 0, 0)
-		return Qt.point(p.x + Theme.marginSide, p.y + Theme.marginTop)
+		return Qt.point(p.x + origin.x, p.y + origin.y)
 	}
 
-	// Left-aligned with the icon, just below the bar, and clamped so the box
-	// (and any submenu open beside it) stays on screen rather than hanging off
-	// an edge -- a menu that ran off the screen would be unusable. Recomputed
-	// from the cascade's own size, which changes as columns open and close.
-	readonly property real desiredX: anchorPoint.x
-	readonly property real desiredY: anchorPoint.y + (target ? target.height : 0) + Theme.trayMenuGap
+	// Off the far side of the icon -- down from a top bar, up from a bottom one,
+	// and out to the side of a vertical one -- and clamped so the box (and any
+	// submenu open beside it) stays on screen rather than hanging off an edge; a
+	// menu that ran off the screen would be unusable.
+	//
+	// The whole cascade is offset rather than just the first column, because the
+	// columns run end to end: the box's near edge is the one that has to sit by
+	// the icon, and when the cascade grows leftwards that is the row's *right*
+	// end.
+	readonly property real cascadeSize: Math.max(cascade.implicitWidth, cascadeMaxWidth)
 
-	// The widest the cascade has been while this menu has been open. Clamping
-	// against the live width would make the menu slide left the moment a submenu
-	// opened and back right the moment it closed -- and since a shift also moves
-	// which row is under the pointer, that would fold the submenu away and start
-	// the whole thing over. Taking the maximum once makes the placement settle.
+	// How tall the menu's own column is -- the one beside the icon -- as drawn.
+	//
+	// This, and not the tallest column in the cascade, is what the menu is placed
+	// by. A submenu is usually taller than the menu it hangs off, and letting
+	// that height lift the menu would slide every row out from under the pointer
+	// the moment the submenu opened -- and the row that moved into its place has
+	// no children, so the submenu would fold away again and the pair of them
+	// would flicker. Submenus are kept on screen by the clamp on each column
+	// instead: see columnTopOffset.
+	readonly property real menuColumnHeight: {
+		var own = columnHeightAt(0)
+		return own > 0 ? own : cascade.implicitHeight
+	}
+
+	// How wide the menu's own column is, for the same reason as its height: it is
+	// the column that has to stay where the icon put it, whichever way the
+	// submenus run off it.
+	//
+	// Reading the row is what makes it re-evaluate once the columns exist --
+	// itemAt() on its own is not a property dependency, so a version that only
+	// asked for the column would read 0 and stay 0, and the menu would land a
+	// column's width away from the icon. Same shape as menuColumnHeight above.
+	readonly property real menuColumnWidth: {
+		var own = columnWidthAt(0)
+		return own > 0 ? own : cascade.implicitWidth
+	}
+
+	// Which way the cascade grows away from the menu column.
+	//
+	// Only a left-edge bar runs its submenus to the *right*: there the menu
+	// itself sits just right of the icon, so right is the way into the screen. On
+	// every other edge left is: a right-edge bar already has the menu hugging that
+	// edge, and a top or bottom bar has its tray at the right end of the bar, so a
+	// submenu opened to the right would immediately be against the screen edge
+	// (and the whole cascade would have to be shoved back inwards to fit).
+	readonly property bool growsLeft: edge !== "left"
+
+	readonly property real desiredX: {
+		if (edge === "left")
+			return anchorPoint.x + (target ? target.width : 0) + Theme.trayMenuGap
+		// The cascade runs left, so the menu column is the rightmost one in the
+		// row. What the icon pins is where that column sits -- its right edge just
+		// clear of the icon on a right-edge bar, its left edge on the icon's own x
+		// from a top or bottom bar -- and the row's left edge is the rest of the
+		// way left: the live width of the cascade, less the menu column itself.
+		//
+		// *Live*, unlike the x clamp below, which deliberately holds the widest the
+		// cascade has been. Placing the row from that widest figure instead would
+		// leave the menu holding the offset its submenu needed: the moment the
+		// submenu closed, the row would narrow again and the menu would be left
+		// hanging a submenu's width away from its icon.
+		var menuLeft = edge === "right"
+			? anchorPoint.x - Theme.trayMenuGap - menuColumnWidth
+			: anchorPoint.x
+		return menuLeft + menuColumnWidth - cascade.implicitWidth
+	}
+
+	readonly property real desiredY: {
+		if (edge === "bottom")
+			return anchorPoint.y - menuColumnHeight - Theme.trayMenuGap
+		if (vertical)
+			return anchorPoint.y
+		return anchorPoint.y + (target ? target.height : 0) + Theme.trayMenuGap
+	}
+
+	// The width the placement is measured against, and the reason there are two
+	// answers for it.
+	//
+	// From a left-edge bar the row's left edge *is* the menu column, so a clamp
+	// that followed the live width would drag the menu sideways the moment a
+	// submenu opened -- and a sideways shift moves which row is under the pointer,
+	// which closes the submenu again and starts the whole thing over. Clamping
+	// against the widest the cascade has been settles that: the bound moves once,
+	// and never back.
+	//
+	// Everywhere else the menu column is pinned by the icon and the submenus run
+	// off behind it (see growsLeft, desiredX), so nothing is being dragged: what
+	// is left is the row hugging the width it actually has. Measuring that from
+	// the widest figure instead is what leaves a menu hanging a submenu's width
+	// away from its icon once the submenu closes.
+	readonly property real placementWidth: growsLeft ? cascade.implicitWidth : cascadeSize
+
+	// The widest the cascade has been while this menu has been open. Only read
+	// through placementWidth, above.
 	property real cascadeMaxWidth: 0
 
 	function noteCascadeWidth(w) {
@@ -409,19 +667,25 @@ PanelWindow {
 
 		Keys.onPressed: function(event) {
 			switch (event.key) {
+			// The arrows and hjkl are the same four moves, so the menu is driven
+			// the way every other list in this shell is.
 			case Qt.Key_Down:
+			case Qt.Key_J:
 				menu.move(1)
 				event.accepted = true
 				break
 			case Qt.Key_Up:
+			case Qt.Key_K:
 				menu.move(-1)
 				event.accepted = true
 				break
 			case Qt.Key_Right:
+			case Qt.Key_L:
 				menu.activateFocused()
 				event.accepted = true
 				break
 			case Qt.Key_Left:
+			case Qt.Key_H:
 				menu.ascend()
 				event.accepted = true
 				break
@@ -441,14 +705,21 @@ PanelWindow {
 	Row {
 		id: cascade
 
+		// Growing leftwards, the menu itself is the rightmost column -- the one
+		// beside (or under) the icon -- and its submenus open to its left: see
+		// growsLeft for which edges do that.
+		layoutDirection: menu.growsLeft ? Qt.RightToLeft : Qt.LeftToRight
+
 		onImplicitWidthChanged: menu.noteCascadeWidth(implicitWidth)
 
 		x: Math.max(Theme.marginSide,
-			Math.min(menu.desiredX, menu.width - Math.max(cascade.implicitWidth, menu.cascadeMaxWidth) - Theme.marginSide))
+			Math.min(menu.desiredX, menu.width - menu.placementWidth - Theme.marginSide))
 		y: Math.max(Theme.marginSide,
-			Math.min(menu.desiredY, menu.height - cascade.implicitHeight - Theme.marginSide))
+			Math.min(menu.desiredY, menu.height - menu.menuColumnHeight - Theme.marginSide))
 
 		Repeater {
+			id: columnRepeater
+
 			model: menu.depth
 
 			// One column, drawn as its own rounded box: the cascade reads as a
@@ -526,9 +797,18 @@ PanelWindow {
 				implicitWidth: Math.min(box.width, Theme.trayMenuMaxWidth)
 				implicitHeight: box.height
 
-				// Stepped down to line its top up with the row that opened it.
+				// Stepped down to line its top up with the row that opened it, or
+				// up from it when it would not fit below: see columnTopOffset.
+				//
+				// Only the column moves, never the cascade. Sliding the menu
+				// column to make room would put a different row under the
+				// pointer, and a row without children closes the submenu it was
+				// meant to open, so the two of them would flicker.
+				readonly property real drawnTopOffset:
+					menu.columnTopOffset(column.level, box.height)
+
 				transform: Translate {
-					y: menu.columnTopOffset(column.level)
+					y: column.drawnTopOffset
 				}
 
 				// Chrome, drawn the way the bar, the tooltips and the OSD draw
@@ -760,12 +1040,8 @@ PanelWindow {
 									return
 								}
 								// The DBusMenu "clicked" event, the same one the
-								// platform menu sends. The application answers by
-								// doing the thing and, for a toggle, by publishing
-								// a new layout.
-								if (row.entry.sendTriggered)
-									row.entry.sendTriggered()
-								menu.dismiss()
+								// platform menu sends, and the close that follows it.
+								menu.activateEntry(row.entry)
 							}
 						}
 					}

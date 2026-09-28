@@ -1,0 +1,22 @@
+name = "system/setup/bar"
+name_pretty = "System → Setup → Bar"
+icon = "󱔓"
+
+# The bar itself: which edge of the screen it is on, and which of its modules are
+# switched on. Both are saved in ~/.local/state/cypher-shell/bar.json on this
+# machine, and both are also reachable by dragging the bar to an edge -- the drag
+# and these menus are two ways into the same setting, so they cannot disagree.
+#
+# The modules are switched rather than listed: a module that is off is not on the
+# bar at all, which is the point of an entry here.
+[[entries]]
+text = "Position"
+icon = "󰁁 "
+actions = { "default" = "cypher-menu -m menus:system/setup/bar/position --width 250" }
+weight = 100
+
+[[entries]]
+text = "Toggle"
+icon = "󰔡 "
+actions = { "default" = "cypher-menu -m menus:system/setup/bar/toggle --width 250" }
+weight = 90

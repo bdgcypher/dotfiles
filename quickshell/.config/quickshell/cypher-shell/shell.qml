@@ -28,11 +28,40 @@ ShellRoot {
 		id: sharedPalette
 	}
 
+	// Where the bar is and what it shows. One object for the whole shell, because
+	// the bar is the same bar on every monitor: an edge or a switched-off module
+	// applies to all of them, and the drag that moves it is a change to that one
+	// setting.
+	BarState {
+		id: barState
+	}
+
+	// The one thing about the tray that is not per-monitor: a request to pop its
+	// panel out, which the launcher's System -> Setup -> System Tray entry makes.
+	// See TrayState for why it cannot live on the panel itself.
+	TrayState {
+		id: trayState
+	}
+
 	Variants {
 		model: Quickshell.screens
 		delegate: Component {
 			Bar {
+				state: barState
+				tray: trayState
 				notifications: notifState
+			}
+		}
+	}
+
+	// The ghost of the bar, drawn on the monitor the pointer is on while a drag is
+	// live. One per screen, like the bar itself, and only the dragged one draws.
+	Variants {
+		model: Quickshell.screens
+		delegate: Component {
+			BarDragPreview {
+				state: barState
+				pal: sharedPalette
 			}
 		}
 	}

@@ -47,10 +47,11 @@ BarItem {
 	glyph: !present ? "" : icon
 	suffix: (!present || full) ? "" : " " + capacity + "%"
 
-	// style.css: #battery { min-width: 12px; margin: 0 7.5px }
+	// style.css: #battery { min-width: 12px; margin: 0 7.5px }. The min-width
+	// carries over; the margin is the cluster's -- see BluetoothIndicator.
 	minWidth: 12
-	marginLeft: 7.5
-	marginRight: 7.5
+	marginLeft: 6
+	marginRight: 6
 
 	// battery: "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%" and
 	// "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%". A full pack is
@@ -59,6 +60,11 @@ BarItem {
 	tooltipText: !present ? "" : (power.toFixed(1) + "W" + ((charging || full) ? "↑ " : "↓ ") + capacity + "%")
 
 	onClicked: Quickshell.execDetached(["cypher-menu", "-m", "menus:system/power", "--width", "250"])
+	// Right click is the power *profile* rather than the power menu the left
+	// click already opens: the two answer different questions, and the profile
+	// is the one with nowhere else to live on the bar. Same command as the
+	// launcher's System → Setup → Power Profile entry.
+	onRightClicked: Quickshell.execDetached(["ghostty", "--class=floating.Power", "-e", "power-profile"])
 
 	function bandFor(ladder) {
 		var band = Math.floor(capacity / 10);

@@ -446,3 +446,8 @@ actions = { "default" = "cypher-menu --close" }
 text = "Youtube Music                              →          SUPER + SHIFT + M"
 icon = ""
 actions = { "default" = "cypher-menu --close" }
+
+[[entries]]
+text = "Bar keyboard                               →          SUPER + B"
+icon = ""
+actions = { "default" = "cypher-bar keyboard on" }

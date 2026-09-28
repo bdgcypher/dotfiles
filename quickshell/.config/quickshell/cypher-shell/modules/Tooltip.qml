@@ -36,6 +36,11 @@ PopupWindow {
 	// waybar's `"tooltip": false` modules amount to.
 	property string text: ""
 
+	// Which edge of the screen the bar is on. A tooltip is placed off the far
+	// side of its module, so the edge is what says which side that is: below on a
+	// top bar, above on a bottom one, and beside it on a vertical one.
+	property string edge: "top"
+
 	// Whether the pointer is over the module.
 	property bool hovered: false
 
@@ -90,33 +95,41 @@ PopupWindow {
 	visible: wanted && armed
 	color: "transparent"
 
-	// The placement pair that puts a popup directly below the module, centred on
-	// it: `edges` is the edge of the module's rectangle the tooltip attaches to,
-	// and `gravity` is the direction it extends from there. (The two read as if
-	// they should be swapped, but this is the pair a scratch shell measured as
-	// landing under the anchor with its top edge flush with the anchor's bottom.)
+	// The placement pair that puts a popup directly off one side of the module,
+	// centred on it: `edges` is the edge of the module's rectangle the tooltip
+	// attaches to, and `gravity` is the direction it extends from there. (The two
+	// read as if they should be swapped, but this is the pair a scratch shell
+	// measured as landing under the anchor with its top edge flush with the
+	// anchor's bottom.)
 	//
 	// Anchoring to the item rather than to a coordinate is what makes this need
 	// no arithmetic: the compositor knows where the module is, so the bar's
-	// surface offset never has to be translated into screen space.
+	// surface offset never has to be translated into screen space -- which is
+	// what lets the same pair follow the bar to any edge.
 	anchor.item: target
-	anchor.edges: Edges.Bottom
-	anchor.gravity: Edges.Bottom
+	anchor.edges: tip.edge === "bottom" ? Edges.Top : (tip.edge === "left" ? Edges.Right : (tip.edge === "right" ? Edges.Left : Edges.Bottom))
+	anchor.gravity: anchor.edges
 
-	// Only sliding. GTK also flips a tooltip that cannot fit below its widget,
-	// but above the top bar is off-screen, so for the last row of modules a
-	// flip would trade a clipped tooltip for an invisible one.
+	// Only sliding. GTK also flips a tooltip that cannot fit off the far side of
+	// its widget, but for a tooltip there is nothing on the other side to flip
+	// into: past the top bar is off-screen, and on a vertical bar the other side
+	// is the bar's own 6px margin. A flip would trade a clipped tooltip for an
+	// invisible one, so the bar keeps its tooltips sliding along the edge they
+	// already point off.
 	anchor.adjustment: PopupAdjustment.Slide
 
 	// The gap between the module and the tooltip. GTK leaves the same few pixels
-	// of air, and without it the tooltip's top border would sit right against the
-	// bar's own bottom border and read as part of it.
+	// of air, and without it the tooltip's border would sit right against the
+	// bar's own border and read as part of it.
 	//
-	// Negative because a margin shrinks the anchor rectangle: a positive bottom
-	// margin pulls the reference edge *up*, so the tooltip would climb into the
-	// bar. Measured in the scratch shell before it was used here -- +10 moved the
-	// popup 10px up, -10 moved it 10px down.
-	anchor.margins.bottom: -Theme.tooltipGap
+	// Negative because a margin shrinks the anchor rectangle: a positive margin on
+	// the edge being attached to pulls the reference edge *back*, so the tooltip
+	// would climb into the bar. Measured in the scratch shell before it was used
+	// here -- +10 moved the popup 10px up, -10 moved it 10px down.
+	anchor.margins.top: tip.edge === "bottom" ? -Theme.tooltipGap : 0
+	anchor.margins.bottom: tip.edge === "top" ? -Theme.tooltipGap : 0
+	anchor.margins.left: tip.edge === "right" ? -Theme.tooltipGap : 0
+	anchor.margins.right: tip.edge === "left" ? -Theme.tooltipGap : 0
 
 	// The box's own padding plus its border, on each side.
 	readonly property real insetX: Theme.tooltipPaddingX + Theme.tooltipBorderWidth

@@ -38,10 +38,12 @@ BarItem {
 	// object, so the bell and the client report one wording.
 	tooltipText: state ? state.tooltip : ""
 
-	// style.css: #custom-notification { min-width: 12px; margin: 0 5px }
+	// style.css: #custom-notification { min-width: 12px; margin: 0 5px }. The
+	// min-width carries over; the 5px margin becomes the cluster's margin, so the
+	// steps around the bell match the ones around the other indicators.
 	minWidth: 12
-	marginLeft: 5
-	marginRight: 5
+	marginLeft: 6
+	marginRight: 6
 
 	// Left click opens the control centre, right click toggles do-not-disturb --
 	// what `swaync-client -t` and `-d` did from waybar's on-click/on-click-right.

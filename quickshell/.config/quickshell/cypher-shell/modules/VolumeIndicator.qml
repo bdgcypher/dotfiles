@@ -24,15 +24,22 @@ BarItem {
 	// mute or not, which is what waybar reports there.
 	tooltipText: "Volume: " + Math.round(volume * 100) + "%"
 
-	// style.css: #pulseaudio { min-width: 12px; margin: 0 7.5px }
+	// style.css: #pulseaudio { min-width: 12px; margin: 0 7.5px }. The min-width
+	// carries over; the margin is the cluster's -- see BluetoothIndicator.
 	minWidth: 12
-	marginLeft: 7.5
-	marginRight: 7.5
+	marginLeft: 6
+	marginRight: 6
 
-	onClicked: Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
+	// All three go through volume-boost, which is what the volume keys use --
+	// and that is the point of sharing it rather than calling wpctl here: one
+	// step size, one 125% ceiling to stop at, and one OSD pill for the change,
+	// whichever way the volume was moved. Calling wpctl straight from the bar
+	// left the wheel and the keys disagreeing at the top of the range, and mute
+	// from the bar said nothing on screen.
+	onClicked: Quickshell.execDetached(["volume-boost", "mute"])
 	onRightClicked: Quickshell.execDetached(["ghostty", "--class=floating.Wiremix", "-e", "wiremix"])
 	onScrolled: function(delta) {
-		Quickshell.execDetached(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", delta > 0 ? "5%+" : "5%-"]);
+		Quickshell.execDetached(["volume-boost", delta > 0 ? "up" : "down"]);
 	}
 
 	// Without this the sink's volume/muted properties are not bound, so the bar

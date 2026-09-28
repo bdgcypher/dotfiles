@@ -1,5 +1,6 @@
 -- App-specific tweaks (window/layer rules per application)
 
+require("apps.bar")
 require("apps.bitwarden")
 require("apps.browser")
 require("apps.hyprshot")

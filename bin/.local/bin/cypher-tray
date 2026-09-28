@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# cypher-tray -- bring the tray's icon panel out with the keyboard.
+#
+#   cypher-tray open     pop the tray out on the screen you are looking at
+#
+# The tray is a bar module, and hovering its caret is still how it is normally
+# reached: the panel comes up for the pointer, the pointer picks an icon, and it
+# folds away when the pointer leaves. This is the other way in, which is the one
+# the launcher's System -> Setup -> System Tray entry takes. The panel comes up
+# on the monitor the launcher was on and takes the keyboard, so:
+#
+#   arrows, or hjkl      move between icons
+#   enter, or space      the focused icon's menu -- every item's "open" lives in
+#                        there, so the menu is the useful place to land
+#   escape               close the icon's menu; from the grid, close the panel
+#
+# An icon with no menu at all gets its click instead, since it has nothing else
+# to offer.
+#
+# The launcher closes before it runs its action, so by the time this speaks to
+# the shell the launcher is already gone and the panel has the screen to itself.
+
+set -uo pipefail
+
+SHELL_ID="cypher-shell"
+IPC_TARGET="tray"
+
+usage() {
+	cat >&2 <<'EOF'
+usage:
+  cypher-tray open     pop the tray out with the keyboard: arrows or hjkl move
+                       between the icons, enter or space opens the focused
+                       icon's menu, escape closes it again
+EOF
+}
+
+# ── talking to the shell ─────────────────────────────────────────────────────
+
+# Delivers one call and prints whatever the shell answered. `qs ipc` exits
+# non-zero and starts nothing when no instance of the shell is running, but a
+# missing IPC target is reported as text with exit 0, so the output is checked
+# as well.
+ipc() {
+	local out
+	out=$(qs ipc -c "$SHELL_ID" call "$IPC_TARGET" "$@" 2>&1) || return 1
+	case "$out" in
+	*"Target not found"* | *"Could not find"* | *"No running instances"* | *"Too few arguments"*) return 1 ;;
+	esac
+	printf '%s' "$out"
+	return 0
+}
+
+# The panel is the shell's to draw, so when the shell is not answering there is
+# nothing to fall back to.
+no_shell() {
+	echo "cypher-tray: cypher-shell is not running (try 'cypher-shell start')" >&2
+	exit 1
+}
+
+# ── entry ────────────────────────────────────────────────────────────────────
+
+case "${1:-}" in
+open) ipc open >/dev/null || no_shell ;;
+"" | -h | --help) usage ;;
+*)
+	echo "cypher-tray: unknown command '$1'" >&2
+	usage
+	exit 2
+	;;
+esac

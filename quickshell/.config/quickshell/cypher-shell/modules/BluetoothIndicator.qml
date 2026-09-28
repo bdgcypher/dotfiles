@@ -16,8 +16,13 @@ BarItem {
 
 	readonly property bool ready: adapter !== null && adapter.enabled
 
-	// style.css: #bluetooth { margin-right: 17px }
-	marginRight: 17
+	// Every indicator carries the same margin either side, so the steps between
+	// them all come out the same -- 6px on each side measures 24px of clear space
+	// between the icons. waybar's #bluetooth margin-right: 17px is not carried
+	// over: it made up for a wider icon box there, and here it only pushed this
+	// icon away from the wifi one.
+	marginLeft: 6
+	marginRight: 6
 
 	// waybar gives every other state an empty format string -- "" powered on with
 	// nothing connected, "" disabled, "" no controller -- so the module only ever

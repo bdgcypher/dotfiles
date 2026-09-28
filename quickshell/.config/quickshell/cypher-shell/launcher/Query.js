@@ -27,6 +27,9 @@ var PLACEHOLDERS = {
 	"menus:system/config": "  Config...",
 	"menus:system/keybinds": "  Keybinds...",
 	"menus:system/setup": "  Setup...",
+	"menus:system/setup/bar": "  Bar...",
+	"menus:system/setup/bar/position": "  Bar Position...",
+	"menus:system/setup/bar/toggle": "  Bar Toggle...",
 	"menus:system/install": "  Install...",
 	"menus:system/remove": "  Remove..."
 };

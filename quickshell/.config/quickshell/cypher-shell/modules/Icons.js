@@ -19,6 +19,15 @@ var wsActive = "\uDB85\uDCFB" // U+F14FB  nf-md-circle-medium
 var dirHorizontal = "\uDB81\uDCE1" // U+F04E1  nf-md-arrow_split_horizontal
 var dirVertical = "\uDB81\uDCE2" // U+F04E2  nf-md-arrow_split_vertical
 
+// group/tray-expander, for the launcher's menu entry rather than the bar itself.
+var tray = "\uDB84\uDE94" // U+F1294  nf-md-tray
+
+// The four edges, for the launcher's Bar → Position entries.
+var arrowUp = "\uDB80\uDC5D" // U+F005D  nf-md-arrow_up
+var arrowDown = "\uDB80\uDC45" // U+F0045  nf-md-arrow_down
+var arrowLeft = "\uDB80\uDC4D" // U+F004D  nf-md-arrow_left
+var arrowRight = "\uDB80\uDC54" // U+F0054  nf-md-arrow_right
+
 // custom/update
 var updates = "\uF2F1" // U+F2F1   nf-fa-rotate
 // custom/voxtype
