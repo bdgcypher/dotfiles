@@ -4,7 +4,7 @@
 # hicolor is the theme every lookup ends in, and a per-user hicolor is read
 # before the system one -- so this file decides what "the last resort" means. Qt
 # lands here by default (QT_QPA_PLATFORMTHEME=qt6ct with no qt6ct.conf leaves
-# QIcon's theme at hicolor), which is why cypher-shell's application list drew
+# QIcon's theme at hicolor), which is why hayami-shell's application list drew
 # nothing for Icon=printer, Icon=network-wired, Icon=system-file-manager and the
 # rest, while GTK apps -- pointed at oomox-pywal by gtk-icon-theme-name -- showed
 # them. GTK was right and Qt was wrong; this makes hicolor agree with GTK.

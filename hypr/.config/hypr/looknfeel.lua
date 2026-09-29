@@ -8,7 +8,7 @@
 -- exclusive zone, which is how this desktop has always done it -- the top gap
 -- here used to be `monitor=,addreserved,40,0,0,0`.
 --
--- Where the bar is lives in the state cypher-shell writes, so this reads it
+-- Where the bar is lives in the state hayami-shell writes, so this reads it
 -- rather than hard-coding an edge. That is what keeps a reload honest: reload
 -- the config and the reservation is recomputed for wherever the bar actually
 -- is, instead of snapping back to the top.
@@ -26,7 +26,7 @@ local BAR_CLEARANCE = 8
 local SIDE_GAP = 12 -- the other three edges keep the plain window gap
 
 local function bar_edge()
-    local file = io.open(os.getenv("HOME") .. "/.local/state/cypher-shell/bar.json", "r")
+    local file = io.open(os.getenv("HOME") .. "/.local/state/hayami-shell/bar.json", "r")
     if not file then
         return "top"
     end
@@ -40,11 +40,11 @@ local function bar_edge()
     return "top"
 end
 
--- Global on purpose. `hyprctl eval "cypher_bar_gaps('left')"` is how cypher-shell
+-- Global on purpose. `hyprctl eval "hayami_bar_gaps('left')"` is how hayami-shell
 -- applies a move the moment it happens -- no reload, no waiting -- so this call
 -- and the one below share one definition of the numbers rather than each keeping
 -- its own copy. With no argument it reads the saved edge.
-function cypher_bar_gaps(edge)
+function hayami_bar_gaps(edge)
     if edge ~= "top" and edge ~= "bottom" and edge ~= "left" and edge ~= "right" then
         edge = bar_edge()
     end
@@ -57,7 +57,7 @@ function cypher_bar_gaps(edge)
     hl.config({ general = { gaps_out = gaps } })
 end
 
-cypher_bar_gaps()
+hayami_bar_gaps()
 
 hl.config({
     general = {

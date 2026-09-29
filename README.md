@@ -1,50 +1,62 @@
 # Arch Linux Dotfiles
 
-Automated Arch Linux configuration and personalization system using GNU Stow.
+My personal Arch Linux setup, kept as a set of configs managed by GNU Stow. Hyprland window management, a Quickshell bar and menus, wallpaper-driven theming, and an install script that takes a fresh Arch install to a fully custom working environment.
 
-## Installation (Arch)
+## Features
 
-Begin with a base Arch Linux ISO. Upon completion, run `archinstall` to begin basic configuration.
+- **Quickshell** — the whole desktop chrome in one process: bar, launcher, notifications and OSD. The bar can be dragged to any screen edge, every module can be toggled on/off, and the bar itself is keyboard-navigable.
+- **Hyprland** — tiling compositor configured in Lua, with scrolling layout and the `hyprland-scroll-overview` plugin for a workspace overview.
+- **Dynamic theming** — colours are generated from the current wallpaper with pywal and applied across GTK apps, terminals, and the rest of the shell. Switch wallpapers or light/dark mode from the launcher.
+- **Local dictation** — Voxtype runs Whisper on the GPU (Vulkan) with voice-activity detection, toggled with `SUPER + D`.
+- **Automated, idempotent install** — every config is symlinked with GNU Stow and existing files are backed up first. Safe to run again on any machine.
+- **Hibernation-ready** — creates a Btrfs swap file sized to your RAM and wires up suspend-then-hibernate (on battery, hibernates after 15 min; on AC, suspends only).
+- **Polished boot** — Limine bootloader, Plymouth splash, and SDDM autologin straight into a custom hyprlock lockscreen.
 
-### Archinstall Configuration
+## Installation
 
-Before installing dotfiles, configure `archinstall` with the following settings:
+### 1. Base install
 
-- Disk: Btrfs (Default Subvolume Layout)
-- Bootloader: Limine
-- Snapshots: Snapper
-- Hostname: (custom)
-- Swap on zram: Yes
-- Auth: Set root password and default user (with sudo)
-- Network: Network Manager (default backend)
-- Applications: Bluetooth - yes, Audio - Pipewire, Print service - yes
-- Mirrors: US
-- Additional Repositories: multilib
-- Additional Packages: git, base-devel, stow, btrfs-progs
+Start from the Arch Linux ISO and launch `archinstall`, using the following settings:
 
-Once configuration is complete, install and reboot.
+| Setting | Value |
+| --- | --- |
+| Disk | Btrfs (default subvolume layout) |
+| Bootloader | Limine |
+| Snapshots | Snapper |
+| Hostname | your choice |
+| Swap on zram | Yes |
+| Auth | set root password and a user with sudo |
+| Network | NetworkManager (default backend) |
+| Applications | Bluetooth: yes, Audio: PipeWire, Print service: yes |
+| Mirrors | US |
+| Additional repositories | multilib |
+| Additional packages | `git base-devel stow btrfs-progs` |
 
-### Dotfiles Installation
+Finish the install and reboot into the base system.
 
-After installing a minimal Arch Linux base (via `archinstall`) with `git`, `base-devel`, and `stow` pre-installed:
+### 2. Install the dotfiles
+
+Log in as your user and run:
 
 ```bash
-git clone https://github.com/bdgcypher/dotfiles.git ~/.dotfiles && cd ~/.dotfiles
-
+git clone https://github.com/bdgcypher/dotfiles.git ~/.dotfiles
+cd ~/.dotfiles
 chmod +x ./install.sh
-
 ./install.sh
 ```
 
-## Features
-- **Idempotent Installation:** Safe to run multiple times on any machine.
-- **Hardware-Aware Swap:** Automatically creates a Btrfs swap file sized to your machine's RAM for hibernation support.
-- **System-Level Tweak Automation:**
-    - SDDM Autologin (Hyprland-uwsm)
-    - Plymouth Splash Screen (`arch-charge`)
-    - Suspend-then-Hibernate (battery: suspend, then hibernate after 15min; AC: suspend only, plus `HandleLidSwitch` wiring in `system/etc/systemd/logind.conf.d`)
-    - Limine Bootloader management
-    - Tailscale Mesh VPN
-- **Local Dictation (Voxtype):** Whisper `small.en` on the Vulkan/iGPU backend, toggled with `SUPER+D`, which shows a SwayOSD start/stop pill like the screen recorder (`voxtype-dictate`). Silero VAD drops silent or mis-pressed recordings so Whisper cannot hallucinate text at your cursor. The whisper model, VAD model, and hotkey settings are ensured by `scripts/stow_configs.sh`.
-- **Hyprland Plugin Guard:** Detects when the running Hyprland was upgraded mid-session - its binary is `(deleted)`, so it cannot load plugins at all and `hyprpm` still reports success - and says up front that a restart is required, instead of finishing an install whose plugin setup never took effect.
-- **Conflict Management:** Backs up existing configs before stowing.
+Choose **Full Install** and follow the prompts. The script installs packages, stows the configs, sets up GPU drivers and system services, applies the timezone, and starts the shell. Reboot when it finishes.
+
+## Install script options
+
+Running `./install.sh` again later gives you these modes:
+
+| Option | What it does |
+| --- | --- |
+| Full Install | Everything: packages, services, configs |
+| Update Only | Update packages and re-stow configs |
+| System Only | Re-apply the sudo-level system services |
+| GPU Driver Setup | Detect and configure Intel/AMD/NVIDIA drivers |
+| Audio Setup | Set the default audio output |
+| Timezone Setup | Set the system timezone |
+| Repair | Restore dotfiles to match the repo |

@@ -1,0 +1,246 @@
+#!/usr/bin/env bash
+# hayami-shell - start, stop and inspect the Quickshell desktop shell.
+#
+#   hayami-shell start     launch the shell if it is not already running
+#   hayami-shell stop      stop it
+#   hayami-shell restart   stop, then start
+#   hayami-shell reload    re-read the config (see below)
+#   hayami-shell status    report what is running (exit 1 when stopped)
+#   hayami-shell logs      follow the running instance's log
+#
+# The shell is the whole desktop chrome: the bar, the launcher, notifications and
+# the OSD. There is no second stack to hand over to any more, so stopping it
+# leaves the session with no bar until you start it again -- which is also why
+# `stop` says so.
+#
+# `reload` is a restart on purpose. Quickshell watches its own config files and
+# reloads a changed .qml by itself, so the common case needs nothing; this verb
+# exists for the case that does -- a restow that replaced files, a palette that
+# was regenerated, a QML change the watcher missed -- where re-reading the whole
+# config from scratch is the point.
+
+set -uo pipefail
+
+SHELL_ID="hayami-shell"
+SHELL_DIR="$HOME/.config/quickshell/$SHELL_ID"
+
+RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+NOTIFY_NAME="org.freedesktop.Notifications"
+
+# ── what is running ──────────────────────────────────────────────────────────
+
+# True when $1 is the `qs -c hayami-shell` process itself.
+#
+# Checking the argv *array* rather than grepping the whole command line matters:
+# `pkill -f -- "-c hayami-shell"` also matches a shell or editor whose command
+# line merely quotes those words, so running this from a terminal that had
+# `qs ipc -c hayami-shell ...` on it would kill that terminal.
+qs_is_shell() {
+	local raw
+	raw=$(tr '\0' '\n' <"/proc/$1/cmdline" 2>/dev/null) || return 1
+
+	local -a argv=()
+	mapfile -t argv <<<"$raw"
+
+	# argv[0] has to be qs itself, not a shell that mentions it.
+	[ "${argv[0]##*/}" = qs ] || return 1
+
+	local i
+	for ((i = 1; i < ${#argv[@]} - 1; i++)); do
+		if [ "${argv[i]}" = "-c" ] && [ "${argv[i + 1]}" = "$SHELL_ID" ]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+shell_pids() {
+	local pid
+	for pid in $(pgrep -x qs 2>/dev/null); do
+		qs_is_shell "$pid" && echo "$pid"
+	done
+}
+
+is_running() { [ -n "$(shell_pids)" ]; }
+
+# Who owns org.freedesktop.Notifications, by process name: "qs" when the shell
+# has it, "" when nobody does. A running shell that does not hold this name
+# cannot show notifications at all, which is the one failure the bar gives no
+# visible clue about.
+notify_owner() {
+	local pid
+	pid=$(busctl --user list 2>/dev/null | awk -v n="$NOTIFY_NAME" '$1 == n { print $2 }')
+	[ -n "$pid" ] || return 0
+	ps -o comm= -p "$pid" 2>/dev/null
+}
+
+# ── start / stop ─────────────────────────────────────────────────────────────
+
+do_start() {
+	[ -d "$SHELL_DIR" ] || {
+		echo "hayami-shell: $SHELL_DIR not found (is the quickshell package stowed?)" >&2
+		return 1
+	}
+
+	if ! command -v qs >/dev/null 2>&1; then
+		echo "hayami-shell: qs not found (install the quickshell package)" >&2
+		return 1
+	fi
+
+	if is_running; then
+		echo "hayami-shell: already running (pid $(shell_pids | tr '\n' ' '))" >&2
+		return 0
+	fi
+
+	setsid qs -c "$SHELL_ID" >/dev/null 2>&1 </dev/null &
+
+	# Wait for the process, not for the bar: the notification name can only be
+	# taken once the shell is actually running.
+	local i
+	for i in $(seq 1 40); do
+		is_running && break
+		sleep 0.25
+	done
+
+	if ! is_running; then
+		echo "hayami-shell: the shell did not come up" >&2
+		return 1
+	fi
+
+	# It has to own the notification name before notify-send can reach it, and
+	# registration happens a moment after the process exists.
+	for i in $(seq 1 40); do
+		[ "$(notify_owner)" = qs ] && break
+		sleep 0.25
+	done
+
+	if [ "$(notify_owner)" != qs ]; then
+		echo "hayami-shell: warning: $NOTIFY_NAME is not held by the shell" >&2
+		return 0
+	fi
+
+	echo "hayami-shell: started (pid $(shell_pids | tr '\n' ' '))" >&2
+	return 0
+}
+
+do_stop() {
+	local pids
+	pids=$(shell_pids)
+
+	if [ -z "$pids" ]; then
+		echo "hayami-shell: not running" >&2
+		return 0
+	fi
+
+	local pid
+	for pid in $pids; do
+		kill "$pid" >/dev/null 2>&1 || true
+	done
+
+	# TERM is enough -- the shell exits cleanly -- so KILL is only for a process
+	# that is still there after a fair wait.
+	local i
+	for i in $(seq 1 20); do
+		is_running || break
+		sleep 0.25
+	done
+
+	if is_running; then
+		for pid in $(shell_pids); do
+			kill -9 "$pid" >/dev/null 2>&1 || true
+		done
+		sleep 0.25
+	fi
+
+	is_running && {
+		echo "hayami-shell: could not stop the shell" >&2
+		return 1
+	}
+
+	echo "hayami-shell: stopped (the bar, launcher, notifications and OSD are gone)" >&2
+	return 0
+}
+
+do_status() {
+	local pids
+	pids=$(shell_pids)
+
+	printf 'shell:     %s\n' "$SHELL_ID"
+	if [ -n "$pids" ]; then
+		printf 'state:     running (pid %s)\n' "$(echo $pids | tr ' ' ',')"
+	else
+		printf 'state:     stopped\n'
+	fi
+	local owner
+	owner=$(notify_owner)
+	printf 'notify:    %s\n' "${owner:-(nobody)}"
+	printf 'config:    %s\n' "$SHELL_DIR"
+
+	if [ -n "$pids" ] && [ "$(notify_owner)" != qs ]; then
+		echo "hayami-shell: warning: the shell is up but does not own $NOTIFY_NAME" >&2
+	fi
+
+	[ -n "$pids" ]
+}
+
+do_logs() {
+	local log
+	# The running instance's own log first; its directory is keyed by pid.
+	local pid
+	pid=$(shell_pids | head -n1)
+	[ -n "$pid" ] && log="$RUNTIME_DIR/quickshell/by-pid/$pid/log.qslog"
+
+	if [ ! -r "$log" ]; then
+		log=$(ls -t "$RUNTIME_DIR"/quickshell/by-id/*/log.qslog 2>/dev/null | head -n1)
+	fi
+
+	if [ -z "$log" ] || [ ! -r "$log" ]; then
+		echo "hayami-shell: no log found under $RUNTIME_DIR/quickshell" >&2
+		return 1
+	fi
+
+	echo "hayami-shell: $log" >&2
+	tail -f "$log"
+}
+
+# ── entry ────────────────────────────────────────────────────────────────────
+
+usage() {
+	cat >&2 <<'EOF'
+usage: hayami-shell {start|stop|restart|reload|status|logs}
+
+  start     launch the shell if it is not already running
+  stop      stop the shell (the bar, launcher, notifications and OSD go away)
+  restart   stop, then start
+  reload    re-read the config from scratch (a restart; see the header)
+  status    report what is running, exit 1 when stopped
+  logs      follow the running instance's log
+EOF
+}
+
+case "${1:-}" in
+start)
+	do_start
+	;;
+stop)
+	do_stop
+	;;
+restart | reload)
+	do_stop && do_start
+	;;
+status)
+	do_status
+	;;
+logs)
+	do_logs
+	;;
+"" | -h | --help)
+	usage
+	[ -n "${1:-}" ] || exit 1
+	;;
+*)
+	echo "hayami-shell: unknown command '$1'" >&2
+	usage
+	exit 1
+	;;
+esac

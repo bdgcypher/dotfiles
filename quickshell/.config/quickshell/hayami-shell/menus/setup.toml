@@ -1,0 +1,69 @@
+name = "system/setup"
+name_pretty = "System → Setup"
+icon = ""
+
+[[entries]]
+text = "Audio"
+icon = "󰕾 "
+actions = { "default" = "ghostty --class=floating.Wiremix -e wiremix" }
+weight = 100
+
+[[entries]]
+text = "Bar"
+icon = "󱔓 "
+actions = { "default" = "hayami-menu -m menus:system/setup/bar --width 250" }
+weight = 97
+
+[[entries]]
+text = "Bluetooth"
+icon = "󰂯 "
+actions = { "default" = "ghostty --class=floating.Bluetui -e bluetui" }
+weight = 95
+
+[[entries]]
+text = "Edit Keybinds"
+icon = "󰌌 "
+actions = { "default" = "ghostty --class=floating.Ghostty -e bash -i -c 'cd $HOME/.config/hypr/bindings && y'" }
+weight = 90
+
+[[entries]]
+text = "Monitors"
+icon = "󰍹 "
+actions = { "default" = "ghostty --class=floating.Config -e nvim $HOME/.config/hypr/monitors.lua" }
+weight = 85
+
+[[entries]]
+text = "Notifications"
+icon = "󰂜 "
+actions = { "default" = "hayami-notify -t -sw" }
+weight = 80
+
+[[entries]]
+text = "Power Profile"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Power -e power-profile" }
+weight = 77
+
+[[entries]]
+text = "Resource Monitor"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Btop -e btop" }
+weight = 75
+
+[[entries]]
+text = "System Tray"
+icon = "󱊔 "
+actions = { "default" = "hayami-tray open" }
+weight = 72
+
+[[entries]]
+text = "WiFi"
+icon = "󰤨 "
+actions = { "default" = "ghostty --class=floating.Gazelle -e gazelle" }
+weight = 70
+
+[[entries]]
+text = "Window Rules"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Config -e nvim $HOME/.config/hypr/windows.lua" }
+weight = 65

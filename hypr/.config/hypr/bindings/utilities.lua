@@ -1,16 +1,16 @@
 -- Menus
 --
--- These go through `cypher-menu`, which drives the quickshell launcher over its
+-- These go through `hayami-menu`, which drives the quickshell launcher over its
 -- IPC socket. The flag names came from walker, which the launcher replaced, so
 -- the bindings stayed as they were.
 
-hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("cypher-menu --width 250"), { description = "Launch apps" })
+hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("hayami-menu --width 250"), { description = "Launch apps" })
 
-hl.bind("SUPER + PERIOD", hl.dsp.exec_cmd("cypher-menu -m emoji --width 400"), { description = "Emoji picker" })
+hl.bind("SUPER + PERIOD", hl.dsp.exec_cmd("hayami-menu -m emoji --width 400"), { description = "Emoji picker" })
 
 hl.bind("XF86Calculator", hl.dsp.exec_cmd(terminal .. " --class=floating.Calculator --keybind=escape=close_surface -e calculator"), { description = "Calculator" })
 
-hl.bind("SUPER + K", hl.dsp.exec_cmd("cypher-menu -m menus:system/keybinds --theme keybinds --width 780"), { description = "Keybinds Overview" })
+hl.bind("SUPER + K", hl.dsp.exec_cmd("hayami-menu -m menus:system/keybinds --theme keybinds --width 780"), { description = "Keybinds Overview" })
 
 hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd(terminal .. " --class=floating.About -e sh -c 'fastfetch; exec $SHELL'"), { description = "About" })
 
@@ -46,29 +46,29 @@ hl.bind(
 
 -- Notifications
 --
--- These go through `cypher-notify`, which drives the shell's own notification
+-- These go through `hayami-notify`, which drives the shell's own notification
 -- server over its IPC socket. The flag names came from swaync-client, which the
 -- server replaced, so the bindings stayed as they were.
 
-hl.bind("SUPER + CTRL + N", hl.dsp.exec_cmd("cypher-notify -t -sw"), { description = "Open notification center" })
+hl.bind("SUPER + CTRL + N", hl.dsp.exec_cmd("hayami-notify -t -sw"), { description = "Open notification center" })
 
-hl.bind("SUPER + COMMA", hl.dsp.exec_cmd("cypher-notify -a -sw"), { description = "Trigger most recent notification" })
+hl.bind("SUPER + COMMA", hl.dsp.exec_cmd("hayami-notify -a -sw"), { description = "Trigger most recent notification" })
 
 hl.bind(
 	"SUPER + ALT + COMMA",
-	hl.dsp.exec_cmd("cypher-notify --close-latest -sw"),
+	hl.dsp.exec_cmd("hayami-notify --close-latest -sw"),
 	{ description = "Dismiss most recent notification" }
 )
 
 hl.bind(
 	"SUPER + CTRL + COMMA",
-	hl.dsp.exec_cmd("cypher-notify --close-all -sw"),
+	hl.dsp.exec_cmd("hayami-notify --close-all -sw"),
 	{ description = "Dismiss all notifications" }
 )
 
 hl.bind(
 	"SUPER + SHIFT + COMMA",
-	hl.dsp.exec_cmd("cypher-notify -d -sw"),
+	hl.dsp.exec_cmd("hayami-notify -d -sw"),
 	{ description = "Toggle do-not-disturb mode" }
 )
 
@@ -77,7 +77,7 @@ hl.bind(
 hl.bind(
 	"SUPER + S",
 	hl.dsp.exec_cmd(
-		[[hyprshot -z -m region --clipboard-only --silent && cypher-osd --custom-message "Screenshot copied to clipboard" --custom-icon "edit-copy"]]
+		[[hyprshot -z -m region --clipboard-only --silent && hayami-osd --custom-message "Screenshot copied to clipboard" --custom-icon "edit-copy"]]
 	),
 	{ description = "Screenshot to clipboard without editing" }
 )
@@ -93,7 +93,7 @@ hl.bind("SUPER + R", hl.dsp.exec_cmd("screen-record"), { description = "Toggle s
 hl.bind(
 	"SUPER + CTRL + C",
 	hl.dsp.exec_cmd(
-		[[pkill hyprpicker || hyprpicker -a -f hex && cypher-osd --custom-message "Color copied to clipboard" --custom-icon "edit-copy"]]
+		[[pkill hyprpicker || hyprpicker -a -f hex && hayami-osd --custom-message "Color copied to clipboard" --custom-icon "edit-copy"]]
 	),
 	{ description = "Color picker" }
 )
@@ -130,9 +130,9 @@ hl.bind(
 -- draws a ring around the module they are on: arrows or hjkl move, tab and
 -- shift-tab do the same, space or enter acts on the module, `r` is the module's
 -- right-click, and escape gives the keyboard back. Pressing the key again leaves
--- too, and `cypher-bar state` reports whether the mode is on.
+-- too, and `hayami-bar state` reports whether the mode is on.
 
-hl.bind("SUPER + B", hl.dsp.exec_cmd("cypher-bar keyboard toggle"), { description = "Bar keyboard" })
+hl.bind("SUPER + B", hl.dsp.exec_cmd("hayami-bar keyboard toggle"), { description = "Bar keyboard" })
 
 -- Package Management
 
@@ -164,7 +164,7 @@ hl.bind("SUPER + D", hl.dsp.exec_cmd("voxtype-dictate"), { description = "Toggle
 
 -- Power menu
 
-hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("cypher-menu -m menus:system/power --width 250"), { description = "Power menu" })
+hl.bind("SUPER + ESCAPE", hl.dsp.exec_cmd("hayami-menu -m menus:system/power --width 250"), { description = "Power menu" })
 
 -- Lock system
 

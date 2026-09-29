@@ -1,0 +1,35 @@
+name = "system/setup/bar/position"
+name_pretty = "System → Setup → Bar → Position"
+icon = "󰁁"
+
+# Where the bar sits. The bar moves as soon as one is picked and draws its own
+# confirmation, so nothing here has to report anything.
+#
+# The order is the one the edges go round the screen in, clockwise from the top.
+# BarState lists the same four, but as the set it validates against and as what
+# the drag's nearest-edge pick searches, not as a reading order -- see its
+# `edges`. The list here is the one meant to be read top to bottom.
+
+[[entries]]
+text = "Top"
+icon = "󰁝 "
+actions = { "default" = "hayami-bar position top" }
+weight = 100
+
+[[entries]]
+text = "Left"
+icon = "󰁍 "
+actions = { "default" = "hayami-bar position left" }
+weight = 90
+
+[[entries]]
+text = "Bottom"
+icon = "󰁅 "
+actions = { "default" = "hayami-bar position bottom" }
+weight = 80
+
+[[entries]]
+text = "Right"
+icon = "󰁔 "
+actions = { "default" = "hayami-bar position right" }
+weight = 70

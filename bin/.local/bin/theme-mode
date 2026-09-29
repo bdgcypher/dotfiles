@@ -40,8 +40,8 @@ osd_default() {
   local mode
   mode="$(default_mode)"
   echo "Default mode: $mode"
-  # cypher-osd draws through the Quickshell shell.
-  cypher-osd --custom-message "Default Theme mode: $mode" --custom-icon "preferences-desktop-theme" 2>/dev/null
+  # hayami-osd draws through the Quickshell shell.
+  hayami-osd --custom-message "Default Theme mode: $mode" --custom-icon "preferences-desktop-theme" 2>/dev/null
 }
 
 VAL="$(printf '%s' "${1:-}" | tr '[:upper:]' '[:lower:]')"

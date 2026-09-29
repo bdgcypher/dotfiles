@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # Toggle the active workspace's layout between dwindle and scrolling.
 
-# On-screen overlay helper: cypher-osd draws it through the Quickshell shell.
+# On-screen overlay helper: hayami-osd draws it through the Quickshell shell.
 # notify-send is the last resort, for a session where the shell is not running at
 # all (a bare Hyprland, or the split second around a restart).
 show_osd() {
   local msg="$1"
-  if command -v cypher-osd &>/dev/null; then
-    cypher-osd --custom-message "$msg" --custom-icon "view-grid-symbolic"
+  if command -v hayami-osd &>/dev/null; then
+    hayami-osd --custom-message "$msg" --custom-icon "view-grid-symbolic"
   else
     notify-send "Workspace layout" "$msg" -i "view-grid-symbolic" -t 2000 -a "hypr-toggle-layout"
   fi

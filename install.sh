@@ -58,7 +58,7 @@ case $choice in
                 "$SCRIPTS_DIR/hyprland_restart_check.sh" || HYPRLAND_RESTART_NEEDED=1
             fi
             # Before stowing: the packages and services this removes were replaced
-            # by cypher-shell, and stow cannot unlink a package that no longer
+            # by hayami-shell, and stow cannot unlink a package that no longer
             # exists in the repo, so this clears its symlinks out of $HOME first.
             # A no-op on a machine that has already migrated.
             echo "[2/8] Retiring the pre-Quickshell stack (if present)..."
@@ -85,7 +85,7 @@ case $choice in
                 "$SCRIPTS_DIR/hyprland_restart_check.sh" || HYPRLAND_RESTART_NEEDED=1
             fi
             # See the note in the full install: this is what converts a machine
-            # still running waybar/swaync/swayosd/walker to cypher-shell alone.
+            # still running waybar/swaync/swayosd/walker to hayami-shell alone.
             echo "[2/5] Retiring the pre-Quickshell stack (if present)..."
             "$SCRIPTS_DIR/retire_legacy_stack.sh" || echo "WARNING: legacy stack retirement reported a problem, continuing..."
             echo "[3/5] Stowing dotfile configs..."

@@ -10,10 +10,10 @@ get_volume() {
     wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null | awk '{print $2}'
 }
 
-# cypher-osd is the front door for the OSD: it draws through the Quickshell
+# hayami-osd is the front door for the OSD: it draws through the Quickshell
 # shell. The volume change itself does not depend on the shell being up.
 show_osd() {
-    cypher-osd --output-volume +0 2>/dev/null
+    hayami-osd --output-volume +0 2>/dev/null
 }
 
 case "${1:-up}" in

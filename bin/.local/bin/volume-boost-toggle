@@ -50,5 +50,5 @@ case "$SELECTED" in
         ;;
 esac
 
-# Show the standard volume bar through cypher-osd.
-cypher-osd --output-volume +0 2>/dev/null
+# Show the standard volume bar through hayami-osd.
+hayami-osd --output-volume +0 2>/dev/null

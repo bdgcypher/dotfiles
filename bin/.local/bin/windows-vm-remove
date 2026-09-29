@@ -178,4 +178,4 @@ read -n 1
 hyprctl reload >/dev/null 2>&1 || true
 
 # Re-bake the launcher's menu caches so any menu edits show up immediately.
-command -v cypher-menu >/dev/null 2>&1 && cypher-menu --refresh >/dev/null 2>&1 || true
+command -v hayami-menu >/dev/null 2>&1 && hayami-menu --refresh >/dev/null 2>&1 || true

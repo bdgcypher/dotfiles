@@ -25,7 +25,7 @@ hl.on("hyprland.start", function()
     -- this one shell. Started through the control command rather than `qs -c`
     -- directly, so a shell that is already up (a config reload re-running this
     -- block) is left alone instead of being started twice.
-    hl.exec_cmd("cypher-shell start")
+    hl.exec_cmd("hayami-shell start")
     -- Polkit authentication agent: not exec'd here. hyprpolkitagent runs as a
     -- systemd user service (hyprpolkitagent.service), enabled by
     -- scripts/stow_configs.sh - the Hyprland wiki's recommended setup under uwsm.

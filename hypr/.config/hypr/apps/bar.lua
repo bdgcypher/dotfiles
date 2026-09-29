@@ -13,6 +13,6 @@
 -- same fix this config already applies to the launcher and to hyprshot's
 -- selection overlay.
 hl.layer_rule({
-    match   = { namespace = "quickshell:cypher-shell" },
+    match   = { namespace = "quickshell:bar" },
     no_anim = true,
 })

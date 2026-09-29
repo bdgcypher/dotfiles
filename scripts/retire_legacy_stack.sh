@@ -10,7 +10,7 @@
 #   stow pkgs  waybar/ walker/ swaync/ swayosd/ elephant/  (deleted from the repo)
 #   services   waybar.service, elephant.service, swaync.service (user units)
 #
-# The bar, the launcher, the notifications and the OSD are all cypher-shell's now,
+# The bar, the launcher, the notifications and the OSD are all hayami-shell's now,
 # so none of the above has anything left to do.
 #
 # Two things make this more than an `stow -D`:
@@ -46,7 +46,7 @@ usage: retire_legacy_stack.sh [options]
   --keep-packages   stop and unstow the old stack but leave the packages installed
 
 Removes waybar, swaync, swayosd, walker and elephant (and the stow packages and
-user services that go with them), which cypher-shell replaced. Idempotent.
+user services that go with them), which hayami-shell replaced. Idempotent.
 EOF
 }
 
@@ -90,8 +90,8 @@ SERVICES=(waybar.service elephant.service swaync.service)
 # symlink sweep has a second, positive test besides "the target is missing".
 STOW_PACKAGES=(waybar walker swaync swayosd elephant)
 
-# Packages the old stack pulled in as its own dependencies that cypher-shell still
-# uses: playerctl is how `cypher-osd --playerctl` drives the XF86AudioPlay and
+# Packages the old stack pulled in as its own dependencies that hayami-shell still
+# uses: playerctl is how `hayami-osd --playerctl` drives the XF86AudioPlay and
 # XF86AudioNext keys, and wtype is how clipboard-paste types multi-line text into
 # ghostty. `pacman -Rns` removes dependencies nothing else requires, and on a
 # machine where these arrived with waybar or elephant nothing else requires them,
@@ -101,7 +101,7 @@ STOW_PACKAGES=(waybar walker swaync swayosd elephant)
 # dependencies. (Both are in pkglist.txt for the same reason.)
 KEEP_PACKAGES_FROM_LEGACY=(playerctl wtype)
 # bar-switch remembered which stack was live. There is only one now.
-LEGACY_STATE="$([ -n "${XDG_STATE_HOME:-}" ] && echo "$XDG_STATE_HOME" || echo "$HOME/.local/state")/cypher-shell/bar"
+LEGACY_STATE="$([ -n "${XDG_STATE_HOME:-}" ] && echo "$XDG_STATE_HOME" || echo "$HOME/.local/state")/hayami-shell/bar"
 
 DIRTY=0
 
@@ -248,10 +248,10 @@ fi
 # command may not be stowed into ~/.local/bin yet when install.sh calls this
 # (the migration runs before the restow), so fall back to the repo copy.
 shell_cmd=""
-if command -v cypher-shell >/dev/null 2>&1; then
-	shell_cmd=cypher-shell
-elif [ -x "$DOTFILES_DIR/bin/.local/bin/cypher-shell" ]; then
-	shell_cmd="$DOTFILES_DIR/bin/.local/bin/cypher-shell"
+if command -v hayami-shell >/dev/null 2>&1; then
+	shell_cmd=hayami-shell
+elif [ -x "$DOTFILES_DIR/bin/.local/bin/hayami-shell" ]; then
+	shell_cmd="$DOTFILES_DIR/bin/.local/bin/hayami-shell"
 fi
 
 if [ -n "$shell_cmd" ]; then
@@ -280,10 +280,10 @@ fi
 
 echo
 if [ "$DIRTY" = 0 ]; then
-	echo "Nothing to retire: this machine is already on cypher-shell alone."
+	echo "Nothing to retire: this machine is already on hayami-shell alone."
 elif [ "$DRY_RUN" = 1 ]; then
 	echo "Dry run: nothing was changed. Re-run without --dry-run to retire the stack."
 else
-	echo "Legacy stack retired. cypher-shell now owns the bar, launcher,"
+	echo "Legacy stack retired. hayami-shell now owns the bar, launcher,"
 	echo "notifications and OSD."
 fi

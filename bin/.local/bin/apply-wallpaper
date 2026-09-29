@@ -82,10 +82,10 @@ if pgrep -f "obsidian" >/dev/null; then # obsidian
   obsidian reload                       # also obsidian
 fi                                      # also obsidian
 
-# Notifications. cypher-notify re-reads the palette for the notification centre.
+# Notifications. hayami-notify re-reads the palette for the notification centre.
 # The shell watches the pywal output itself, so this is a nudge rather than the
 # mechanism; it costs nothing when the shell is not running.
-cypher-notify -rs
+hayami-notify -rs
 
 # The OSD needs no reload: the shell reads the pywal palette directly, so a
 # wallpaper change re-tints it along with everything else.

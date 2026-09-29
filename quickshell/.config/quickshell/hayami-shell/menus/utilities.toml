@@ -1,0 +1,45 @@
+name = "utilities"
+name_pretty = "Utilities"
+icon = ""
+
+[[entries]]
+text = "Clipboard History"
+icon = "󱛢 "
+actions = { "default" = "hayami-menu -m clipboard" }
+weight = 100
+
+[[entries]]
+text = "Calculator"
+icon = " "
+actions = { "default" = "ghostty --class=floating.Calculator --keybind=escape=close_surface -e calculator" }
+weight = 90
+
+[[entries]]
+text = "Calendar"
+icon = "󰃰 "
+actions = { "default" = "ghostty --class=floating.Calendar -e aion" }
+weight = 85
+
+[[entries]]
+text = "Capture"
+icon = "󰄀 "
+actions = { "default" = "hayami-menu -m menus:utilities/capture --width 250" }
+weight = 80
+
+[[entries]]
+text = "Color Picker"
+icon = " "
+actions = { "default" = "pkill hyprpicker || hyprpicker -a -f hex && hayami-osd --custom-message \"Color copied to clipboard\" --custom-icon \"edit-copy\"" }
+weight = 70
+
+[[entries]]
+text = "Emoji Picker"
+icon = " "
+actions = { "default" = "hayami-menu -m symbols --width 400" }
+weight = 60
+
+[[entries]]
+text = "Volume Boost"
+icon = "󰕾 "
+actions = { "default" = "ghostty --class=floating.VolumeBoost -e volume-boost-toggle" }
+weight = 50

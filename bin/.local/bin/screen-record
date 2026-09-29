@@ -7,13 +7,13 @@ FILENAME="$SAVE_DIR/recording_$(date +'%Y-%m-%d_%H-%M-%S').mp4"
 AUDIO_SOURCE="$(pactl get-default-sink).monitor"
 LOCK_FILE="/tmp/wf_recording_active"
 
-# On-screen overlay helper: cypher-osd draws it through the Quickshell shell,
+# On-screen overlay helper: hayami-osd draws it through the Quickshell shell,
 # with notify-send as the last resort for a session where the shell is not
 # running at all.
 show_osd() {
   local msg="$1"
-  if command -v cypher-osd &>/dev/null; then
-    cypher-osd --custom-message "$msg" --custom-icon "camera-video"
+  if command -v hayami-osd &>/dev/null; then
+    hayami-osd --custom-message "$msg" --custom-icon "camera-video"
   else
     notify-send "Screen Recorder" "$msg" -i "camera-video" -t 2000 -a "screen-record"
   fi
@@ -41,7 +41,7 @@ fi
 
 # 2. Select mode via the launcher, which takes the list on stdin and prints the
 #    pick, dmenu-style.
-CHOICE=$(printf "Screen\nWindow\nRegion" | cypher-menu --dmenu)
+CHOICE=$(printf "Screen\nWindow\nRegion" | hayami-menu --dmenu)
 
 case "$CHOICE" in
 "Screen")

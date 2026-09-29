@@ -21,7 +21,7 @@ if yay -Syu --noconfirm; then
   # Force the bar's update module to recheck, so the count does not sit at the
   # pre-update value until its next hourly poll. The shell watches this file;
   # anything that changes its contents fires the re-check.
-  printf '%s\n' "$(date +%s)" > /tmp/cypher-updates.signal 2>/dev/null || true
+  printf '%s\n' "$(date +%s)" > /tmp/hayami-updates.signal 2>/dev/null || true
 else
   echo -e "\n\033[0;31mError: System update failed.\033[0m"
   echo "Press any key to close..."

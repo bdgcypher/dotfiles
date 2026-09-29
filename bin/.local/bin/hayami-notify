@@ -1,0 +1,280 @@
+#!/usr/bin/env bash
+# hayami-notify -- the notification centre.
+#
+# The work is done by the shell, which answers org.freedesktop Notifications
+# itself and owns the do-not-disturb state, the popup stack and the panel; this
+# only speaks to it over its IPC socket.
+#
+#   hayami-notify -t -sw        toggle the control centre
+#   hayami-notify -a -sw        run the newest notification's default action
+#   hayami-notify -d            toggle do-not-disturb (prints the new state)
+#   hayami-notify -c            print the number of notifications
+#
+# The option names are swaync-client's, which is where they came from: the
+# keybinds and the scripts in this repo were written against swaync-client's CLI,
+# and keeping the spellings meant none of them had to change when the notification
+# daemon did. -sw / --skip-wait is accepted and does nothing because there is no
+# daemon to wait for.
+#
+# Two flags are accepted and do nothing: -R and -rs reload swaync's config and
+# stylesheet, and there is neither here. The palette is read from pywal and
+# watched for changes, so a wallpaper change re-tints notifications by itself; -rs
+# still calls the shell's reload hook so the call is not silently dropped.
+
+set -uo pipefail
+
+SHELL_ID="hayami-shell"
+IPC_TARGET="notifications"
+
+# ── the shell ────────────────────────────────────────────────────────────────
+
+# One IPC call, and no process-table scan: `pgrep -f qs` costs ~250ms on a busy
+# session, and some of these run on a key press.
+shell_up() {
+	qs ipc -c "$SHELL_ID" show 2>/dev/null | grep -qE "^target[[:space:]]+$IPC_TARGET\$"
+}
+
+# The shell is the only thing that can answer any of this, so when it is not up
+# there is nothing to fall back to: say so on stderr and fail. Nothing here is
+# worth failing a keybinding over, so a caller that ignores the status still gets
+# the old behaviour of doing nothing.
+no_shell() {
+	echo "hayami-notify: hayami-shell is not running (try 'hayami-shell start')" >&2
+	exit 1
+}
+
+# One IPC call. `qs ipc` prints the returned string already decoded -- `open`,
+# `false`, and for `state` the JSON object itself -- so nothing is stripped here:
+# dropping the quotes used to turn that JSON into `{text:1,...}`, which no bar can
+# parse.
+call() {
+	qs ipc -c "$SHELL_ID" call "$IPC_TARGET" "$@" 2>/dev/null
+}
+
+# ── arguments ────────────────────────────────────────────────────────────────
+
+# swaync-client's short flags are not all one letter (-op, -cp, -dn, -df, -sw,
+# -swb, -In, -Ia, -Ir, -Ic), so they are matched as whole tokens in the order
+# swaync's own parser accepts them.
+ACTION=""
+OPERAND=""
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+	-h | --help)
+		cat <<'EOF'
+usage: hayami-notify <action> [--skip-wait]
+
+  -t,  --toggle-panel              toggle the notification panel
+  -op, --open-panel                open the notification panel
+  -cp, --close-panel               close the notification panel
+  -d,  --toggle-dnd                toggle do-not-disturb, printing the new state
+  -D,  --get-dnd                   print the current do-not-disturb state
+  -dn, --dnd-on                    turn do-not-disturb on
+  -df, --dnd-off                   turn do-not-disturb off
+  -I,  --get-inhibited             print whether notifications are inhibited
+  -In, --get-num-inhibitors        print the number of inhibitors
+  -Ia, --inhibitor-add [APP_ID]    add an inhibitor
+  -Ir, --inhibitor-remove [APP_ID] remove an inhibitor
+  -Ic, --inhibitors-clear          clear all inhibitors
+  -c,  --count                     print the number of notifications
+  -a,  --action [ACTION_INDEX]     invoke an action of the latest notification
+       --hide-latest               hide the latest popup, keep it in the panel
+       --hide-all                  hide all popups, keep them in the panel
+       --close-latest              close the latest notification
+  -C,  --close-all                 close all notifications	-s,  --subscribe                 stream state as it changes
+	-sw, --skip-wait                 accepted and ignored (there is no daemon to wait for)
+  -R,  --reload-config             reload the config (nothing to do here)
+  -rs, --reload-css                reload the theme (pywal is watched already)
+EOF
+		exit 0
+		;;
+	-v | --version)
+		echo "hayami-notify (hayami-shell)"
+		exit 0
+		;;
+	-R | --reload-config)
+		# Nothing to reload: the shell re-reads its own config on edit.
+		ACTION="noop"
+		shift
+		;;
+	-rs | --reload-css)
+		ACTION="reload"
+		shift
+		;;
+	-t | --toggle-panel)
+		ACTION="panelToggle"
+		shift
+		;;
+	-op | --open-panel)
+		ACTION="panelOpen"
+		shift
+		;;
+	-cp | --close-panel)
+		ACTION="panelClose"
+		shift
+		;;
+	-d | --toggle-dnd)
+		ACTION="dndToggle"
+		shift
+		;;
+	-D | --get-dnd)
+		ACTION="dndGet"
+		shift
+		;;
+	-dn | --dnd-on)
+		ACTION="dndOn"
+		shift
+		;;
+	-df | --dnd-off)
+		ACTION="dndOff"
+		shift
+		;;
+	-I | --get-inhibited)
+		ACTION="inhibitedGet"
+		shift
+		;;
+	-In | --get-num-inhibitors)
+		ACTION="inhibitorsCount"
+		shift
+		;;
+	-Ia | --inhibitor-add)
+		ACTION="inhibitorAdd"
+		shift
+		# The app id is optional here too.
+		if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+			OPERAND="$1"
+			shift
+		fi
+		;;
+	-Ir | --inhibitor-remove)
+		ACTION="inhibitorRemove"
+		shift
+		if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+			OPERAND="$1"
+			shift
+		fi
+		;;
+	-Ic | --inhibitors-clear)
+		ACTION="inhibitorsClear"
+		shift
+		;;
+	-c | --count)
+		ACTION="notificationCount"
+		shift
+		;;
+	-a | --action)
+		ACTION="action"
+		shift
+		# Optional index, so `hayami-notify -a -sw` is the default action.
+		if [ $# -gt 0 ] && [ "${1#-}" = "$1" ]; then
+			OPERAND="$1"
+			shift
+		fi
+		;;
+	--hide-latest)
+		ACTION="popupHideLatest"
+		shift
+		;;
+	--hide-all)
+		ACTION="popupHideAll"
+		shift
+		;;
+	--close-latest)
+		ACTION="closeLatest"
+		shift
+		;;
+	-C | --close-all)
+		ACTION="closeAll"
+		shift
+		;;
+	-s | --subscribe)
+		ACTION="subscribe"
+		shift
+		;;
+	-sw | --skip-wait)
+		# Only meaningful to swaync-client's own wait-for-daemon behaviour; the
+		# shell is either there or it is not.
+		shift
+		;;
+	--)
+		shift
+		break
+		;;
+	*)
+		echo "hayami-notify: unknown option $1" >&2
+		exit 2
+		;;
+	esac
+done
+
+if [ -z "$ACTION" ]; then
+	echo "usage: hayami-notify <action>  (see --help)" >&2
+	exit 2
+fi
+
+shell_up || no_shell
+
+# ── dispatch ─────────────────────────────────────────────────────────────────
+
+case "$ACTION" in
+panelToggle) call panelToggle ;;
+panelOpen) call panelOpen ;;
+panelClose) call panelClose ;;
+
+dndToggle) call dndToggle ;;
+dndGet) call dndGet ;;
+dndOn) call dndSet "true" ;;
+dndOff) call dndSet "false" ;;
+
+inhibitedGet) call inhibitedGet ;;
+inhibitorsCount) call inhibitorsCount ;;
+inhibitorAdd) call inhibitorAdd "$OPERAND" ;;
+inhibitorRemove) call inhibitorRemove "$OPERAND" ;;
+inhibitorsClear) call inhibitorsClear ;;
+
+notificationCount) call notificationCount ;;
+popupHideLatest) call popupHideLatest ;;
+popupHideAll) call popupHideAll ;;
+closeLatest) call closeLatest ;;
+closeAll) call closeAll ;;
+
+action)
+	# swaync-client prints nothing here, and neither does this; the exit status
+	# says whether there was an action to run.
+	result=$(call action "$OPERAND")
+	if [ "$result" != "ok" ]; then
+		exit 1
+	fi
+	;;
+
+reload)
+	qs ipc -c "$SHELL_ID" call notificationsTheme reload >/dev/null 2>&1 || true
+	;;
+
+noop) ;;
+
+subscribe)
+	# swaync-client streamed a JSON line per event. Quickshell's IPC is
+	# request/response, so this is the same information obtained by polling --
+	# and the initial state is printed straight away, so a consumer has something
+	# to draw before the first change.
+	last=""
+	while :; do
+		# The shell went away, so this stream can never produce another line: leave
+		# non-zero rather than sitting on a dead IPC socket.
+		shell_up || exit 1
+
+		current=$(call state)
+		if [ -n "$current" ] && [ "$current" != "$last" ]; then
+			printf '%s\n' "$current"
+			last="$current"
+		fi
+		sleep 0.25
+	done
+	;;
+esac
+
+# The case above is the whole script, and a branch whose last command is a failed
+# test would otherwise become the script's exit status.
+exit 0

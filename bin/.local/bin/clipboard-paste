@@ -10,7 +10,7 @@ if [ "$1" = "-t" ] && [ "$2" = "text/uri-list" ]; then
   wl-paste 2>/dev/null | wl-copy -t 'text/uri-list'
 fi
 
-# The launcher renders as cypher-shell's own layer surface, quickshell:launcher.
+# The launcher renders as hayami-shell's own layer surface, quickshell:launcher.
 # Poll until it is off screen, i.e. the picker closed and focus has gone back to
 # the window we are pasting into.
 for _ in $(seq 1 40); do
