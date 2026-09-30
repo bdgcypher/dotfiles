@@ -31,6 +31,15 @@ set -uo pipefail
 SHELL_ID="hayami-shell"
 IPC_TARGET="osd"
 
+# instance.lock lists the config path as UTF-16LE and grep cannot be told the
+# encoding, so the name is matched with a wildcard between each character.
+# Derived from $SHELL_ID so the two cannot drift apart, and built by expansion
+# rather than a sed fork because this runs on every volume key press.
+SHELL_LOCK_PATTERN=""
+for ((i = 0; i < ${#SHELL_ID}; i++)); do
+	SHELL_LOCK_PATTERN+="${SHELL_ID:i:1}."
+done
+
 # Percentages on a 0-100 scale, which is what wpctl and brightnessctl both speak.
 MAX_VOLUME="100"       # per-cent ceiling for volume
 MIN_BRIGHTNESS="5"     # per-cent floor
@@ -43,13 +52,14 @@ STEP_BRIGHTNESS="5"
 # is file inspection rather than a round trip: `qs ipc` spends ~60ms resolving
 # the instance and speaking the protocol, and the socket file only exists while
 # the shell is up, which is the whole question. The instance id is random, so
-# match the config path inside each instance's lock (UTF-16LE, hence the
-# dotted pattern) and require that instance's socket to be there.
+# match the config path inside each instance's lock (see SHELL_LOCK_PATTERN for
+# how that name is matched) and require that instance's socket to be there.
 shell_up() {
 	local lock
 	for lock in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/quickshell/by-id/*/instance.lock; do
-		[ -e "$lock" ] || return 1
-		if grep -qa 'c.y.p.h.e.r.-.s.h.e.l.l' "$lock" 2>/dev/null && [ -S "${lock%/*}/ipc.sock" ]; then
+		# continue, not return 1: the live instance is not necessarily first.
+		[ -e "$lock" ] || continue
+		if grep -qa -- "$SHELL_LOCK_PATTERN" "$lock" 2>/dev/null && [ -S "${lock%/*}/ipc.sock" ]; then
 			return 0
 		fi
 	done
