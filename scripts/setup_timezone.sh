@@ -20,9 +20,9 @@ if ! command -v timedatectl &> /dev/null; then
     exit 1
 fi
 
+# Still read for the fallback below; not shown, since the prompt already displays
+# the zone that Enter will apply.
 CURRENT_TZ=$(timedatectl show --property=Timezone --value)
-echo "Current timezone: $CURRENT_TZ"
-echo ""
 
 # Preferred zone for this setup, used whenever the prompt is not answered. A
 # fresh install typically still sits on UTC, so falling back to the *system*
@@ -35,8 +35,7 @@ if [[ ! -e "/usr/share/zoneinfo/$DEFAULT_TZ" ]]; then
 fi
 
 # Suggest common timezones or let the user type one
-echo "Timezone (e.g., America/Denver, UTC, etc.)"
-echo "Type 'list' to see all available timezones or 'Enter' to accept default ($DEFAULT_TZ)."
+echo "Type 'list' to see all available timezones or 'Enter' to accept default."
 
 # 10 second timeout: the prompt you have to sit through is a prompt that will
 # eventually be answered with whatever key was nearest.
@@ -44,7 +43,7 @@ echo "Type 'list' to see all available timezones or 'Enter' to accept default ($
 # It also makes this script safe to run without a terminal. `read` on a non-TTY
 # hits EOF and returns immediately instead of blocking forever, so an unattended
 # install no longer hangs here.
-read -t 10 -p "> " user_tz
+read -t 10 -p "Timezone [$DEFAULT_TZ]: " user_tz
 read_status=$?
 if [ "$read_status" -ne 0 ]; then
     # 128+ means the timeout expired, 1 means EOF (no TTY). Either way there is
