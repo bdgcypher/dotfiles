@@ -21,7 +21,6 @@ python-yapsy-git
 slack-desktop
 themix-icons-archdroid-git
 unimatrix-git
-vencord
 vesktop-bin
 voxtype-bin
 xdg-desktop-portal-termfilechooser

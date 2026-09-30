@@ -46,7 +46,7 @@ if ! grep -q "^ILoveCandy" /etc/pacman.conf; then
 fi
 # Enable ParallelDownloads (default to 5 if not set)
 sudo sed -i 's/^#ParallelDownloads = 5/ParallelDownloads = 5/' /etc/pacman.conf
-# Ignore debug packages to avoid build-id conflicts between packages like vesktop-debug and bitwarden-bin-debug
+# Ignore debug packages to avoid build-id conflicts between packages like vesktop-bin-debug
 if ! grep -q '^IgnorePkg' /etc/pacman.conf; then
     sudo sed -i '/^Color/a IgnorePkg = *-debug' /etc/pacman.conf
 fi
