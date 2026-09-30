@@ -5,19 +5,19 @@ import "Icons.js" as Icons
 
 // battery -- UPower display device.
 //
-// Reproduces the waybar module's three visible states:
+// Three visible states:
 //   discharging  "{icon} {capacity}%"
 //   charging     "{icon} {capacity}%"
 //   full         󰂅
 // plus its 10%-band icon ladder for both the charging and discharging sets, and
 // its habit of hiding the module entirely when there is no battery.
 //
-// One deliberate departure: waybar's own config flips the icon to the far side
+// One deliberate departure: the icon flips to the far side
 // while charging (format-discharging is "{icon} {capacity}%" but
 // format-charging is "{capacity}% {icon}"). The icon leads in every state here,
 // so the module reads the same whether or not the charger is plugged in.
 //
-// waybar's on-click was "menu power", which does not exist on this machine; the
+// There is no "menu power" on this machine; the
 // real power menu is the launcher entry the SUPER+ESCAPE bind opens.
 BarItem {
 	id: root
@@ -31,7 +31,7 @@ BarItem {
 	readonly property bool full: present && device.state === UPowerDeviceState.FullyCharged
 
 	// UPower reports the rate in watts, signed: positive while the pack is taking
-	// charge. waybar's tooltip ignores the sign and prints the arrow instead, so
+	// charge. The tooltip ignores the sign and prints the arrow instead, so
 	// only the magnitude is used here.
 	readonly property real power: present ? Math.abs(device.changeRate) : 0
 
@@ -41,7 +41,7 @@ BarItem {
 	readonly property string icon: full ? Icons.batteryFull : bandIcon
 
 	// No explicit `visible` here: an absent battery means an empty glyph, and
-	// BarItem already collapses empty modules the way waybar does.
+	// BarItem already collapses empty modules.
 	// BarItem renders `glyph + suffix`, so icon-then-percentage is the order in
 	// both the charging and discharging states.
 	glyph: !present ? "" : icon
@@ -56,7 +56,7 @@ BarItem {
 	// battery: "tooltip-format-discharging": "{power:>1.0f}W↓ {capacity}%" and
 	// "tooltip-format-charging": "{power:>1.0f}W↑ {capacity}%". A full pack is
 	// still on the charger, so it takes the up arrow rather than falling through
-	// to a third wording waybar does not define.
+	// to a third wording.
 	tooltipText: !present ? "" : (power.toFixed(1) + "W" + ((charging || full) ? "↑ " : "↓ ") + capacity + "%")
 
 	onClicked: Quickshell.execDetached(["hayami-menu", "-m", "menus:system/power", "--width", "250"])

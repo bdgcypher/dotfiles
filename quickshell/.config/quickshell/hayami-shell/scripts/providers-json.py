@@ -5,7 +5,7 @@ These change slowly, so they are generated once per session into the runtime dir
 and read from there, rather than shelling out every time the launcher opens.
 
   * runner -- every executable on PATH, deduped by name, first hit wins. This
-              is what elephant's runner plugin offers as "Scripts".
+              is what the menu offers as "Scripts".
 
 Emoji are not generated here any more. They used to come from Python's own
 Unicode database, which has names but no shortcodes, categories or skin tones;

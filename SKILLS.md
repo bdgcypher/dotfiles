@@ -82,7 +82,7 @@ import "Icons.js" as Icons
 
 // <thing> -- the one-line reading, and what the click does.
 //
-// The header is the waybar module this replaces, and what the helper script
+// The header is what the helper script
 // computes. Say why the reading is worth a place on the bar at all.
 BarItem {
 	id: root
@@ -202,8 +202,8 @@ palette to the four roles the shell uses and exposes all 16 as `pal.colors[i]`:
    (`Qt.alpha`, `Qt.rgba` on `pal.foreground` / `background`) to inventing a
    lighter/darker hex. A palette you did not look at is a palette whose contrast
    you cannot promise, and the shell has to survive every wallpaper.
-4. **`alert` stays hardcoded.** It is a fixed alarm colour from the old waybar
-   stylesheet, not a wallpaper role. Do not "improve" it to `pal.colors[1]`.
+4. **`alert` stays hardcoded.** It is a fixed alarm colour, not a wallpaper role.
+   Do not "improve" it to `pal.colors[1]`.
 5. **The shell re-tints itself.** `BarPalette` watches the pywal file, so a
    wallpaper change needs **no reload** — do not add one. If a change to a
    non-shell consumer's colours is wanted (a GTK app, ghostty, a TUI), that is a
@@ -217,12 +217,12 @@ ones.
 
 - **Tabs** for indentation, in QML, JS and shell alike. Never spaces.
 - **Comments explain *why*, not *what*.** The file's voice is a short "why" block
-  at the top naming the thing and the waybar module it came from, then a section
+  at the top naming the thing and what it computes, then a section
   per concern, then `// ── name ────…` rules at the right width: **77** columns in
   a `.qml`, **68** inside a card/component, **80** in the `.js` theme files.
-- **`Theme.js` is geometry and behaviour, not colour.** It was lifted from the
-  old waybar stylesheet, and its two hexes (`borderColor`, `pulseColor`) are
-  historical references. Do not add a third; do not use it for a new colour.
+- **`Theme.js` is geometry and behaviour, not colour.** Its two hexes
+  (`borderColor`, `pulseColor`) are historical carry-overs. Do not add a third;
+  do not use it for a new colour.
 - **Icon = Nerd Font glyph, added to `Icons.js` as a `\\uXXXX` escape** with a
   `// U+xxxx  nf-md-name` comment, so the file stays ASCII and the codepoint is
   traceable. If a helper script also emits that glyph (as `agent-status.sh` and

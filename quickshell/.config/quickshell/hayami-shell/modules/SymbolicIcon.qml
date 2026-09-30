@@ -8,8 +8,7 @@ import Quickshell
 // `display-brightness-symbolic`, ...) come out of the theme as coloured artwork --
 // the oomox/pywal set in use here paints its status icons in a flat red. GTK
 // recolours a symbolic icon to the widget's current colour before drawing it, and
-// swayosd gets that for free; a plain Image in Qt does not, so without this the
-// replacement OSD would show red speaker icons where swayosd shows them in the
+// the OSD would otherwise show red speaker icons where they belong in the
 // pywal foreground.
 //
 // Size it with width/height. There is deliberately no `implicitSize` here: see the

@@ -16,7 +16,7 @@ import "NotifTheme.js" as Theme
 // It maps a pointer position onto 0..100 and reports it; what that number means
 // -- a sink's volume, a backlight's percentage -- is the owner's business. Both
 // sliders of the section are one of these, which is why the brightness row added
-// to the panel looks and behaves like the volume row swaync drew.
+// to the panel looks and behaves like the volume row above it.
 Item {
 	id: root
 
@@ -24,7 +24,7 @@ Item {
 
 	// The nerd-font glyph at the left, as the volume row has always had.
 	property string glyph: ""
-	// 0..100, the range swaync's scales use.
+	// 0..100, the range the sliders use.
 	property real value: 0
 	// Muted: the fill goes grey instead of taking the accent colour.
 	property bool dim: false
@@ -169,8 +169,8 @@ Item {
 		}
 
 		// A position inside the scale as 0..100. Dragging past either end clamps
-		// rather than overshooting into the volume-boost range, which is what
-		// swaync's 0..100 scale does.
+		// rather than overshooting into the volume-boost range; the 0..100 scale
+		// does.
 		function report(x) {
 			var fraction = scale.usable > 0 ? x / scale.usable : 0;
 			root.moved(Math.max(0, Math.min(1, fraction)) * 100);

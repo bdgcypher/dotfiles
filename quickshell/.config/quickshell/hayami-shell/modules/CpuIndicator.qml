@@ -5,7 +5,7 @@ import "Icons.js" as Icons
 
 // cpu -- CPU usage percentage.
 //
-// The helper script diffs two /proc/stat reads, which is what waybar's cpu module
+// The helper script diffs two /proc/stat reads, which is what a cpu module
 // effectively shows; an average-since-boot figure would barely move on a 5s
 // refresh. Left click opens btop in a floating ghostty.
 BarItem {
@@ -16,7 +16,7 @@ BarItem {
 	glyph: Icons.cpu
 	suffix: " " + percent + "%"
 
-	// cpu: no tooltip-format in the config, and waybar's cpu module ignores one
+	// cpu: no tooltip-format is configured, and a cpu module ignores one
 	// anyway; its hardcoded tooltip is the usage alone.
 	tooltipText: percent + "%"
 
@@ -42,7 +42,7 @@ BarItem {
 		}
 	}
 
-	// waybar: "interval": 5
+	// interval: 5
 	Timer {
 		interval: 5000
 		running: true

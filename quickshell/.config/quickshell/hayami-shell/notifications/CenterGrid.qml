@@ -2,8 +2,8 @@ import QtQuick
 import Quickshell
 import "NotifTheme.js" as Theme
 
-// swaync's buttons-grid: the ten launcher buttons at the top of the control
-// centre, glyph for glyph and command for command out of its config.json.
+// The buttons grid: the ten launcher buttons at the top of the control
+// centre, glyph for glyph and command for command.
 //
 // central_control.css:
 //   .widget-buttons-grid { padding: 6px 2px; margin: 6px; border-radius: 8px;
@@ -14,7 +14,7 @@ import "NotifTheme.js" as Theme
 //
 // `justify-items: space-between` in GTK means the buttons are spread across the
 // row rather than stretched, so each one is a centred box in an equal-width cell
-// -- which is also what makes them land on the same columns as swaync's.
+// -- which is also what makes them land on the same columns.
 Rectangle {
 	id: grid
 

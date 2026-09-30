@@ -5,27 +5,27 @@ import "Icons.js" as Icons
 
 // memory -- used memory percentage.
 //
-// waybar's memory module allocates (MemTotal - MemAvailable) the same way; the
+// A memory module allocates (MemTotal - MemAvailable) the same way; the
 // helper script reads /proc/meminfo directly so there is no extra service to run.
 BarItem {
 	id: root
 
 	property int percent: 0
-	// Used memory in GiB, for the tooltip. waybar prints its own as
+	// Used memory in GiB, for the tooltip. Printed as
 	// "{:.1f}GiB used".
 	property real used: 0
 
-	// waybar: "format": "\uefc5  {}% " -- icon, two spaces, value, then a trailing
+	// "format": "\uefc5  {}% " -- icon, two spaces, value, then a trailing
 	// space that Pango counts in the module's width.
 	glyph: Icons.memory
 	suffix: "  " + percent + "% "
 
-	// The cluster's margin either side. waybar set no margin on #memory, which is
+	// The cluster's margin either side. #memory carried no margin, which is
 	// why this one used to sit tighter to its neighbours than the rest.
 	marginLeft: 6
 	marginRight: 6
 
-	// memory: no tooltip-format in the config, and waybar's memory module does
+	// memory: no tooltip-format is configured, and a memory module does
 	// not honour one anyway -- the string it prints is "{:.1f}GiB used".
 	tooltipText: used.toFixed(1) + "GiB used"
 
@@ -52,7 +52,7 @@ BarItem {
 		}
 	}
 
-	// waybar: "interval": 5
+	// interval: 5
 	Timer {
 		interval: 5000
 		running: true

@@ -4,7 +4,7 @@ import Quickshell.Services.Mpris
 import "../modules"
 import "NotifTheme.js" as Theme
 
-// swaync's MPRIS widget: album art, track title and artist, transport controls.
+// The MPRIS widget: album art, track title and artist, transport controls.
 //
 // central_control.css:
 //   .widget-mpris { border: 1px solid @selected; border-radius: 8px; padding: 8px;
@@ -18,8 +18,7 @@ import "NotifTheme.js" as Theme
 // colour is not defined anywhere in the pywal output), so the box draws no
 // background -- same as the volume widget above.
 //
-// There is no player most of the time; the widget is hidden entirely then, as
-// swaync hides it.
+// There is no player most of the time; the widget is hidden entirely then.
 Item {
 	id: root
 
@@ -36,7 +35,7 @@ Item {
 	property string litAction: ""
 
 	// The first player that is actually playing, else the first one that exists.
-	// swaync shows one widget per player; the dotfiles only ever have one.
+	// One widget, not one per player; the dotfiles only ever have one.
 	readonly property var player: {
 		var list = Mpris.players ? Mpris.players.values : [];
 		for (var i = 0; i < list.length; i++) {
@@ -55,7 +54,7 @@ Item {
 
 	readonly property string artwork: (player && player.trackArtUrl) ? player.trackArtUrl : ""
 
-	// swaync swaps the symbolic icon with the playback state.
+	// The symbolic icon swaps with the playback state.
 	readonly property string transportIcon: (player && player.isPlaying) ? Theme.mprisPause : Theme.mprisPlay
 
 

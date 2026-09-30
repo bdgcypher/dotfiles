@@ -4,19 +4,19 @@ import Quickshell.Io
 import Quickshell.Services.Pipewire
 import "NotifTheme.js" as Theme
 
-// swaync's volume widget: a glyph and a slider for the default sink.
+// The volume widget: a glyph and a slider for the default sink.
 //
 // central_control.css:
 //   .widget-volume { color: @text; padding: 4px; margin: 6px; border-radius: 8px }
 //   .widget-volume > box > label { margin-right: 10px }
 //
 // The widget's `background: @background-sec` is dropped by GTK -- that colour is
-// not defined in notifColors-waybar.css, so the declaration is invalid and swaync
-// renders this widget with no background of its own. This matches it exactly;
+// not defined in the notification theme, so the declaration is invalid and the
+// widget renders with no background of its own. This matches that exactly;
 // the panel's keyboard says where it is with a ring around one knob rather than
 // by tinting the widget (see NotifTheme.js).
 //
-// swaync neither reads nor writes Pipewire directly: it drives wpctl. This reads
+// Nothing here shells out to wpctl. This reads
 // the sink through the shell's own Pipewire connection and writes back through
 // `audio.volume`, so the slider and the volume keys never disagree.
 //
@@ -24,8 +24,8 @@ import "NotifTheme.js" as Theme
 // while the panel's cursor is on this knob -- toggles the sink, and the row then
 // shows the struck-through glyph with a grey fill.
 //
-// swaync has no brightness here -- the XF86MonBrightness keys go through
-// hayami-osd -- so the second row is ours. It is driven exactly the way the OSD
+// The XF86MonBrightness keys go through
+// hayami-osd, so the brightness row is ours. It is driven exactly the way the OSD
 // drives the backlight (`brightnessctl -c backlight`, the same class the OSD
 // addresses when it is given no --device), including the same 5% step and floor,
 // so the panel and the brightness keys move it identically. The slider is only
@@ -46,7 +46,7 @@ Item {
 	readonly property var sink: Pipewire.defaultAudioSink
 	readonly property real level: (sink && sink.audio) ? sink.audio.volume : 0
 	readonly property bool muted: (sink && sink.audio) ? sink.audio.muted : false
-	// swaync's scale is 0..100 (percent), not the sink's 0..1.
+	// The slider scale is 0..100 (percent), not the sink's 0..1.
 	readonly property real shown: Math.min(level, 1) * 100
 
 	// The widest advance of every glyph this section can put in a slider's icon

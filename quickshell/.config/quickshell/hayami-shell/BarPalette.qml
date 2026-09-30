@@ -4,8 +4,7 @@ import Quickshell.Io
 
 // Theme colours for the bar, read from pywal.
 //
-// This is the Quickshell counterpart of `@import "../../.cache/wal/colors-waybar.css"`
-// in waybar's style.css. pywal renders ~/.cache/wal/colors-quickshell.json from
+// pywal renders ~/.cache/wal/colors-quickshell.json from
 // the template in dotfiles/wal/.config/wal/templates/colors-quickshell.json, and
 // every module reads its colours from this object, so a wallpaper change
 // re-tints the whole bar live (watchChanges does the reload).

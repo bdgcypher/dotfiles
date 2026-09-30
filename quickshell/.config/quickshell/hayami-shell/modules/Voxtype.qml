@@ -5,9 +5,9 @@ import "Icons.js" as Icons
 
 // custom/voxtype -- dictation state (idle / recording / transcribing).
 //
-// Same source as waybar: `voxtype status --format json --follow --extended`
-// streaming one JSON object per state change. The waybar module maps the object's
-// "alt" field through format-icons; we do the same.
+// `voxtype status --format json --follow --extended`
+// streaming one JSON object per state change. The object's "alt" field is mapped
+// through a format-icons table; so do we.
 //
 // style.css pulses both the recording and transcribing states with the shared
 // blink animation, so both get the pulse here too -- the glyphs tell them apart.
@@ -18,7 +18,7 @@ BarItem {
 	property string dictationState: "idle"
 
 	// custom/voxtype: "tooltip": true. voxtype's status JSON carries the text
-	// waybar would show -- "Voxtype ready - hold hotkey to record", the model, the
+	// show -- "Voxtype ready - hold hotkey to record", the model, the
 	// device and the backend -- so it is passed straight through.
 	property string statusTooltip: ""
 

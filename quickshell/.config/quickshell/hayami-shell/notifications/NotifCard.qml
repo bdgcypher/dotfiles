@@ -5,10 +5,10 @@ import Quickshell.Services.Notifications
 import "../modules"
 import "NotifTheme.js" as Theme
 
-// One notification, drawn the way swaync draws one.
+// One notification.
 //
-// The same card is used twice, because swaync styles the two contexts
-// differently and shares the structure:
+// The same card is used twice, because the two contexts are styled
+// differently and share the structure:
 //
 //   popup  .floating-notifications .notification-background: border 2px
 //          @border-alt, radius 8, `alpha(@background,.95)`; the inner
@@ -51,8 +51,8 @@ Item {
 
 	readonly property bool critical: n ? n.urgency === NotificationUrgency.Critical : false
 
-	// Paused while the pointer is over the card -- swaync stops a popup's
-	// timeout on hover, so a notification you are reading does not vanish.
+	// Paused while the pointer is over the card, so a notification you are
+	// reading does not vanish.
 	readonly property bool hovered: hover.hovered
 
 	// The card is showing its outline cue: the panel's keyboard cursor is on it,
@@ -82,7 +82,7 @@ Item {
 
 	// The icon: the image hint, else the app icon resolved through the theme,
 	// else nothing. A notification with no icon draws no icon at all rather
-	// than a placeholder -- that is what swaync does, and it is why the card is
+	// than a placeholder, and it is why the card is
 	// 20px shorter in that case.
 	readonly property string iconSource: {
 		if (!n)
@@ -126,7 +126,7 @@ Item {
 	readonly property var actions: n ? (n.actions ? n.actions : []) : []
 
 	// The action a click on the card runs: the freedesktop "default" one, which is
-	// what a client's own "View" button maps to. swaync drew that as a button of
+	// what a client's own "View" button maps to. That used to be a button of
 	// its own inside the panel; here the whole card is the target instead, so no
 	// button is drawn there. Popups keep their buttons -- they are gone in five
 	// seconds and the choices are worth having on screen.
@@ -144,8 +144,7 @@ Item {
 	implicitHeight: frame.height
 
 	// ── dragging a card away ───────────────────────────────────────────────
-	// swaync's popups are DismissibleWidgets: pull one far enough to either side
-	// and letting go closes it. The panel's cards do the same thing now; in the
+	// Pull a card far enough to either side and letting go closes it. The panel's cards do the same thing now; in the
 	// panel's list a *vertical* drag stays the list's own scroll (the handler is
 	// x-axis only), and a notification can still be dismissed with a key or the
 	// close button.
@@ -316,8 +315,7 @@ Item {
 	//
 	// Armed and disarmed from `armDwell` rather than with a
 	// `running: ... && !card.hovered` binding, so that hovering stops the
-	// countdown outright and un-hovering gives the popup its full timeout again,
-	// which is what swaync does.
+	// countdown outright and un-hovering gives the popup its full timeout again.
 	Timer {
 		id: dwell
 
@@ -332,7 +330,7 @@ Item {
 		}
 	}
 
-	// Restarts the whole timeout, which is what swaync does on un-hover: the
+	// Restarts the whole timeout on un-hover: the
 	// popup gets its full five seconds again rather than the remainder.
 	function armDwell() {
 		dwell.stop();
@@ -372,7 +370,7 @@ Item {
 		border.color: card.outlined ? card.notifColors.selected : card.notifColors.border
 
 		// The critical border. In a popup it is a second border inset by the
-		// background's own 2px; in the centre swaync tints the card's text
+		// background's own 2px; in the centre the card's text is tinted
 		// instead, which bodyText does below.
 		Rectangle {
 			anchors.fill: parent
@@ -446,9 +444,9 @@ Item {
 
 			// ── action buttons ───────────────────────────────────────────────
 			// Popups only: in the panel the whole card is the click target, so the
-			// buttons swaync drew there are left out. Hidden rather than left empty
+			// buttons there are left out. Hidden rather than left empty
 			// when there are none: an empty layout still contributes its margins,
-			// which made every actionless card 12px taller than swaync's.
+			// which made every actionless card 12px too tall.
 			RowLayout {
 				visible: card.popup && card.actions.length > 0
 				Layout.fillWidth: true
@@ -521,7 +519,7 @@ Item {
 			y: Theme.cardBorderWidth + card.closeInset
 			radius: Theme.closeRadius
 			color: closeArea.containsMouse ? card.notifColors.selected : "transparent"
-			// swaync only reveals the close button while the notification is
+			// The close button is only revealed while the notification is
 			// hovered -- measured off a live un-hovered popup, which has no ink
 			// anywhere in the button's corner.
 			opacity: card.hovered ? 1 : 0

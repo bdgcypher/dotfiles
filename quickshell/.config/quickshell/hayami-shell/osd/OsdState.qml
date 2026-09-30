@@ -7,8 +7,8 @@ import "OsdTheme.js" as Theme
 
 // The OSD's state, and the IPC endpoint that hayami-osd talks to.
 //
-// The split mirrors swayosd's: the client does the work (it is what knows how to
-// talk to wpctl, brightnessctl and playerctl), and the server just draws. The
+// The client does the work (it is what knows how to
+// talk to wpctl, brightnessctl and playerctl), and the shell just draws. The
 // difference is that the shell already subscribes to Pipewire, so for the volume
 // bars it can read the level itself rather than being told -- `--output-volume
 // raise` only has to name which bar to show, and the drawn value is the real one
@@ -70,7 +70,7 @@ Item {
 		return { value: source_.audio.volume, muted: source_.audio.muted };
 	}
 
-	// swayosd names its icons from the freedesktop spec; a few of those are not
+	// Icon names come from the freedesktop spec; a few of those are not
 	// in this icon theme, so they are mapped onto something that is. Without a
 	// fallback the OSD would silently lose its icon rather than draw a wrong one.
 	function resolveIcon(name) {
@@ -154,7 +154,7 @@ Item {
 		id: timer
 
 		// Restarted on every show, so a run of volume key presses keeps one OSD
-		// on screen and only the last value is displayed -- what swayosd does.
+		// on screen and only the last value is displayed.
 		interval: root.duration
 		onTriggered: root.showing = false
 	}

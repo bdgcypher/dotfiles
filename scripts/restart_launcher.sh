@@ -59,17 +59,9 @@ fi
 # folds some directories whole (~/.config/hypr/apps and ~/.config/hypr/bindings are
 # symlinks, so a file the commit added under either is live as soon as the repo is
 # updated) but links the top level file by file. A new hypr/.config/hypr/*.lua, or
-# a new directory beside one, is therefore NOT in $HOME until stow has run -- and
-# the other reload in the install path is in retire_legacy_stack.sh, which runs
-# *before* stow (it has to: it prunes the old stack's symlinks before stow's
-# conflict handling sees them). Reloading here makes new hypr config live on the
-# strength of the install rather than on whether stow happened to fold the new
-# file's parent directory.
-#
-# retire_legacy_stack.sh keeps its own reload: that one belongs to the migration,
-# and it is what drops the evicted app rules and exec-once entries when the script
-# is run by hand instead of through install.sh. A second reload per install run
-# costs one idempotent config re-evaluation.
+# a new directory beside one, is therefore NOT in $HOME until stow has run.
+# Reloading here makes new hypr config live on the strength of the install rather
+# than on whether stow happened to fold the new file's parent directory.
 #
 # Before the shell, deliberately: the bar is a layer surface, so it should come up
 # into a session that already has its final reserved strip (hayami_bar_gaps in

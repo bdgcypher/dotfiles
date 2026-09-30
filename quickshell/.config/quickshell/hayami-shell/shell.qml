@@ -10,9 +10,9 @@ import "osd"
 //   qs -c hayami-shell     run it (one bar per monitor)
 //   hayami-shell start     the same, but only if it is not already up
 //
-// It is the whole desktop chrome: waybar's bar, walker's launcher, swaync's
-// notifications and swayosd's OSD, all in one process. The stack it replaced is
-// gone, so there is nothing to hand over to at start-up or back on the way out.
+// It is the whole desktop chrome: the bar, the launcher, the notification
+// centre and the OSD, all in one process. Nothing external to hand over to at
+// start-up or back on the way out.
 //
 // The pieces are driven through their CLIs so the keybinds and scripts do not
 // care how they are built:

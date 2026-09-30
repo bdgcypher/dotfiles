@@ -8,9 +8,10 @@
 # rather than in the keybind because it depends on what the focused window is,
 # and a keybind cannot ask that.
 
-# Elephant appends "-t 'text/uri-list'" for file entries. The hint lands on
-# this script, while wl-copy (first in the chain) copied the URIs as plain
-# text. Re-copy with the correct MIME type so apps see real file URIs.
+# The launcher's files provider appends "-t 'text/uri-list'" for file entries.
+# The hint lands on this script, while wl-copy (first in the chain) copied the
+# URIs as plain text. Re-copy with the correct MIME type so apps see real file
+# URIs.
 if [ "$1" = "-t" ] && [ "$2" = "text/uri-list" ]; then
   wl-paste 2>/dev/null | wl-copy -t 'text/uri-list'
 fi

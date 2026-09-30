@@ -5,22 +5,22 @@ import "Icons.js" as Icons
 
 // custom/update -- pending pacman/AUR updates.
 //
-// Same source as the waybar module it replaces (yay -Qu): one run at startup,
+// Source: yay -Qu. One run at startup,
 // then hourly, plus an immediate re-check when `piu` finishes an update run and
 // writes the signal file below. The glyph stays hidden while the count is zero,
-// matching the empty text waybar prints in its "uptodate" state.
+// matching the empty text printed in the "uptodate" state.
 BarItem {
 	id: root
 
 	// -1 while the first check is still running.
 	property int count: -1
 
-	// The pending package names, in the order yay printed them. waybar's
+	// The pending package names, in the order yay printed them. The
 	// updates helper caches the same list and puts the first fifteen of them in
 	// the tooltip, so the names are kept here rather than only counted.
 	property var pending: []
 
-	// Nothing at all until the count is known: waybar's own "checking" branch only
+	// Nothing at all until the count is known: the "checking" branch only
 	// runs when its cache file is missing, so in practice it shows an empty module
 	// on start-up rather than a spinner-ish icon. Matching that keeps the centre
 	// section from jumping every time the bar starts.

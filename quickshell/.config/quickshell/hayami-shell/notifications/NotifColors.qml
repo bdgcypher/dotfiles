@@ -1,15 +1,14 @@
 import QtQuick
 
-// Resolves the swaync theme's colour names onto the pywal palette.
+// Resolves the notification theme's colour names onto the pywal palette.
 //
-// The swaync theme's notifications.css and central_control.css each started with
+// The theme's notifications.css and central_control.css each started with
 // a block of @define-color lines naming pywal colours, and the two disagreed on two of
 // them (the popups hover with @color5 and paint actions with @color1; the control
 // centre hovers with a half-transparent @color1 and paints actions with
 // @color1 at 60%). Rather than repeat that mapping in every component, the
 // popup and the panel each instantiate one of these and read the names from
-// here -- so a wallpaper change re-tints the whole notification stack, the way
-// re-running swaync-client -rs used to.
+// here -- so a wallpaper change re-tints the whole notification stack.
 QtObject {
     id: root
 

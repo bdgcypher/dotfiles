@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Directory listing for the launcher's files provider (walker's "." prefix).
+"""Directory listing for the launcher's files provider (the "." prefix).
 
 The argument is the path typed after the prefix, which may be partial:
 

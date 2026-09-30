@@ -10,7 +10,7 @@ import "Theme.js" as Theme
 
 // hyprland/workspaces.
 //
-// Matches the waybar module:
+// The module's rules:
 //   * workspace 1 is always shown ("persistent-workspaces": {"1": []})
 //   * the focused workspace shows the filled glyph, the rest show their number
 //     ("format-icons".active)
@@ -20,7 +20,7 @@ import "Theme.js" as Theme
 // A Grid rather than a Row, because the digits have to run down the bar when the
 // bar is on a left or right edge. `rows: 1` is a Row and `columns: 1` is a
 // Column, so one positioner covers both and the delegates below are unchanged --
-// waybar's own vertical bars do the same thing with the same module.
+// The vertical bars do the same thing with the same module.
 Grid {
 	id: root
 
@@ -66,7 +66,7 @@ Grid {
 
 	// style.css: #workspaces button { padding: 0 6px; margin: 0 1.5px }. Both live on
 	// the delegate: the 6px padding, and the two 1.5px margins that already meet
-	// between neighbours. Spacing here would add a third gap waybar does not have.
+	// between neighbours. Spacing here would add a third gap that is not wanted.
 	spacing: 0
 
 	function wsFor(id) {
@@ -98,7 +98,7 @@ Grid {
 		return focused !== null && focused.id === id;
 	}
 
-	// waybar: "format-icons" -> { "1": "1", ..., "9": "9", "10": "0" }. The tenth
+	// "format-icons" -> { "1": "1", ..., "9": "9", "10": "0" }. The tenth
 	// workspace shows a bare 0 so the row stays one character wide.
 	function iconFor(id) {
 		if (root.isActive(id))
@@ -112,7 +112,7 @@ Grid {
 			return true;
 
 		// lastIpcObject is the raw hyprctl workspace object, so this is the same
-		// "windows" count waybar reads.
+		// "windows" count.
 		var raw = ws.lastIpcObject;
 		if (raw && raw.windows !== undefined)
 			return raw.windows === 0;
@@ -135,7 +135,7 @@ Grid {
 			// style.css: #workspaces button { padding: 0 6px }
 			paddingLeft: 6
 			paddingRight: 6
-			// waybar renders these in GTK's default font, because `#workspaces button
+			// These render in GTK's default font, because `#workspaces button
 			// { all: initial }` throws away the font `*` sets. That is an accident of
 			// that rule, not a design choice, so the digits stay in the bar's own font
 			// here -- one font across the whole bar.
@@ -151,8 +151,8 @@ Grid {
 
 			// The wheel steps to the neighbouring number on the bar. `ids()` is
 			// sorted, so the neighbour that reads as "next" is the next entry in
-			// it, and the step wraps at both ends rather than dead-ending. waybar
-			// had no scroll here; this is the bar's own hook, and the same gesture
+			// it, and the step wraps at both ends rather than dead-ending.
+			// This is the bar's own hook, and the same gesture
 			// the volume pill already answers to.
 			onScrolled: function(delta) {
 				var list = root.ids();

@@ -7,12 +7,11 @@ import "NotifTheme.js" as Theme
 
 // The notification server, and the state everything else draws from.
 //
-// This replaces swaync's daemon half. Quickshell answers org.freedesktop
-// Notifications itself, so this object owning a NotificationServer is what makes
-// notifications work -- and it is now the only thing on the machine that can own
-// that name, swaync having been removed along with the rest of its stack.
+// Quickshell answers org.freedesktop Notifications itself, so this object owning
+// a NotificationServer is what makes notifications work -- and it is the only
+// thing on the machine that can own that name.
 //
-// The split of duties is the same one swaync has: the server tracks
+// The split of duties: the server tracks
 // notifications and the surfaces draw them -- but the *decisions* (do not
 // disturb, which notification is newest, when a popup goes away) live here, so
 // the popup stack and the control centre cannot disagree with each other.
@@ -32,11 +31,11 @@ Item {
 
 	// ── do not disturb ───────────────────────────────────────────────────────
 
-	// swaync's -d / -D. While this is on, notifications are still tracked and
+	// Do not disturb. While this is on, notifications are still tracked and
 	// listed in the control centre; they just do not pop up.
 	property bool dnd: false
 
-	// swaync's "inhibitors": applications that hold DND on while they run.
+	// Inhibitors: applications that hold DND on while they run.
 	// Nothing in the dotfiles uses these, but the client flags exist, so the
 	// behaviour does too.
 	property var inhibitors: []
@@ -45,7 +44,7 @@ Item {
 
 	// Notification ids currently drawn as popups, newest first order comes from
 	// `popups` below. A popup that times out is deleted from here and the
-	// notification stays in `tracked` -- which is what swaync does, and why a
+	// notification stays in `tracked`, and that is why a
 	// notification you ignore is still in the panel afterwards.
 	property var popping: ({})
 
@@ -59,8 +58,7 @@ Item {
 	// again so that moving the mouse to the other screen does not teleport a
 	// popup mid-flight.
 	//
-	// One monitor only, because that is what swaync does -- it keeps a single
-	// notification window and puts it on the focused monitor. Drawing the stack
+	// One monitor only, and it follows focus. Drawing the stack
 	// on every monitor also meant every screen armed its own copy of the same
 	// timeout, so hovering the popup on one screen left the other screen's timer
 	// running, and that timer is what took the popup down mid-hover.
@@ -81,7 +79,7 @@ Item {
 	// ── collapsed groups ─────────────────────────────────────────────────────
 
 	// Which app groups the user has opened, by app name: a group is collapsed
-	// until it is opened, which is swaync's default and what its panel measured
+	// until it is opened, which is also what the panel measured
 	// (three tracked notifications drew one card's worth of height).
 	//
 	// Kept beside the rest of the state rather than inside the panel, so the
@@ -173,7 +171,7 @@ Item {
 	function arrive(notification) {
 		notification.tracked = true;
 
-		// swaync shows a popup for everything except while DND is on. A
+		// Show a popup for everything except while DND is on. A
 		// notification re-emitted by a config reload is already old news.
 		if (dnd || notification.lastGeneration)
 			return;
@@ -182,7 +180,7 @@ Item {
 		root.poppingRev++;
 	}
 
-	// swaync's timeout/timeout-low/timeout-critical, by urgency. A critical
+	// Timeouts are chosen by urgency. A critical
 	// notification's timeout is 0, which means "stay until dismissed".
 	function timeoutFor(notification) {
 		if (notification.urgency === NotificationUrgency.Critical)
@@ -281,7 +279,7 @@ Item {
 	function openPanel() {
 		root.centerMonitor = root.focusedMonitor;
 		root.centerOpen = true;
-		// swaync drops the floating notifications when the centre opens: the
+		// Drop the floating notifications when the centre opens: a
 		// popup would otherwise sit on top of the panel it just opened.
 		root.hideAll();
 	}
@@ -308,7 +306,7 @@ Item {
 		return root.dnd ? "true" : "false";
 	}
 
-	// swaync accepts "true"/"false"; anything truthy enough is taken as on.
+	// Accept "true"/"false"; anything truthy enough is taken as on.
 	function setDnd(value) {
 		var wanted = String(value);
 		root.dnd = (wanted === "true" || wanted === "1" || wanted === "on");
@@ -341,9 +339,8 @@ Item {
 		return root.getInhibited();
 	}
 
-	// swaync's -swb vocabulary, which is what the bar bell and waybar's swaync
-	// module both read. All eight values, from waybar's own format-icons (which
-	// is where the combination states are spelled out): none / notification /
+	// The bell's state vocabulary, which is what the bar bell reads.
+	// All eight values, covering the combination states: none / notification /
 	// dnd-none / dnd-notification / inhibited-none / inhibited-notification /
 	// dnd-inhibited-none / dnd-inhibited-notification.
 	readonly property string alt: {
@@ -358,8 +355,8 @@ Item {
 	}
 
 	// The bar bell's hover tooltip, and the same string the client's `state`
-	// reports: swaync's -swb JSON carries a tooltip field, and this is the wording
-	// that stands in for it now that the shell answers for notifications itself.
+	// reports: the client's state JSON carries a tooltip field, and this is the
+	// wording that stands in for it.
 	readonly property string tooltip: {
 		var text = root.count === 1 ? "1 notification" : (root.count + " notifications");
 		if (root.dnd)

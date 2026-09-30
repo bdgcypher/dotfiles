@@ -18,7 +18,7 @@
 #          the wallet. Bearer auth with the CLI's own token from
 #          ~/.config/manicode/credentials.json. Read-only, and cached below.
 #
-# The shape is waybar's (text/alt/tooltip/class) with the panel's own fields
+# The shape is text/alt/tooltip/class with the panel's own fields
 # added on, the way vpn-status.sh does it, so the module reads it the same way.
 #
 # Each session is also matched to its Hyprland window, so the panel can hand the

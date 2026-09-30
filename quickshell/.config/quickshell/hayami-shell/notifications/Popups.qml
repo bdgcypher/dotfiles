@@ -4,12 +4,12 @@ import Quickshell.Wayland
 import "NotifTheme.js" as Theme
 
 // The floating notification popups. A layer surface is declared for every
-// monitor, but only the one that owns the stack draws anything: swaync keeps a
-// single notification window and shows it on the monitor that was focused when
+// monitor, but only the one that owns the stack draws anything: a
+// single stack, shown on the monitor that was focused when
 // the notification arrived (its --change-noti-monitor, which would follow the
 // mouse afterwards, is not implemented).
 //
-// Geometry, from swaync's own CSS and confirmed against the live swaync window
+// Geometry, confirmed against a live window
 // with `hyprctl layers -j` plus grim crops on this 1.1-scaled screen:
 //
 //   cards       400 wide, flush with the right edge, from the top of the screen
@@ -333,8 +333,7 @@ PanelWindow {
 						state: root.state
 						popup: true
 					}
-
-					// transition-time: 200 -- swaync slides a popup in from
+					// A popup slides in from
 					// the right and fades it in.
 					NumberAnimation {
 						id: slideIn

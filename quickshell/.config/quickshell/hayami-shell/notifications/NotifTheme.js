@@ -1,18 +1,13 @@
 .pragma library
 
-// Design tokens for notifications, lifted from swaync (which this replaced, and
-// which has since been removed) so the new centre looks like the old one.
+// Design tokens for notifications.
 //
-// Three sources, and they are different kinds of thing:
-//
-//   * colours come from swaync's pywal-dark theme CSS, which was itself
-//     pywal-ified -- every colour below is a name from that CSS (@foreground,
-//     @color1, @color6, ...) resolved through BarPalette, so a wallpaper change
-//     re-tints notifications too;
-//   * geometry and behaviour come from swaync's config.json;
-//   * the handful of measurements the CSS leaves to GTK (where the popup card
-//     actually lands, how tall a row is) were read off the live swaync windows
-//     with `hyprctl layers -j` plus grim crops, which is why they are odd numbers.
+// Colours are pywal names (@foreground, @color1, @color6, ...) resolved through
+// BarPalette, so a wallpaper change re-tints notifications too. The geometry and
+// spacing follow the panel's own rhythm rather than a formula, and the handful of
+// sizes a toolkit would otherwise have decided for us (where the popup card
+// actually lands, how tall a row is) were measured off a live window with
+// `hyprctl layers -j` plus grim crops -- which is why they are odd numbers.
 
 // ── the surface the popups live on ───────────────────────────────────────────
 
@@ -104,14 +99,13 @@ var actionPadding = 12
 
 // ── timeouts ─────────────────────────────────────────────────────────────────
 
-// config.json: "timeout": 5, "timeout-low": 3, "timeout-critical": 0.
-// swaync's own values, not the notification's, which is what swaync does with
-// these keys set -- 0 means "stay until dismissed".
+// Timeouts are the panel's own, not the notification's -- 0 means "stay until
+// dismissed".
 var timeoutNormal = 5000
 var timeoutLow = 3000
 var timeoutCritical = 0
 
-// swaync pauses a popup's timeout while the pointer is over it.
+// A popup's timeout pauses while the pointer is over it.
 var hoverPausesTimeout = true
 
 // ── the control centre ───────────────────────────────────────────────────────
@@ -139,10 +133,8 @@ var centerCardMarginBottom = 50
 var centerCardMarginRight = 24
 var centerCardPadding = 12
 
-// The 10 buttons of the buttons-grid, copied glyph for glyph and command for
-// command out of swaync's config.json so the panel does exactly what the one it
-// replaced did. The glyphs are nerd-font codepoints pasted as escapes because
-// they are invisible in an editor.
+// The 10 buttons of the buttons grid. The glyphs are nerd-font codepoints pasted
+// as escapes because they are invisible in an editor.
 var gridButtons = [
 	{ glyph: "\uDB81\uDE6A", command: ["ghostty", "--class=floating.Wiremix", "-e", "wiremix"] },
 	{ glyph: "\uF1EB", command: ["ghostty", "--class=floating.Gazelle", "-e", "gazelle"] },
@@ -192,7 +184,7 @@ var gridButtonMarginH = 16
 // line box of ~16.6 (ink 13-14 physical px); Qt's is ~21.5 for the same ink, so
 // sizing the button from Text metrics made the grid 10px too tall. Sizing it
 // from the measurement instead keeps both the glyph *and* the grid right:
-// 2 + 12 + 2 * (29 + 8) = 88, against 87.3 measured on swaync.
+// 2 + 12 + 2 * (29 + 8) = 88, against 87.3 measured on a live window.
 var gridButtonHeight = 29
 var gridFontSize = 16
 var gridButtonRadius = 8
@@ -219,9 +211,9 @@ var sliderRingBorder = 3
 // .widget-volume > box > label { margin-right: 10px }
 var volumeLabelGap = 10
 
-// The brightness row beside the volume one. swaync has no such widget here --
-// brightness is hayami-osd's job (the XF86MonBrightness keys) -- so this row is
-// ours, styled like the volume row above it and driven the same way the OSD
+// The brightness row beside the volume one. Brightness is otherwise hayami-osd's
+// job (the XF86MonBrightness keys), so this row is styled like the volume row
+// above it and driven the same way the OSD
 // drives the backlight: `brightnessctl -c backlight`, the same class the OSD
 // addresses when no --device is given.
 //
@@ -260,7 +252,7 @@ var transportFlash = 170
 // .widget-mpris-player { border-radius: 8px; padding: 6px 14px; margin: 6px }
 // "mpris": { "image-size": 96, "image-radius": 12 }
 //
-// The sides keep swaync's 6px. The vertical 20px does not: it was the widest
+// The sides are 6px. The vertical 20px is not: it was the widest
 // gap in the panel by a distance no other section had, so it is a
 // centreSectionGap like every other section boundary.
 var mprisMargin = 6
@@ -277,8 +269,8 @@ var mprisControlSize = 24
 // minus this widget's padding and the artwork.
 var mprisTextWidth = 168
 
-// The transport icons, named the way swaync names them so the same symbolic
-// icons out of the theme are drawn.
+// The transport icons, named so the same symbolic icons out of the theme are
+// drawn.
 var mprisPrevious = "media-skip-backward-symbolic"
 var mprisPlay = "media-playback-start-symbolic"
 var mprisPause = "media-playback-pause-symbolic"
@@ -287,9 +279,9 @@ var mprisNext = "media-skip-forward-symbolic"
 // .widget-title { font-size: 1.2em; font-weight: 600; margin: 6px }
 // button { background: @background-alt; border-radius: 8px; padding: 4px 16px }
 //
-// swaync drew that 1.2em in GTK's Adwaita Sans 11. The panel here uses the system
-// font instead (JetBrainsMono), where the same nominal size is both wider and
-// heavier -- the label measured 124px against swaync's 86 -- so the heading sits
+// The 1.2em is relative, and the system font (JetBrainsMono) renders the same
+// nominal size both wider and heavier than the scale suggests -- the label
+// measured 124px where 86 was wanted -- so the heading sits
 // two points under the old size, and a step below semibold: 500 is the family's
 // Medium, where 600 picks SemiBold.
 var titleSize = 15
@@ -301,9 +293,8 @@ var titleMargin = 6
 // distance from the heading down to the first card. Kept small because every
 // point here comes straight out of the notification list's height.
 var titleMarginVertical = 4
-// widget-config.label.text in swaync is one space with max-lines 1 -- an empty
-// spacer at the head of the widget stack (21.9px of GTK line box). The panel
-// drops it: it made the inset from the card's top to the buttons 42 where the
+// The panel drops the empty spacer a widget stack would put at its head: it made
+// the inset from the card's top to the buttons 42 where the
 // sides use 20. Without it the buttons get the same air on every side, because
 // the card's padding and the grid's own margin already add up to the sides'.
 // Horizontal only: the button's height is set beside the switch (see
@@ -344,8 +335,9 @@ var groupSideMargin = 6
 var centerListTopGap = 10
 
 // The space between the panel's sections: buttons, volume/brightness, media,
-// notifications. swaync left each boundary to the two widgets' own CSS margins,
-// which made them 12, 26 and 24 -- three different distances for the same job.
+// notifications. One token for all of them, rather than leaving each boundary to
+// the two sections' own margins, which made three different distances for the
+// same job.
 // One token for all of them instead, so every boundary reads the same.
 //
 // 16 rather than the 12 the buttons and the volume row arrived at: at 12 the
@@ -359,8 +351,8 @@ var centerSectionGap = 16
 // .notification-group-headers { font-size: 1.25rem; font-weight: bold;
 //                            letter-spacing: 2px }
 //
-// swaync drew that in GTK's Adwaita Sans and in caps, which made it much the
-// heaviest text in the panel -- past even the cards' own bold summary. Matched to
+// In caps this was much the heaviest text in the panel -- past even the cards'
+// own bold summary. Matched to
 // the rest of the shell instead: the same system font, mixed case, no letter
 // spacing, a step under the cards' summary and 500, the family's real Medium.
 var groupHeaderSize = 13
@@ -376,8 +368,8 @@ var groupToggleIcon = "pan-down-symbolic"
 var groupToggleIconOpen = "pan-up-symbolic"
 var groupToggleIconSize = 16
 
-// A group of notifications is collapsed by default -- that is swaync's
-// notification-grouping, and three tracked notifications measured as exactly
+// A group of notifications is collapsed by default, and three tracked
+// notifications measured as exactly
 // one card's worth of height in its panel. Only the newest card is drawn; the
 // older ones are the edges of a stack behind it, each one stepping out further
 // *below* it: the newest card on top, the older ones under it, which is also the
@@ -405,7 +397,7 @@ var groupHeaderGap = 4
 // .widget-dnd { font-size: 1.2rem; margin: 6px }
 // > switch { border-radius: 8px; padding: 2px } / slider { border-radius: 8px }
 //
-// swaync's switch is 44 wide, which next to a label read as the heaviest thing in
+// A 44-wide switch next to a label reads as the heaviest thing in
 // the panel. The slider height falls out of the width (half, less the padding),
 // so one number scales the whole control: 36 gives a 16px knob in a 36x20 track.
 //
@@ -445,8 +437,8 @@ var focusScrollMargin = 10
 
 // ── dragging a popup away ───────────────────────────────────────────────
 
-// swaync's popups are DismissibleWidgets: pull one sideways past a threshold
-// and letting go closes it. The threshold is a share of the card's own width,
+// A popup is dismissed by pulling it sideways past a threshold and letting go.
+// The threshold is a share of the card's own width,
 // which is also how far the card fades out by -- so it is always fully faded
 // before the layer surface it lives in gets a chance to clip it.
 var dragDismissFraction = 0.25

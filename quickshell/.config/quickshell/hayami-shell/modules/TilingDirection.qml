@@ -12,7 +12,7 @@ import "Theme.js" as Theme
 // both bars on the same script means they can never disagree, and there is one
 // place to fix if the logic changes.
 //
-// waybar refreshes it on signal 11, which hypr-tiling-direction-toggle sends; the
+// It is refreshed on signal 11, which hypr-tiling-direction-toggle sends; the
 // same poke writes /tmp/hypr-bar.signal, which RefreshTrigger watches, so a toggle
 // lands immediately.
 //
@@ -29,7 +29,7 @@ BarItem {
 
 	// custom/tiling-direction: "tooltip": true. The script writes the sentence
 	// into the JSON's tooltip field ("Tiling direction: horizontal", "Next
-	// window: new column (right)", ...), which is what waybar shows.
+	// window: new column (right)", ...).
 	property string stateTooltip: ""
 
 	// A poke that arrives while the probe is still running is queued rather than

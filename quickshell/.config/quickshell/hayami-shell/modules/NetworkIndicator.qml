@@ -6,11 +6,11 @@ import "Icons.js" as Icons
 
 // network -- wifi signal ladder, ethernet, or disconnected.
 //
-// waybar picks its icon by the connected device type and, for wifi, by the
+// The icon is picked by the connected device type and, for wifi, by the
 // signal strength band; ethernet always shows 󰀂 and a missing connection shows
-// 󰤮. Left click opens gazelle in a floating ghostty, as the waybar module does.
+// 󰤮. Left click opens gazelle in a floating ghostty.
 //
-// The tooltip is waybar's too -- "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}"
+// The tooltip reads -- "{essid} ({frequency} GHz)\n⇣{bandwidthDownBytes}  ⇡{bandwidthUpBytes}"
 // for wifi, the two arrows alone for ethernet, "Disconnected" when there is no
 // link -- with the frequency and the two rates coming from scripts/net-tooltip.sh
 // (see that file for why they are not read here).
@@ -33,7 +33,7 @@ BarItem {
 	property real upRate: 0
 
 	// Same margin either side as the rest of the cluster -- see the note in
-	// BluetoothIndicator. waybar's #network margin-right: 13px was the inset that
+	// BluetoothIndicator. A 13px margin-right was the inset that
 	// left this icon floating furthest from its neighbours.
 	marginLeft: 6
 	marginRight: 6
@@ -53,7 +53,7 @@ BarItem {
 		return head + "⇣" + rateText(downRate) + "  ⇡" + rateText(upRate);
 	}
 
-	// waybar scales the byte rate to the largest unit that fits and prints one
+	// The byte rate is scaled to the largest unit that fits, with one
 	// decimal, so 1500 is "1.5KiB/s" and 0 is "0.0B/s".
 	function rateText(bytes) {
 		var units = ["B", "KiB", "MiB", "GiB"];
@@ -80,7 +80,7 @@ BarItem {
 	Component.onCompleted: refresh()
 
 	// The rate probe runs on the same 3s beat as the in-process refresh, which is
-	// also what waybar's network module does with its own interval.
+	// also what the module's own interval did.
 	Process {
 		id: rateProbe
 
@@ -96,7 +96,7 @@ BarItem {
 		}
 	}
 
-	// waybar's {essid} is the network's own name, not the interface's, so the
+	// {essid} is the network's own name, not the interface's, so the
 	// connected network is what the tooltip names.
 	function networkName(device) {
 		var networks = device.networks.values;

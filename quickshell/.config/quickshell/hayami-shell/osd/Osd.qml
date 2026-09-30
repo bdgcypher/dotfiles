@@ -7,12 +7,11 @@ import "OsdTheme.js" as Theme
 
 // The on-screen display: one layer surface per monitor, shown on the focused one.
 //
-// swayosd's server keeps a single window and moves it to the monitor its client
-// asked for. This is the same thing done the other way round -- a surface per
-// screen, of which only the target screen's is visible -- because a layer surface
+// A surface per screen, of which only the target screen's is visible, rather
+// than one window moved between monitors -- because a layer surface
 // cannot be moved between monitors, only re-created.
 //
-// Geometry, all measured off the running swayosd window (`hyprctl layers -j`):
+// Geometry, all measured off a running window (`hyprctl layers -j`):
 // 292x68 logical for a volume OSD, horizontally centred, its bottom edge at 85%
 // of the screen height, on the overlay layer. The width is content-sized with a
 // 250px floor, which is why the same OSD is 250 wide for a one-word custom
@@ -44,8 +43,8 @@ PanelWindow {
 	readonly property color accent: (pal && pal.colors.length > Theme.fillColorIndex)
 		? pal.colors[Theme.fillColorIndex] : foreground
 
-	// swayosd centres "100%" worth of label so the window does not resize as the
-	// digits change, so the label's box is sized for "100%" itself -- measured in
+	// The label's box is sized for "100%" itself, so the window does not resize as
+	// the digits change -- measured in
 	// the real font, not a pixel guess, since "100%" is four monospace characters
 	// where every other percentage is three and a fixed 35px reserve once grew
 	// the window exactly at full.
@@ -67,8 +66,8 @@ PanelWindow {
 
 	readonly property real labelBox: Math.max(labelMetrics.width, maxLabelMetrics.width)
 
-	// padding + icon + gap + bar + gap + label + padding, in the order swayosd
-	// lays them out. Each part contributes only when it is present, so a custom
+	// padding + icon + gap + bar + gap + label + padding, in that order.
+	// Each part contributes only when it is present, so a custom
 	// message with no icon and no bar collapses to just its text.
 	readonly property real contentWidth: (hasIcon ? Theme.iconBox + Theme.iconGap : 0)
 		+ (hasBar ? Theme.barWidth + Theme.barGap : 0)
@@ -103,7 +102,7 @@ PanelWindow {
 	margins.bottom: Math.round(screen.height * (1 - Theme.topMargin))
 	// Margins either side of a content-sized surface are how the OSD stays
 	// centred as its width changes. The leftover pixel from an odd gap goes to
-	// the left, which is where swayosd puts it (292 wide on a 1745 screen: x727
+	// the left (292 wide on a 1745 screen: x727
 	// with 726 to the right). Rounding both sides instead loses that pixel.
 	readonly property real leftMargin: Math.ceil((screen.width - boxWidth) / 2)
 	margins.left: leftMargin
@@ -149,9 +148,9 @@ PanelWindow {
 			// Left-anchored at the left padding, not centred: the paddings are
 			// not equal (17 left, 21 right), and centring the row splits the
 			// difference instead of honouring them, which pushes the icon, the
-			// bar and the label about 3px right of swayosd's. Anchoring also
-			// matches what swayosd does when the 250px floor is wider than the
-			// content -- a GTK box lays its children out from the left.
+			// bar and the label about 3px right of where they should be. Anchoring
+			// also matches what happens when the 250px floor is wider than the
+			// content -- a box lays its children out from the left.
 			anchors.left: parent.left
 			anchors.leftMargin: Theme.paddingLeft
 			anchors.verticalCenter: parent.verticalCenter
@@ -166,7 +165,7 @@ PanelWindow {
 
 				// Positioned against the icon's box, not centred in this item: the
 				// item also carries the gap, so centring in it would push the
-				// artwork half the gap to the right of where swayosd draws it.
+				// artwork half the gap to the right of where it belongs.
 				SymbolicIcon {
 					id: iconImage
 
@@ -174,14 +173,14 @@ PanelWindow {
 					y: (Theme.iconBox - Theme.iconSize) / 2
 					width: Theme.iconSize
 					height: Theme.iconSize
-					// swayosd draws these in the foreground's colour, not the
+					// Drawn in the foreground's colour, not the
 					// theme's -- see SymbolicIcon.qml.
 					color: osd.foreground
 					source: Quickshell.iconPath(osd.state.icon, true)
 				}
 			}
 
-			// swayosd's bar: a rounded trough with a rounded fill in color6. The
+			// The bar: a rounded trough with a rounded fill in color6. The
 			// fill can exceed the trough when volume-boost has the sink above
 			// 100%, so it is clamped to the bar.
 			// The wrapper is a full row tall (not just the bar's 7) and the bar is
@@ -218,7 +217,7 @@ PanelWindow {
 				width: osd.labelBox
 				height: Theme.iconBox
 				// Left-aligned inside a box sized for "100%": the text starts in
-				// the same place swayosd's does however wide it turns out. The
+				// the same place however wide it turns out. The
 				// vertical alignment does the centring the Row does not.
 				horizontalAlignment: Text.AlignLeft
 				verticalAlignment: Text.AlignVCenter

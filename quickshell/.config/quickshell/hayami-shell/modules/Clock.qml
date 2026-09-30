@@ -4,7 +4,7 @@ import "Theme.js" as Theme
 
 // clock -- the date and the time in one reading, and the way into the calendar.
 //
-// waybar had the two as a click-toggle:
+// The two are a click-toggle:
 //          format     "{:L%A %I:%M %p}"  -> "Tuesday 03:45 PM"
 //          format-alt "{:L%B %d, %Y}"    -> "September 23, 2026"
 // They are one line now -- "04:29 PM · September 27th, 2026" -- so there is
@@ -36,7 +36,7 @@ BarItem {
 	// gives the rest. A quoted literal separator would also have to be trusted to
 	// Qt's format parser, which the concatenation simply sidesteps.
 	//
-	// The time leads and the date follows, both in the formats waybar used.
+	// The time leads and the date follows.
 	readonly property string clockText: Qt.formatDateTime(clock.date, "hh:mm AP")
 		+ " · " + Qt.formatDateTime(clock.date, "MMMM d")
 		+ ordinalSuffix + Qt.formatDateTime(clock.date, ", yyyy")

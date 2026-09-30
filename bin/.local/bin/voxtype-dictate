@@ -2,9 +2,9 @@
 
 # Toggle dictation, with the same on-screen feedback as the screen recorder.
 #
-# The keybind (SUPER+D) and the Waybar module's click call this instead of
+# The keybind (SUPER+D) and the bar module's click call this instead of
 # `voxtype record toggle` directly, so the OSD follows the daemon's real state.
-# voxtype has no hook/exec setting of its own, so it cannot drive SwayOSD.
+# voxtype has no hook/exec setting of its own, so it cannot drive the OSD.
 
 ICON="audio-input-microphone"
 

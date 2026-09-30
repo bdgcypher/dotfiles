@@ -25,7 +25,7 @@ This is the whole system:
         ├── colors-hyprlock.conf  ─▶ the lock screen
         ├── colors-discord.css    ─▶ copied into the vesktop theme
         ├── btop.theme, colors-cava.conf, colors-gazelle.toml,
-        │   colors-bluetui.toml, colors-walker.css, obsidian.css,
+        │   colors-bluetui.toml, obsidian.css,
         │   pywal.kvconfig, pywal.svg   ─▶ the rest
 ```
 
@@ -85,8 +85,7 @@ the shell marks focus with. The fallback colours in `BarPalette.qml` exist only
 so the shell renders before pywal has ever run on a fresh machine.
 
 The other two subsystems resolve the same palette: `notifications/NotifColors.qml`
-maps swaync's `@color1`/`@color5`/… names onto `pal.colors[]` (once, because the
-two swaync stylesheets disagreed with each other), and `osd/OsdTheme.js` plus
+maps `@color1`/`@color5`/… names onto `pal.colors[]`, and `osd/OsdTheme.js` plus
 `modules/Theme.js` are geometry and type only.
 
 **Rules for anything you add to the shell are in `SKILLS.md`** — the short

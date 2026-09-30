@@ -7,11 +7,11 @@ import "modules/Theme.js" as Theme
 
 // The bar itself.
 //
-// Geometry comes straight from waybar's config.jsonc ("height": 26,
-// "margin": "6 12 0 12") and style.css (#waybar: 8px radius, 1.2px #444444
-// border, 0.9 opacity), so swapping between the two bars moves nothing.
+// Geometry comes straight from the bar's config.jsonc ("height": 26,
+// "margin": "6 12 0 12") and style.css (8px radius, 1.2px #444444
+// border, 0.9 opacity).
 //
-// Like waybar's "exclusive": false, the panel reserves no screen space
+// The panel reserves no screen space
 // (exclusiveZone 0 / ExclusionMode.Ignore): windows are free to use the strip
 // behind the bar, and the rounded corners float over the desktop.
 //
@@ -40,7 +40,7 @@ PanelWindow {
 	screen: modelData
 
 	// The shell's notification server, so the bell reads its state directly
-	// instead of shelling out to swaync-client.
+	// instead of shelling out to a client.
 	property var notifications: null
 
 	// Where the bar is and what it shows, shared by every monitor's bar.
@@ -322,7 +322,7 @@ PanelWindow {
 	}
 
 
-	// The visible bar. waybar sets opacity on #waybar itself, which fades its
+	// The visible bar. Opacity is set on the bar itself, which fades its
 	// children too, so the chrome and the modules inside it share one opacity.
 	//
 	// The border is drawn as a rounded rect in the border colour with the

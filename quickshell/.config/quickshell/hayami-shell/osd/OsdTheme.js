@@ -1,33 +1,27 @@
 .pragma library
 
-// Design tokens for the on-screen display, taken from swayosd (which this
-// replaced, and which has since been removed) so the new OSD draws the same box
-// in the same place as the old one.
+// Design tokens for the on-screen display.
 //
-// Two sources, and they are not the same thing:
-//
-//   * geometry comes from the live swayosd window, read back with
-//     `hyprctl layers -j` while the OSD was up (its layer surface reports the
-//     real size, which is more trustworthy than a reading of its CSS);
-//   * colours and type come from swayosd's style.css.
-//
-// The placeholders where swayosd's CSS leaves a value to GTK (the trough, the
-// label metrics) were sampled out of a grim capture of the running OSD, which is
-// why those numbers look arbitrary -- they are measurements, not choices.
+// Geometry comes from the live window, read back with `hyprctl layers -j` while
+// the OSD was up: its layer surface reports the real size, which is more
+// trustworthy than reading a stylesheet. The sizes a toolkit would otherwise
+// have decided (the trough, the label metrics) were sampled out of a grim
+// capture of the running OSD, which is why those numbers look arbitrary -- they
+// are measurements, not choices.
 
 // ── where it goes ────────────────────────────────────────────────────────────
 
-// swayosd-server's --top-margin, and the window is placed so its *bottom* edge
-// lands there: measured bottom at 835 on a 982-tall screen = 0.850.
+// The window is placed so its *bottom* edge lands at this fraction of the
+// screen: measured bottom at 835 on a 982-tall screen = 0.850.
 var topMargin = 0.85
 
-// swayosd draws on the overlay layer, so the OSD covers fullscreen windows and
+// The overlay layer, so the OSD covers fullscreen windows and
 // anything else on screen. The top bar stays on Top, below this.
 var layer = "overlay"
 
 // ── box ──────────────────────────────────────────────────────────────────────
 
-// Measured sizes, in logical pixels. swayosd's window is content-sized and its
+// Measured sizes, in logical pixels. The window is content-sized and its
 // height depends only on which parts are present:
 //
 //   icon + anything .......  68   (32px icon box + 18px padding either side)
@@ -35,16 +29,15 @@ var layer = "overlay"
 //   bar only .............  42   (6px bar + 18px padding)
 //
 // so the padding is a flat 18 and the content decides the rest. A 250px minimum
-// holds the window still when the content is a single glyph -- swayosd ships the
-// same value as its width-request.
+// holds the window still when the content is a single glyph.
 // The paddings are derived from where the content *lands*, not guessed, and they
 // are asymmetric: on a 292-wide window the icon's box starts 17 in and the label
-// ends 21 from the right. Both halves were checked against swayosd's own box
+// ends 21 from the right. Both halves were checked against the box itself
 // (the icon's ink is centred at x33, and 17 + 32/2 is 33).
 //
 // They stay separate instead of being averaged because the bar and the label are
 // positioned by what comes before them -- the whole row has to start at 17 for
-// the bar's ink to land on 63.6, which is where swayosd's does.
+// the bar's ink to land on 63.6, which is where it should.
 var paddingLeft = 17
 var paddingRight = 21
 var paddingY = 18
@@ -66,7 +59,7 @@ var labelSize = 16
 
 // The icon box is 32: that is what makes the OSD 68 tall (32 + 18 + 18).
 //
-// The artwork is drawn at the full 32 rather than inset in the box. swayosd's
+// The artwork is drawn at the full 32 rather than inset in the box. The
 // icon *box* is 32 and the theme's speaker SVG only fills ~56% x 62% of its own
 // canvas, so the ink lands at ~18 x 20 -- which is what was measured on screen
 // (17.5 x 19.5 across the ink, centred at x33). Drawing it smaller to "match" the
@@ -92,6 +85,6 @@ var troughAlpha = 0.34
 
 // ── timing ───────────────────────────────────────────────────────────────────
 
-// Measured: the window is mapped for 1.03s from the trigger. swayosd does not
-// fade, it just maps and unmaps, so there is no animation here either.
+// Measured: the window is mapped for 1.03s from the trigger. There is no
+// fade -- it maps and unmaps -- so there is no animation here either.
 var duration = 1000

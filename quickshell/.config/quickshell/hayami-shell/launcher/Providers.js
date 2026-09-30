@@ -5,18 +5,18 @@
 // Every builder returns the same shape the ranking code expects:
 //   { text, fields, minScore, subtext, icon, weight, kind, ...extra }
 // `fields` is the ordered list the query is matched against and `minScore` the
-// threshold it has to clear -- together they are elephant's calcScore and its
-// provider's MinScore, and they are what decides how much a query pulls in (see
+// threshold it has to clear -- together they are the per-item score and the
+// provider's MinScore, and they decide how much a query pulls in (see
 // Query.js). `always` marks a list that is already the answer and is shown as
 // produced. `kind` decides what activating the item does, which is handled in
 // Launcher.qml (it needs Quickshell for exec, so it cannot live here).
 
-// elephant's websearch plugin builds Google URLs -- this URL template is the one
-// found in its plugin binary (https://www.google.com/search?q=%TERM%).
+// The websearch provider builds Google URLs; this URL template is the one used
+// (https://www.google.com/search?q=%TERM%).
 var WEBSEARCH_URL = "https://www.google.com/search?q=%TERM%";
 
 // Providers this launcher can actually answer with, for the "/" provider list.
-// Unimplemented elephant plugins (bluetooth, windows, snippets, ...) are left
+// Providers that are not implemented (bluetooth, windows, snippets, ...) are left
 // out on purpose: listing them would only produce empty results.
 var BUILTIN_PROVIDERS = [
 	{ name: "desktopapplications", label: "Applications" },
@@ -48,9 +48,9 @@ function isFileUriList(text) {
 	return seen > 0
 }
 
-// ── Scripts (elephant's runner) ──────────────────────────────────────────────
+// ── Scripts ──────────────────────────────────────────────────────────────
 
-// elephant's runner provider scores the binary name (then its alias) with
+// The runner provider scores the binary name (then its alias) with
 // MinScore 50, the strictest of any provider -- typing part of a command name
 // is meant to give you that command, not everything that echoes it.
 function runnerItems(list) {
@@ -71,12 +71,12 @@ function runnerItems(list) {
 	return out
 }
 
-// ── Emoji (elephant's symbols) ───────────────────────────────────────────────
+// ── Emoji ──────────────────────────────────────────────────────────────
 
 // Both this and the picker read the same vendored dataset, so a name found by
 // the ":" prefix in the list is the name the grid shows. The shortcodes go into
 // the keywords, which is what makes ":+1", ":thumbsup" and "thumbs up" all find
-// the same entry. Thresholded at 0 rather than elephant's 50 for symbols: the
+// the same entry. Thresholded at 0 rather than the runner's 50 for symbols: the
 // list is the flat view of a dataset you are already searching by hand, and the
 // grid, not this, is the picker.
 function symbolItems(items) {
@@ -120,7 +120,7 @@ function humanSize(bytes) {
 	return (Math.round(bytes / (1024 * 1024) * 10) / 10) + " MB"
 }
 
-// elephant's clipboard provider scores the entry's content with MinScore 30.
+// The clipboard provider scores the entry's content with MinScore 30.
 // The first line is the row's label and the whole entry is the second field, so
 // a multi-line clip is still found by anything inside it.
 function clipboardItems(history) {

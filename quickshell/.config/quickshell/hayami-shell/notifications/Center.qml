@@ -6,9 +6,9 @@ import Quickshell.Io
 import "../modules"
 import "NotifTheme.js" as Theme
 
-// The control centre -- swaync's panel.
+// The control centre.
 //
-// Geometry, all measured off the live swaync window on this 1.1-scaled screen
+// Geometry, all measured off a live window on this 1.1-scaled screen
 // (`hyprctl layers -j` plus grim crops of the @color6 border):
 //
 //   card     408 wide (380 + 2*12 padding + 2*2 border) and 879 tall
@@ -18,7 +18,7 @@ import "NotifTheme.js" as Theme
 //   window   432 wide (the card plus its 24px right margin), full height
 //
 // The window is full screen rather than 432 wide so that a click anywhere
-// outside the card can close the panel: swaync gets that for free from the
+// outside the card can close the panel: that comes free from the
 // compositor by grabbing keyboard focus and quitting on focus loss, and a
 // full-surface click target is the same behaviour without depending on focus
 // events. It is transparent, on the top layer, so it sits over the bar -- which
@@ -159,8 +159,8 @@ PanelWindow {
 		border.color: colors.border
 
 		// The panel is a fixed height (the screen less its margins), so the
-		// notification list is what absorbs the slack -- swaync's list scrolls
-		// for exactly this reason.
+		// notification list is what absorbs the slack, and it scrolls for
+		// exactly this reason.
 		ColumnLayout {
 			id: layout
 
@@ -179,7 +179,7 @@ PanelWindow {
 
 				Layout.fillWidth: true
 				// .widget-buttons-grid { margin: 6px }: the sides and the top keep
-				// swaync's own margin -- that is what makes the panel's top inset
+				// own margin -- that is what makes the panel's top inset
 				// match its sides. The space below it is a section gap instead.
 				Layout.leftMargin: Theme.gridMargin
 				Layout.rightMargin: Theme.gridMargin
@@ -436,7 +436,7 @@ PanelWindow {
 								return null;
 							}
 
-							// swaync draws the group heading only when there is
+							// Draw the group heading only when there is
 							// more than one notification in it -- with a single
 							// notification the card sits straight under the DND
 							// row, which is what the live panel measures.
@@ -521,7 +521,7 @@ PanelWindow {
 							}
 
 							// ── the cards ────────────────────────────────────────────────
-							// Collapsed (swaync's default, and what its own panel measures)
+							// Collapsed (the default, and what the panel measures)
 							// the group is one card tall: the newest notification in full,
 							// with the older ones behind it as the edges of a stack that
 							// descends *below* it -- newest on top, then the next, which is
@@ -1391,7 +1391,7 @@ PanelWindow {
 
 	// ── grouping ───────────────────────────────────────────────────────────
 
-	// swaync groups the list by application. Stacks are newest-first inside a
+	// The list is grouped by application. Stacks are newest-first inside a
 	// group and groups are ordered by their newest notification, so a fresh
 	// notification always pushes its app to the top.
 	readonly property var notificationGroups: {

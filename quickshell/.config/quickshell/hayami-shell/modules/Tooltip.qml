@@ -2,9 +2,9 @@ import QtQuick
 import Quickshell
 import "Theme.js" as Theme
 
-// A GTK-style hover tooltip -- the standalone half of waybar's module model.
+// A GTK-style hover tooltip -- the standalone half of the module model.
 //
-// waybar leans on GTK for this: a module whose text is non-empty gets a
+// This leans on GTK: a module whose text is non-empty gets a
 // GtkTooltip whenever the pointer rests on it, and its only say in the looks is
 // style.css's `tooltip { padding: 2px }`. The behaviour is therefore GTK's, and
 // all of it is reproduced here: the delay before it appears (gtk-tooltip-delay,
@@ -15,7 +15,7 @@ import "Theme.js" as Theme
 // sort of Quickshell window that can be anchored to an Item: the compositor
 // places the popup against the module's own rectangle, so no coordinate has to
 // be translated from the bar's surface into screen space -- which is exactly the
-// arrangement a tooltip needs, and the reason waybar's own tooltips are popups.
+// arrangement a tooltip needs, and the reason these are popups.
 //
 // The tooltip sizes itself to its text, wrapping at tooltipMaxWidth the way GTK
 // wraps long tooltips instead of running them off the edge of the screen. Text
@@ -33,7 +33,7 @@ PopupWindow {
 	required property var pal
 
 	// The text to show. An empty string means no tooltip at all, which is what
-	// waybar's `"tooltip": false` modules amount to.
+	// `"tooltip": false` amounts to.
 	property string text: ""
 
 	// Which edge of the screen the bar is on. A tooltip is placed off the far

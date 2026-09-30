@@ -158,7 +158,7 @@ hl.bind(
 EOF
   fi
 
-  # Elephant keybinds entry
+  # keybinds menu entry
   if ! grep -qsF -- "$APP_NAME" "$KEYBINDS_TOML"; then
     TEXT=$(printf '%-43s→          %s' "$APP_NAME" "$KEYBIND")
     cat >> "$KEYBINDS_TOML" <<EOF

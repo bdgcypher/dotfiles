@@ -5,9 +5,9 @@ import "Icons.js" as Icons
 
 // pulseaudio -- default sink volume.
 //
-// waybar's format is "{icon}  {volume}% " and its format-muted is just the muted
+// The format is "{icon}  {volume}% " and format-muted is just the muted
 // glyph, so both are reproduced here. Left click toggles mute, right click opens
-// wiremix, and the scroll step is 5% like waybar's scroll-step.
+// wiremix, and the scroll step is 5%.
 BarItem {
 	id: root
 
@@ -21,7 +21,7 @@ BarItem {
 	suffix: muted ? "" : Math.round(volume * 100) + "% "
 
 	// pulseaudio: "tooltip-format": "Volume: {volume}%" -- the sink's own level,
-	// mute or not, which is what waybar reports there.
+	// mute or not.
 	tooltipText: "Volume: " + Math.round(volume * 100) + "%"
 
 	// style.css: #pulseaudio { min-width: 12px; margin: 0 7.5px }. The min-width

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # hayami-osd -- the on-screen display, drawn by hayami-shell.
 #
-# The flags and the split of work are swayosd's: the client does the work (wpctl,
-# brightnessctl, playerctl) and the server draws -- except the server here is the
-# Quickshell shell, reached over its IPC socket. The option names are
-# swayosd-client's because the keybinds in this repo were written against its CLI.
+# The client does the work (wpctl, brightnessctl, playerctl) and the shell draws.
+# The option names are long-form and are this script's contract: keybinds and
+# scripts across this repo call them by these exact names, so they stay put
+# whatever any one caller would prefer to call them.
 #
 #   hayami-osd --output-volume raise
 #   hayami-osd --input-volume mute-toggle
@@ -15,13 +15,14 @@
 # The work happens whether or not the shell is up; only the overlay needs it. So a
 # stopped shell costs the pill, never the volume or brightness change itself.
 #
-# Differences from swayosd-client, all deliberate:
-#   * --brightness raise/lower step 5% of the panel's maximum. swayosd's own
-#     handling of raise/lower together with --device is erratic here (some
-#     combinations do nothing, --brightness -10 once *raised* it), so the
-#     keybindings that use that form were silently doing nothing.
-#   * The floor is 5% of maximum, which is what swayosd's min-brightness default
-#     turns out to be (measured: --brightness -100 lands on 20/400).
+# Choices worth knowing about, all deliberate:
+#   * --brightness raise/lower step 5% of the panel's maximum, applied here as a
+#     relative change rather than handed to brightnessctl as a signed delta. A
+#     signed delta combined with --device is unreliable on this machine: some
+#     combinations do nothing, and -10 once *raised* the value instead of
+#     lowering it, so the keybindings using that form were silently doing nothing.
+#   * The floor is 5% of maximum, measured against this panel (a -100 request
+#     lands on 20/400), so a held-down key cannot leave a black screen behind.
 #   * --custom-segmented-progress is drawn as a continuous bar with the same
 #     fraction; nothing in the dotfiles uses segments.
 
@@ -30,8 +31,8 @@ set -uo pipefail
 SHELL_ID="hayami-shell"
 IPC_TARGET="osd"
 
-# swayosd's defaults, from its config.toml and its measured behaviour.
-MAX_VOLUME="100"       # swayosd's max_volume = 100
+# Percentages on a 0-100 scale, which is what wpctl and brightnessctl both speak.
+MAX_VOLUME="100"       # per-cent ceiling for volume
 MIN_BRIGHTNESS="5"     # per-cent floor
 STEP_VOLUME="5"        # per-cent step for raise/lower
 STEP_BRIGHTNESS="5"
@@ -59,7 +60,7 @@ shell_up() {
 
 # Sends one OSD to the shell. Empty strings mean "not part of this OSD", which is
 # how the shell tells a value bar from a custom message: it draws only what it is
-# given, so --custom-message with no progress has no bar, like swayosd's.
+# given, so --custom-message with no progress has no bar.
 #
 # JSON built in bash rather than python3: an interpreter start costs ~50ms and
 # this runs on every volume key press. Only ever three shapes of value go in --
@@ -112,8 +113,8 @@ audio_state() {
 	printf '%s %s\n' "$value" "$([ "${line#*[}" != "$line" ] && echo 1 || echo 0)"
 }
 
-# swayosd caps raising at max_volume but never drags a volume that is already
-# above it back down -- volume-boost deliberately runs the sink at 125%.
+# Raising is capped at MAX_VOLUME, but a volume already above it is never dragged
+# back down -- volume-boost deliberately runs the sink at 125%.
 volume_limit() {
 	local current="$1" limit
 
@@ -214,8 +215,8 @@ brightness_osd() {
 	*) return 0 ;;
 	esac
 
-	# Floor: swayosd will not go below 5% of maximum, so a held-down brightness
-	# key cannot leave a black screen behind.
+	# Floor: never below 5% of maximum, so a held-down brightness key cannot leave
+	# a black screen behind.
 	floor=$((max * MIN_BRIGHTNESS / 100))
 	current=$(brightnessctl "${dev[@]}" get 2>/dev/null) || return 0
 	if [ "$current" -lt "$floor" ]; then
@@ -259,8 +260,8 @@ playerctl_osd() {
 	*) icon="media-playback-start-symbolic" ;;
 	esac
 
-	# swayosd shows "{artist} - {title}" for the track actions, and only for the
-	# ones that move the track: play/pause is a bare icon, as it is there.
+	# Show "{artist} - {title}" for the track actions, and only for the ones that
+	# move the track: play/pause is a bare icon.
 	if [ "$action" != "play-pause" ] && [ "$action" != "play" ] && [ "$action" != "pause" ]; then
 		artist=$(playerctl_ metadata artist)
 		title=$(playerctl_ metadata title)
@@ -276,8 +277,8 @@ playerctl_osd() {
 
 # ── locks ────────────────────────────────────────────────────────────────────
 
-# Reads the LED class for a lock key. swayosd's --*-led flags name the LED
-# directory; without one the usual <name>_lock match is used.
+# Reads the LED class for a lock key. The --*-led flags name the LED directory;
+# without one the usual <name>_lock match is used.
 lock_led() {
 	local key="$1" override="${2:-}" dir state
 
@@ -370,9 +371,9 @@ EOF
 	esac
 done
 
-# A caller-set maximum overrides the default; swayosd takes both forms ("125"
-# and "1.25") so either is accepted. awk, not python3: the same interpreter-start
-# reasoning as everywhere else in this script.
+# A caller-set maximum overrides the default, and both spellings are accepted:
+# "125" and "1.25". awk, not python3: the same interpreter-start reasoning as
+# everywhere else in this script.
 if [ -n "$MAX_VOLUME_OPT" ]; then
 	MAX_VOLUME=$(awk -v v="$MAX_VOLUME_OPT" 'BEGIN {
 		f = v + 0
@@ -388,8 +389,8 @@ fi
 
 # ── dispatch ─────────────────────────────────────────────────────────────────
 
-# In swayosd's order of precedence: an explicit volume or brightness beats a
-# custom message, which beats a lock indicator.
+# Order of precedence: an explicit volume or brightness beats a custom message,
+# which beats a lock indicator.
 if [ -n "$OUTPUT_VOLUME" ]; then
 	audio_osd "output-volume" "@DEFAULT_AUDIO_SINK@" "$OUTPUT_VOLUME"
 elif [ -n "$INPUT_VOLUME" ]; then
@@ -400,8 +401,8 @@ elif [ -n "$PLAYERCTL" ]; then
 	playerctl_osd "$PLAYERCTL"
 elif [ -n "$CUSTOM_MESSAGE" ] || [ -n "$CUSTOM_ICON" ] || [ -n "$CUSTOM_PROGRESS" ]; then
 	label="$CUSTOM_MESSAGE"
-	# --custom-progress-text replaces the message when a bar is drawn, the way
-	# swayosd labels the bar rather than the window.
+	# --custom-progress-text replaces the message when a bar is drawn, so the bar
+	# carries its own label rather than the window's.
 	[ -n "$CUSTOM_PROGRESS_TEXT" ] && label="$CUSTOM_PROGRESS_TEXT"
 	send_spec "custom" "$CUSTOM_ICON" "$label" "$CUSTOM_PROGRESS" "" ""
 elif [ "$CAPS_LOCK" = "1" ]; then
@@ -411,6 +412,6 @@ elif [ "$NUM_LOCK" = "1" ]; then
 elif [ "$SCROLL_LOCK" = "1" ]; then
 	lock_osd "scroll" "$SCROLL_LED"
 else
-	# Nothing to show: swayosd-client behaves the same way, but prints usage.
+	# Nothing to show: exit quietly rather than printing usage.
 	exit 0
 fi

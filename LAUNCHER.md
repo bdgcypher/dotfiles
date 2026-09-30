@@ -2,7 +2,7 @@
 
 How the launcher is put together, and how to add a provider to it.
 
-The launcher is the replacement for walker + elephant. It is 3,700 lines across
+The launcher. It is 3,700 lines across
 six files, and the split is deliberate:
 
 | File | Owns |
@@ -27,7 +27,7 @@ Every builder returns the same shape:
 {
 	text: "Agent Panel",          // the row's label
 	fields: ["Agent Panel", …],   // the ordered list the query is matched against
-	minScore: 30,                 // elephant's MinScore: the threshold it must clear
+	minScore: 30,                 // the threshold it must clear
 	subtext: "SUPER + A",         // the right-hand grey text
 	icon: "",                     // a Nerd Font glyph, or ""
 	weight: 0,                    // static ordering, before any scoring
@@ -86,7 +86,7 @@ example of using it.
    searchable from the main view, add a `PLACEHOLDERS` entry so the box has a
    title, and add a `PREFIXES` entry if it gets a trigger character.
 6. **Discoverability**: `BUILTIN_PROVIDERS` is the list behind `/`. Add an entry
-   there only if the provider actually answers — unimplemented elephant
+   there only if the provider actually answers — unimplemented
    providers were deliberately left out of it, because listing one produces
    empty results and looks broken.
 
@@ -123,7 +123,7 @@ same entry.
 
 - `Query.rank()` is a pure function over items and a query, so a scoring change
   can be reasoned about without the window — read the comment block in `Query.js`
-  for the exact algorithm (it applies elephant's position penalty *twice*, and
+  for the exact algorithm (it applies the position penalty *twice*, and
   the MinScores are tuned against that).
 - In the running shell, the load-list check and `hayami-shell logs` apply as
   usual (`VERIFY.md`). A `console.log` inside the builder shows what it returned

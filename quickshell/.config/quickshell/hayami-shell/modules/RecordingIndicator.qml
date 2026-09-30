@@ -5,7 +5,7 @@ import "Icons.js" as Icons
 
 // custom/screen-recording-indicator -- pulsing dot while wf-recorder is running.
 //
-// waybar watches this by running a one-shot command that tests for
+// This is watched by running a one-shot command that tests for
 // /tmp/wf_recording_active and is re-run on signal 8. Nothing observes the file
 // itself, so a single long-lived watcher process reports it instead: no polling
 // forks, and the state is always current.

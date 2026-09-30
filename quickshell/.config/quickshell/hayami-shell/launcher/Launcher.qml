@@ -8,13 +8,11 @@ import "Metrics.js" as Metrics
 import "Providers.js" as Providers
 import "EmojiData.js" as EmojiData
 
-// The launcher: walker's replacement.
+// The launcher.
 //
-// walker draws a centred box inside a full-screen layer surface, so this is a
-// full-screen overlay too -- the box is Box.qml. Modes, prefixes, ordering and
-// the menu tree itself all come from the elephant TOMLs, converted to JSON by
-// scripts/menus-json.py, so both launchers show the same content while walker is
-// still installed.
+// A centred box inside a full-screen layer surface -- the box is Box.qml. Modes,
+// prefixes, ordering and the menu tree itself all come from the menu TOMLs,
+// converted to JSON by scripts/menus-json.py.
 //
 // It answers on the "launcher" IPC target; bin/.local/bin/hayami-menu is what
 // the keybinds and scripts call.
@@ -48,7 +46,7 @@ PanelWindow {
 	property string dmenuFifo: ""
 	property bool dmenuIndex: false
 
-	// elephant.toml: terminal_cmd = "ghostty -e"
+	// terminal_cmd = "ghostty -e"
 	readonly property string terminalCmd: "ghostty -e"
 
 	// ── data ─────────────────────────────────────────────────────────────────
@@ -133,14 +131,14 @@ PanelWindow {
 
 			out.push({
 				text: e.name,
-				/* Searched fields, in penalty order -- elephant's toSearch list when
+				/* Searched fields, in penalty order -- the full toSearch list when
 				   only_search_title is off, which this config has on, so the app is
 				   found by its name alone. That is why typing "fire" no longer
 				   drags in every Firefox-based PWA (`Web app (firefox)` lives in
 				   the comment). subtext and keywords stay for display purposes but
 				   are deliberately not searched. */
 				fields: [e.name],
-				// elephant's desktopapplications.toml: MinScore 30, and apps are the
+				// MinScore 30, and apps are the
 				// one provider that keeps a score equal to it (`>=` everywhere else
 				// is `>`).
 				minScore: 30,
@@ -188,9 +186,8 @@ PanelWindow {
 
 	// ── clipboard history ────────────────────────────────────────────
 	//
-	// The watcher keeps the history current while the shell runs -- the same job
-	// elephant does for walker. Being a child of the shell ties it to the shell's
-	// lifetime.
+	// The watcher keeps the history current while the shell runs. Being a child
+	// of the shell ties it to the shell's lifetime.
 
 	FileView {
 		id: clipboardFile
@@ -404,7 +401,7 @@ PanelWindow {
 		return names.sort()
 	}
 
-	// ── menu tree from the elephant TOMLs ────────────────────────────────────────
+	// ── menu tree from the menu TOMLs ──────────────────────────────────────────
 
 	FileView {
 		id: menuFile
@@ -446,7 +443,7 @@ PanelWindow {
 	// ── providers ────────────────────────────────────────────────────────────
 
 	function providerNames() {
-		// walker's rules: -m pins one provider, a "/" "." ":" "=" "@" "$" prefix
+		// -m pins one provider, a "/" "." ":" "=" "@" "$" prefix
 		// pins its own, and otherwise the set depends on whether anything has
 		// been typed yet -- the main menu while empty, all of it once you type.
 		if (dmenuMode)
@@ -482,7 +479,7 @@ PanelWindow {
 			out.push({
 				text: e.text,
 				fields: [e.text],
-				// elephant's menucfg.go default.
+				// The menu's default.
 				minScore: 10,
 				subtext: "",
 				path: path,
@@ -758,8 +755,8 @@ PanelWindow {
 		Quickshell.execDetached(["bash", "-lc", a])
 	}
 
-	// Mirror what elephant does with a Terminal=true entry, and strip the
-	// field codes that cannot be honoured from here.
+	// Honour a Terminal=true entry, and strip the
+	// field codes that cannot be acted on from here.
 	function appCommand(app) {
 		var exec = (app.execString || "").replace(/%%/g, "\u0000")
 		exec = exec.replace(/%[fFuUdDnNickvm]/g, "").replace(/\u0000/g, "%").trim()
@@ -813,9 +810,9 @@ PanelWindow {
 		// An image is bytes on disk rather than a string, so it is copied by type
 		// from the file. It used to stop there, on the reasoning that an image
 		// cannot be *typed* into a window -- but the paste is Shift+Insert, not
-		// typing, and the target app picks up image/png from it. elephant pastes
-		// images the same way as text (its configured command is
-		// `wl-copy && clipboard-paste` for every entry), so this does too.
+		// typing, and the target app picks up image/png from it. Images are pasted
+		// the same way as text (`wl-copy && clipboard-paste` for every entry), so
+		// this does too.
 		if (item.kind === "clipboard-image") {
 			copyImageAndPaste(item.value, item.mime)
 			return
@@ -895,7 +892,7 @@ PanelWindow {
 		})
 	}
 
-	// What elephant does for clipboard and symbol entries: copy, then let
+	// For clipboard and symbol entries: copy, then let
 	// clipboard-paste put it into the focused window -- it waits for the launcher
 	// to disappear first, which is why this closes before running it.
 	function copyAndPaste(value, uriList) {
@@ -1172,7 +1169,7 @@ PanelWindow {
 		right: true
 	}
 
-	// Clicking outside the box dismisses, like walker.
+	// Clicking outside the box dismisses.
 	MouseArea {
 		anchors.fill: parent
 		onClicked: root.hide()

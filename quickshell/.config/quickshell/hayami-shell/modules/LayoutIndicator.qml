@@ -6,14 +6,14 @@ import Quickshell.Io
 //
 // This runs scripts/workspace-layout.sh rather than reading
 // Hyprland.focusedWorkspace.lastIpcObject.tiledLayout directly, which is what the
-// waybar module does and for a reason: Hyprland publishes no event when a
+// module does and for a reason: Hyprland publishes no event when a
 // workspace's layout changes, so that value goes stale the moment you toggle the
 // layout and nothing ever invalidates it.
 //
-// Taking the glyph from the same script waybar uses also means the two bars cannot
+// Taking the glyph from the same script also means the bar cannot
 // disagree about it, and there is one place to change the logic.
 //
-// Quickshell has no signal mechanism to match waybar's SIGRTMIN+10, so
+// Quickshell has no signal mechanism, so
 // RefreshTrigger re-runs the probe when the layout changes (via
 // /tmp/hypr-bar.signal, written by hypr-toggle-layout), when focus moves to
 // another workspace, and on a slow poll as a fallback.
@@ -24,7 +24,7 @@ BarItem {
 
 	// custom/workspace-layout: "tooltip": true, and the script puts "Layout:
 	// dwindle"/"Layout: scrolling"/"No active workspace" in the JSON's tooltip
-	// field -- which is where waybar reads it from too.
+	// field -- which is where the glyph script reads it from too.
 	property string stateTooltip: ""
 
 	// A poke that arrives while the probe is still running is queued rather than

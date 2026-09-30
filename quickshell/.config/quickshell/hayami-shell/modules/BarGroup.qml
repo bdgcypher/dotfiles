@@ -20,7 +20,7 @@ Grid {
 	rows: vertical ? -1 : 1
 	columns: vertical ? 1 : -1
 
-	// waybar's 8px between modules was measured between modules sharing one row.
+	// The 8px between modules was measured between modules sharing one row.
 	// Stacked, each module already carries its own leading and trailing margins,
 	// so the gap only has to keep neighbours apart; see Theme.verticalSpacing.
 	spacing: vertical ? Theme.verticalSpacing : Theme.spacing

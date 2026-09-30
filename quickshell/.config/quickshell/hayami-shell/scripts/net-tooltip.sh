@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 # Link data for the Quickshell top bar's network tooltip.
 #
-# waybar's network module fills its tooltip from two things NetworkManager does
-# not hand out over the bus: the link's frequency and its bandwidth in each
-# direction. Both are read here the same way waybar reads them -- /proc/net/dev
-# for the byte counters, differenced against the previous sample so the figure is
-# a rate rather than a total since boot -- with one deliberate swap: waybar gets
-# the frequency from `iw`, which is not installed on this machine (so waybar
-# itself reports no frequency here), and nmcli is asked instead.
+# The tooltip is filled from two things NetworkManager does not hand out over the
+# bus: the link's frequency and its bandwidth in each direction. The byte counters
+# come from /proc/net/dev, differenced against the previous sample so the figure is
+# a rate rather than a total since boot. The frequency comes from nmcli rather than
+# `iw`, because `iw` is not installed on this machine.
 #
 # Output, one line, tab separated: <frequency GHz>\t<down bytes/s>\t<up bytes/s>
 # The frequency is empty on a wired link.
@@ -26,8 +24,8 @@ if [ -z "$iface" ]; then
 fi
 
 # ── frequency ────────────────────────────────────────────────────────────────
-# nmcli reports the active access point's frequency in MHz; waybar's {frequency}
-# is GHz, which is what the tooltip format appends " GHz" to.
+# nmcli reports the active access point's frequency in MHz, and the tooltip format
+# appends " GHz", so it is converted on the way out.
 freq=""
 if [ -d "/sys/class/net/$iface/wireless" ]; then
 	probe=$(nmcli -t -f IN-USE,FREQ dev wifi 2>/dev/null | awk -F: '$1=="*" {print $2; exit}')

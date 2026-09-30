@@ -5,7 +5,7 @@ import "Icons.js" as Icons
 
 // bluetooth -- adapter state plus connected device count.
 //
-// waybar's format / format-disabled / format-connected map to: powered on with
+// The three format states map to: powered on with
 // something connected, adapter off or missing, and powered on with nothing
 // connected. Left click opens bluetui in a floating ghostty.
 BarItem {
@@ -18,13 +18,13 @@ BarItem {
 
 	// Every indicator carries the same margin either side, so the steps between
 	// them all come out the same -- 6px on each side measures 24px of clear space
-	// between the icons. waybar's #bluetooth margin-right: 17px is not carried
+	// between the icons. A 17px margin-right is not carried
 	// over: it made up for a wider icon box there, and here it only pushed this
 	// icon away from the wifi one.
 	marginLeft: 6
 	marginRight: 6
 
-	// waybar gives every other state an empty format string -- "" powered on with
+	// Every other state gets an empty format string -- "" powered on with
 	// nothing connected, "" disabled, "" no controller -- so the module only ever
 	// shows a glyph while something is actually connected to it.
 	glyph: ready && connectedCount > 0 ? Icons.btConnected : ""

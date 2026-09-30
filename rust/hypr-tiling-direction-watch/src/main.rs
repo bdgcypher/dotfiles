@@ -48,7 +48,7 @@ fn uid() -> u32 {
 // Writing the file is the whole poke, and it costs nothing while idle -- including
 // when the file does not exist yet, which is the state after a fresh boot.
 //
-// It used to signal waybar here (pkill -RTMIN+10/-11); the scripts that change
+// It used to signal the bar here (pkill -RTMIN+10/-11); the scripts that change
 // layout by hand write the same file, so there is one mechanism for both.
 fn poke_bar(what: &str) {
     let _ = fs::write(SIGNAL_FILE, format!("{what}\n"));

@@ -7,7 +7,7 @@ import "Theme.js" as Theme
 // custom/vpn -- Tailscale or OpenConnect/GlobalProtect up.
 //
 // The Tailscale JSON check and the openconnect lookup live in the shell's own
-// scripts/vpn-status.sh, which prints the same JSON the waybar module consumed.
+// scripts/vpn-status.sh, which prints the same JSON.
 //
 // style.css hides the disconnected state with `font-size: 0`, so the glyph is
 // simply empty here.
@@ -121,7 +121,7 @@ BarItem {
 		}
 	}
 
-	// style.css has no interval for this module; waybar's default is 5s.
+	// No interval is configured for this module; the default is 5s.
 	Timer {
 		interval: 5000
 		running: true

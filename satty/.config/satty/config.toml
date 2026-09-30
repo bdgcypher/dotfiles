@@ -3,5 +3,5 @@
 disable-notifications = true
 
 # Override copy-command to copy data AND invoke the OSD (hayami-osd, which
-# falls back to swayosd-client when the Quickshell shell is not running)
+# draws through the Quickshell shell, so the shell needs to be running)
 copy-command = "sh -c 'wl-copy && hayami-osd --custom-message \"  Screenshot Copied to clipboard\"'"

@@ -4,18 +4,17 @@
 //
 // Two sources, both deliberate:
 //
-//   * Values marked "measured" were taken from walker on this machine by
-//     capturing it on an empty workspace and diffing against the bare desktop,
-//     so they are walker's real rendered box, not its CSS.
-//   * The rest come from walker's own themes/default/style.css and layout.xml,
-//     which is where the padding/border/item rhythm lives.
+//   * Values marked "measured" were taken by capturing a rendered box on an
+//     empty workspace and diffing against the bare desktop, so they are real
+//     measurements rather than read off a stylesheet.
+//   * The rest follow the padding/border/item rhythm of the launcher's layout.
 //
-// The point of this file is that "looks like walker" is expressed as numbers in
+// The point of this file is that the launcher's look is expressed as numbers in
 // one place, so tuning it later does not mean hunting through the layout.
 
 // ── window / box ─────────────────────────────────────────────────────────────
 
-// measured: walker centres the box and ignores anything smaller than ~304 wide.
+// measured: the box is centred and anything smaller than ~304 wide is ignored.
 var minBoxWidth = 304;
 var defaultBoxWidth = 780;   // layout.xml width-request
 var boxHeight = 572;         // measured (layout.xml asks for 570)
@@ -63,8 +62,8 @@ var listWidth = 260;
 var listMaxHeight = 400;         // default theme
 var keybindsListMaxHeight = 500; // keybinds theme
 
-// A row is text padding + one line + item padding, which is how walker gets its
-// roomy rows; used for the scroll maths.
+// A row is text padding + one line + item padding, which is what makes the
+// rows roomy; used for the scroll maths.
 var lineHeight = 18;
 var rowHeight = itemTextPadV * 2 + lineHeight + itemPadV * 2; // 54
 
@@ -87,10 +86,8 @@ var hintsBorderTop = 1;
 // so the gap above the hint bar is 20 rather than 10.
 var hintsMarginTop = 10;
 
-// walker prints its hints from the binary and I could not read them back
-// (no OCR here, and the strings are not in the binary in plain form), so these
-// are the equivalent labels for the keys this launcher actually binds. One
-// place to change once you tell me walker's exact wording.
+// Labels for the keys this launcher actually binds, in one place to change if
+// the wording needs to differ.
 var hints = [
 	{ key: "enter", label: "run" },
 	{ key: "esc", label: "close" },
@@ -170,7 +167,7 @@ var emojiFontFamily = "Noto Color Emoji";
 // ── type ─────────────────────────────────────────────────────────────────────
 
 // style.css: font-family: "JetBrainsMono NF", ...; font-size: 14px
-// (the bar uses 12px, walker 14px -- this is walker's box)
+// (the bar uses 12px, this box 14px)
 var fontFamily = "JetBrainsMono Nerd Font"
 var fontSize = 14;
 

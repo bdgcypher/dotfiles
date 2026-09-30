@@ -2,13 +2,12 @@
 
 // Design tokens for the Quickshell top bar.
 //
-// Every value here was lifted 1:1 from the waybar style.css and config.jsonc this
-// replaces, so the bar kept the waybar look instead of becoming something new.
-// That package is gone now, which makes these the only copy -- the comments
-// beside each value keep the old reference so it is still clear where a number
-// came from and what it is meant to match.
+// These values were carried over 1:1 from the stylesheet and config the bar
+// replaced, so it kept its look instead of becoming something new. That source
+// is gone now, which makes these the only copy -- so the comment beside each
+// value says what it is meant to match.
 
-// Waybar: "height": 26, "margin": "6 12 0 12", "spacing": 8
+// "height": 26, "margin": "6 12 0 12", "spacing": 8
 var height = 26
 var marginTop = 6
 var marginSide = 12
@@ -30,7 +29,7 @@ var spacing = 8
 // is the whole monitor on every edge (see Bar.qml).
 
 // A vertical bar is 6px thicker than a horizontal one is tall. The 26px height
-// was measured off waybar's bar, where nothing has to fit *across* the bar; on a
+// was measured off a horizontal bar, where nothing has to fit *across* it; on a
 // vertical bar the same 26px is what a module's glyph and value have to fit in.
 // 32 leaves a 26px well between the padding below, which is a whole "100%" at
 // the value size -- the widest text any module puts on its own line.
@@ -64,7 +63,7 @@ function isVertical(edge) {
 	return edge === "left" || edge === "right"
 }
 
-// #waybar { border: 1.2px solid #444444; border-radius: 8px; opacity: 0.9 }
+// { border: 1.2px solid #444444; border-radius: 8px; opacity: 0.9 }
 var radius = 8
 var borderWidth = 1.2
 
@@ -124,8 +123,8 @@ var trayPanelFlipDuration = 250
 
 // ── tooltips ─────────────────────────────────────────────────────────────────
 //
-// waybar's tooltips are GTK tooltips, so the behaviour below is GTK's and not
-// waybar's: a tooltip appears below the module after GTK's tooltip delay, goes
+// These are GTK tooltips, so the behaviour below is GTK's and not
+// the bar's: a tooltip appears below the module after GTK's tooltip delay, goes
 // away the moment the pointer leaves, and is taken away after GTK's tooltip
 // timeout even if the pointer has not moved. style.css overrides only their
 // padding (`tooltip { padding: 2px }`); everything else comes from the GTK

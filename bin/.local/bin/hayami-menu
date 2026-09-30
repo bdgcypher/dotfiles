@@ -12,11 +12,11 @@
 # socket, so a keybind, a script or a menu entry never has to know how the
 # launcher is built.
 #
-# The option names are walker's, which is where they came from -- the keybinds
-# and the scripts in this repo were written against walker's CLI, and keeping
-# the spellings meant none of them had to change when the launcher did. The
-# menu TOMLs still navigate with `hayami-menu -m ...` / `hayami-menu --close`,
-# which the launcher recognises and answers in-process.
+# The option names are this script's contract: keybinds and scripts across this
+# repo call them by these exact spellings, so they stay put rather than being
+# renamed to whatever reads best here. The menu TOMLs navigate with
+# `hayami-menu -m ...` / `hayami-menu --close`, which the launcher recognises and
+# answers in-process.
 
 set -uo pipefail
 

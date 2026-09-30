@@ -10,16 +10,15 @@
 #   hayami-notify -d            toggle do-not-disturb (prints the new state)
 #   hayami-notify -c            print the number of notifications
 #
-# The option names are swaync-client's, which is where they came from: the
-# keybinds and the scripts in this repo were written against swaync-client's CLI,
-# and keeping the spellings meant none of them had to change when the notification
-# daemon did. -sw / --skip-wait is accepted and does nothing because there is no
-# daemon to wait for.
+# The option names are this script's contract: keybinds and scripts across this
+# repo call them by these exact spellings, so they stay put rather than being
+# renamed to whatever reads best here. -sw / --skip-wait is accepted and does
+# nothing because there is no daemon to wait for.
 #
-# Two flags are accepted and do nothing: -R and -rs reload swaync's config and
-# stylesheet, and there is neither here. The palette is read from pywal and
-# watched for changes, so a wallpaper change re-tints notifications by itself; -rs
-# still calls the shell's reload hook so the call is not silently dropped.
+# Two flags are accepted and do nothing: -R and -rs reload a config and stylesheet
+# that do not exist here. The palette is read from pywal and watched for changes,
+# so a wallpaper change re-tints notifications by itself; -rs still calls the
+# shell's reload hook so the call is not silently dropped.
 
 set -uo pipefail
 
@@ -53,9 +52,9 @@ call() {
 
 # ── arguments ────────────────────────────────────────────────────────────────
 
-# swaync-client's short flags are not all one letter (-op, -cp, -dn, -df, -sw,
-# -swb, -In, -Ia, -Ir, -Ic), so they are matched as whole tokens in the order
-# swaync's own parser accepts them.
+# The short flags are not all one letter (-op, -cp, -dn, -df, -sw, -swb, -In,
+# -Ia, -Ir, -Ic), so each is matched as a whole token rather than being picked
+# apart character by character.
 ACTION=""
 OPERAND=""
 
@@ -193,8 +192,7 @@ EOF
 		shift
 		;;
 	-sw | --skip-wait)
-		# Only meaningful to swaync-client's own wait-for-daemon behaviour; the
-		# shell is either there or it is not.
+		# Nothing to skip: the shell is either there or it is not.
 		shift
 		;;
 	--)
@@ -240,8 +238,7 @@ closeLatest) call closeLatest ;;
 closeAll) call closeAll ;;
 
 action)
-	# swaync-client prints nothing here, and neither does this; the exit status
-	# says whether there was an action to run.
+	# Print nothing here; the exit status says whether there was an action to run.
 	result=$(call action "$OPERAND")
 	if [ "$result" != "ok" ]; then
 		exit 1
@@ -255,10 +252,9 @@ reload)
 noop) ;;
 
 subscribe)
-	# swaync-client streamed a JSON line per event. Quickshell's IPC is
-	# request/response, so this is the same information obtained by polling --
-	# and the initial state is printed straight away, so a consumer has something
-	# to draw before the first change.
+	# The shell's IPC is request/response rather than a stream, so this polls for
+	# the same information -- and the initial state is printed straight away, so a
+	# consumer has something to draw before the first change.
 	last=""
 	while :; do
 		# The shell went away, so this stream can never produce another line: leave

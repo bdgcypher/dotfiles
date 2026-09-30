@@ -2,10 +2,10 @@
 .import "Fuzzy.js" as Fuzzy
 
 // Provider wiring for the launcher: which providers a mode queries, the fuzzy
-// ranking, and the prefix triggers. These mirror walker's config.toml, which is
-// where the keybinds and prefix behaviour are defined today.
+// ranking, and the prefix triggers. The keybind and prefix behaviour these
+// mirror is defined here, in one place.
 
-// walker config.toml [placeholders]
+// [placeholders]
 var PLACEHOLDERS = {
 	"default": "  Search...",
 	"menus:main": "  Main...",
@@ -34,9 +34,9 @@ var PLACEHOLDERS = {
 	"menus:system/remove": "  Remove..."
 };
 
-// walker config.toml [providers] empty
+// [providers] empty
 //
-// What the main view shows before anything is typed. walker keeps this separate
+// What the main view shows before anything is typed. Kept separate
 // from `default` on purpose: the main view is the five top-level entries, and
 // the nested menus only appear once the query starts filtering, each labelled
 // with the menu it lives in (see menuItems() in Launcher.qml). Showing `default`
@@ -45,7 +45,7 @@ var SET_EMPTY = [
 	"menus:main"
 ];
 
-// walker config.toml [providers] default
+// [providers] default
 var DEFAULT_SET = [
 	"menus:main",
 	"menus:utilities",
@@ -58,7 +58,7 @@ var DEFAULT_SET = [
 	"desktopapplications"
 ];
 
-// walker config.toml [[providers.prefixes]]
+// [[providers.prefixes]]
 var PREFIXES = [
 	{ prefix: "/", provider: "providerlist" },
 	{ prefix: ".", provider: "files" },
@@ -86,7 +86,7 @@ function resolveQuery(query) {
 	return { provider: "", text: query };
 }
 
-// Which providers to query, mirroring walker: a fixed provider when -m was
+// Which providers to query: a fixed provider when -m was
 // given, the prefix's provider when the query starts with a trigger, the main
 // menu alone while the query is empty, and the whole searchable set once it is
 // not.
@@ -103,17 +103,17 @@ function providerSetFor(mode, query) {
 
 // ── fuzzy ranking ────────────────────────────────────────────────────────────
 //
-// walker does not rank anything: elephant does, with fzf's algorithm, and these
-// are the same rules its providers use. Fuzzy.js is fzf's FuzzyMatchV2.
+// Ranking is by fzf's algorithm, and these
+// are the same rules the providers use. Fuzzy.js is fzf's FuzzyMatchV2.
 //
-// Per item, elephant's calcScore():
+// Per item:
 //
 //   1. score each field in order, the best one wins;
 //   2. take off the winning field's position in the list -- 5 per field, at most
 //      50 -- so a match in the name beats the same match in the comment;
 //   3. take off where the match starts, so a match at the front of a field
 //      beats the same match later in it. Fuzzy's score has this applied once
-//      already; elephant applies it again, and the numbers every MinScore is
+//      already; it is applied again here, and the numbers every MinScore is
 //      tuned against have it applied twice, so it is kept;
 //   4. floor the result at 10;
 //   5. keep the item only if it clears the provider's MinScore, which is what
@@ -139,7 +139,7 @@ function clears(item, score) {
 }
 
 // Ranks items by how well they match, or by weight alone when the query is
-// empty -- which is what walker shows before you type.
+// empty -- which is what the list shows before you type.
 function rank(items, query) {
 	var needle = query === undefined || query === null ? "" : String(query)
 
@@ -195,7 +195,7 @@ function rank(items, query) {
 		ranked.push({ item: item, score: score, index: n })
 	}
 
-	// walker sorts by score descending; equal scores keep the provider's order.
+	// Score descending; equal scores keep the provider's order.
 	ranked.sort(function(a, b) { return b.score - a.score || a.index - b.index })
 
 	var out = []

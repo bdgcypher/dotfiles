@@ -7,7 +7,7 @@ import Quickshell.Io
 // Hyprland publishes no event for several things the bar displays, so a plain
 // binding goes stale and nothing ever invalidates it. A workspace's tiling layout
 // is the clearest case: listening on the Hyprland event socket through a toggle
-// produces nothing at all (only the swayosd layer open/close), so
+// produces nothing at all (only the OSD layer open/close), so
 // Hyprland.focusedWorkspace.lastIpcObject.tiledLayout keeps reporting the old
 // layout. The armed tiling direction is the same kind of state.
 //
@@ -24,7 +24,7 @@ import Quickshell.Io
 //      only depend on the workspace do not want that.
 //   3. /tmp/hypr-bar.signal changing. The scripts that change the things above
 //      (hypr-toggle-layout, hypr-tiling-direction-toggle) write that file, the
-//      same way they poke waybar with SIGRTMIN+10/11. FileView watches it with
+//      same way they used to poke the bar with SIGRTMIN+10/11. FileView watches it with
 //      inotify, so the poke is immediate and costs nothing while idle -- including
 //      when the file does not exist yet, which is the state after a fresh boot.
 //   4. a slow poll, as a net for a change made by something that does not poke:

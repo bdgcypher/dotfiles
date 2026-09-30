@@ -5,8 +5,8 @@ Run under `wl-paste --watch`, which pipes the new selection to stdin on every
 change. The whole file is rewritten atomically each time, because the launcher
 watches it: a partial write would show a truncated history.
 
-Elephant keeps its own history in ~/.cache/elephant/clipboard.gob, a Go gob blob
-that cannot be read back, so this is a separate store:
+This is a store of its own rather than a read-back of some other clipboard
+owner's history, which was a Go gob blob that could not be read back:
 
     ${XDG_STATE_HOME:-~/.local/state}/hayami-shell/clipboard.jsonl
     ${XDG_STATE_HOME:-~/.local/state}/hayami-shell/clipboard/    (image bytes)
@@ -19,7 +19,7 @@ which is how the file started and needs no migration; anything else is an object
 
 Images are written to their own directory named after the hash of their bytes,
 so re-copying the same screenshot does not store it twice. Recent entries first,
-duplicates moved to the top, capped like elephant's max_items = 100. Blank
+duplicates moved to the top, capped at 100 entries. Blank
 entries are ignored, and image files that fall out of the history are deleted.
 """
 

@@ -10,7 +10,7 @@ import "Theme.js" as Theme
 
 // group/tray-expander -- status notifier icons behind a chevron.
 //
-// waybar's group put the icons in a drawer that opened along the bar, growing the
+// The tray group used to put the icons in a drawer that opened along the bar, growing the
 // section until it held the whole row. Here the chevron is a module like any
 // other -- it never changes size, so nothing beside it moves -- and the icons
 // live in a panel of their own, off the side of the bar, in a grid. The bar's row
@@ -34,7 +34,7 @@ import "Theme.js" as Theme
 //
 // ── open and shut ────────────────────────────────────────────────────────────
 //
-// Hovering the chevron opens the panel, the way hovering waybar's chevron opened
+// Hovering the chevron opens the panel, the way hovering the old chevron opened
 // the drawer. The pointer then has to cross a few pixels of desktop to reach the
 // panel, so the close is delayed rather than immediate (Theme.trayPanelCloseDelay)
 // -- and while a tray item's context menu is up the panel is held open outright,
@@ -60,7 +60,7 @@ Item {
 	property var trayState: null
 
 	// The cluster's margin on both sides, the same as every indicator beside it
-	// (see BluetoothIndicator). waybar's #custom-expand-icon kept 18px after
+	// (see BluetoothIndicator). #custom-expand-icon kept 18px after
 	// itself to clear the drawer's first icon; there is no drawer to clear now, so
 	// the chevron takes the row's own spacing instead.
 	property real marginLeft: 6
@@ -490,7 +490,7 @@ Item {
 					implicitHeight: Theme.trayPanelCell
 
 					// The item's own tooltip, the pair of strings an SNI publishes
-					// for exactly this purpose. waybar draws both; a blank one is
+					// for exactly this purpose. Both are drawn; a blank one is
 					// dropped rather than leaving a stray newline.
 					readonly property string tipText: {
 						var title = String(modelData && modelData.tooltipTitle ? modelData.tooltipTitle : "");
@@ -533,21 +533,21 @@ Item {
 							trayTip.dismiss();
 							// An item that is only a menu (ItemIsMenu) has no
 							// activate to speak of, so a left click opens its
-							// menu, the way GTK and waybar both handle one.
+							// menu, the way GTK handles one.
 							if (mouse.button === Qt.LeftButton && !(trayItem.modelData.onlyMenu && trayItem.modelData.hasMenu)) {
 								trayItem.modelData.activate();
 							} else if ((mouse.button === Qt.RightButton && trayItem.modelData.hasMenu)
 									|| (mouse.button === Qt.LeftButton && trayItem.modelData.onlyMenu && trayItem.modelData.hasMenu)) {
-								// What waybar does with a right click: the item's
-								// own menu, rendered from the DBus menu the
-								// application publishes -- the same menu GTK shows
-								// in waybar, drawn in this shell's chrome rather
-								// than as a platform popup.
+							// A right click opens the item's
+							// own menu, rendered from the DBus menu the
+							// application publishes -- the same menu GTK would
+							// show as a platform popup, drawn here in the shell's
+							// own chrome instead.
 								trayMenu.open();
 							} else {
 								// Middle click, and a right click on an item with
-								// no menu: the SNI "secondary activate" waybar
-								// sends for both.
+							// no menu: the SNI "secondary activate"
+							// sent for both.
 								trayItem.modelData.secondaryActivate();
 							}
 						}

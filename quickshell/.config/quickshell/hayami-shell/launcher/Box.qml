@@ -3,9 +3,9 @@ import Quickshell
 import "Metrics.js" as Metrics
 import "EmojiData.js" as EmojiData
 
-// The launcher box: the centred rectangle walker draws inside its full-screen
+// The launcher box: the centred rectangle drawn inside its full-screen
 // layer surface. Every metric here comes from Metrics.js, which is derived from
-// walker's own style.css/layout.xml plus measurements of the rendered box.
+// the launcher's layout plus measurements of the rendered box.
 //
 // The text input owns the query -- the window asks for it through
 // queryEdited() and resets it with clear(), which avoids fighting TextInput
@@ -130,7 +130,7 @@ Item {
 
 	// layout.xml stacks these three in order -- search, then content, then the
 	// keybind hints -- so the search input sits at the top of the box with the
-	// list beneath it, the way walker shows it. They are anchored rather than
+	// list beneath it. They are anchored rather than
 	// stacked in a Column so that this order is stated once, here.
 	Item {
 		id: content
@@ -450,7 +450,7 @@ Item {
 					var step = grid ? Metrics.emojiColumns : 1
 					var page = grid ? emojiGrid.visibleRows : Metrics.visibleRows(box.theme)
 
-					// The picker's own controls: walker's list has no equivalent, so
+					// The picker's own controls: the list has no equivalent, so
 					// they are only handled while the grid is up.
 					//
 					// Shift+Tab arrives as Key_Backtab rather than Key_Tab with the
@@ -488,7 +488,7 @@ Item {
 						box.moved(-step)
 						event.accepted = true
 						break
-					// Along a row. Unbound in the list, as walker leaves them.
+					// Along a row. Unbound in the list.
 					case Qt.Key_Right:
 						if (grid) {
 							box.moved(1)
@@ -518,7 +518,7 @@ Item {
 						event.accepted = true
 						break
 					default:
-						// walker config.toml: next = Down/ctrl j, previous = Up/ctrl k.
+						// next = Down/ctrl j, previous = Up/ctrl k.
 						// h and l are the vim pair for left and right, and like the
 						// arrow keys they only do anything in the grid, where there is a
 						// row to move along.

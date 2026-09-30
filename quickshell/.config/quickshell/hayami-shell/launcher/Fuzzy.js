@@ -1,22 +1,22 @@
 .pragma library
 
-// fzf's FuzzyMatchV2, ported so the launcher filters the way walker does.
+// fzf's FuzzyMatchV2, ported so the launcher filters with a well-known algorithm.
 //
-// Walker's searching is not its own: the elephant providers call into fzf's
+// The searching is not bespoke either: it calls into fzf's
 // algorithm (github.com/junegunn/fzf/src/algo), specifically
 // `FuzzyMatchV2(caseSensitive=false, normalize=true, forward=true, ..., withPos=true)`,
 // and the port here is a line-by-line translation of that function plus
 // `asciiFuzzyIndex` and the backtrace. The constants, the bonus matrix and the
 // two-pass dynamic program are all fzf's, not invented here.
 //
-// The one addition is `search()`, which mirrors elephant's wrapper in
-// pkg/common/fzf.go:
+// The one addition is `search()`, which wraps the same steps a caller normally
+// takes:
 //
 //     if res.Start > -1 { res.Score = res.Score - res.Start }
 //
 // Subtracting the match position is what makes a match early in the field beat
-// the same match late in it, and it is part of every score elephant compares
-// against MinScore. Without it the numbers do not line up with walker at all.
+// the same match late in it, and it is part of every score compared
+// against MinScore. Without it the numbers do not line up with fzf at all.
 //
 // Two deliberate deviations, both in the "cannot matter here" direction:
 //
@@ -28,7 +28,7 @@
 //     bonuses. Same result, but done once per field at build time (see
 //     prepare()) instead of per keystroke.
 //
-// Verified against the real thing: elephant's own `query` command was used as
+// Verified against the real thing: fzf's own `query` command was used as
 // the oracle, comparing its score/start/positions for the same targets.
 
 // ── fzf's constants (algo.go) ────────────────────────────────────────────────
@@ -43,7 +43,7 @@ var BONUS_CAMEL123 = BONUS_BOUNDARY + SCORE_GAP_EXTENSION;          // 7
 var BONUS_CONSECUTIVE = -(SCORE_GAP_START + SCORE_GAP_EXTENSION);   // 4
 var BONUS_FIRST_CHAR_MULTIPLIER = 2;
 
-// `default` scheme, which is what elephant calls Init("default") with.
+// `default` scheme, which is what fzf's own Init("default") is given.
 var BONUS_BOUNDARY_WHITE = BONUS_BOUNDARY + 2;     // 10
 var BONUS_BOUNDARY_DELIMITER = BONUS_BOUNDARY + 1; // 9
 
@@ -227,10 +227,10 @@ function match(field, patternCodes, caseSensitive) {
 
 	// fzf's own guard: a target whose scoring matrix would not fit the caller's
 	// scratch slab goes to the greedy V1 instead, and patterns past 1000 runes
-	// are refused outright (16-bit scores would overflow). elephant disables the
+	// are refused outright (16-bit scores would overflow). fzf disables the
 	// first half by passing a nil slab whenever the product is large, so this
 	// threshold is a deliberate deviation -- it only ever fires on a field far
-	// larger than anything walker scores in practice (a clipboard entry holding
+	// larger than anything the launcher scores in practice (a clipboard entry holding
 	// a whole document), where the matrix would be megabytes per keystroke.
 	if (M > 1000 || N * M > 102400)
 		return greedy(field, patternCodes);
@@ -388,7 +388,7 @@ function match(field, patternCodes, caseSensitive) {
 	}
 
 	// Backtrace for the start offset and the matched positions. fzf only needs
-	// the positions for highlighting, but the start is what elephant subtracts
+	// the positions for highlighting, but the start is what gets subtracted
 	// from the score, so it has to be found.
 	var positions = [];
 	var j = maxScorePos;
@@ -533,7 +533,7 @@ function prepared(text) {
 	return made;
 }
 
-// elephant lowercases and normalizes the query before it reaches fzf
+// The query is lowercased and normalized before it reaches fzf
 // (algo.NormalizeRunes(strings.ToLower(query)) in its query handler), so the
 // pattern is expected lowercase here too.
 function codesFor(pattern) {
@@ -544,7 +544,7 @@ function codesFor(pattern) {
 	return out;
 }
 
-// One field, one pattern: elephant's common.FuzzyScore. The match's start is
+// One field, one pattern: fzf's FuzzyMatchV2 score minus the match start. The start is
 // taken off the score here -- and its callers take it off again, which is part
 // of the number every MinScore is tuned against, so it is kept.
 function score(text, patternCodes) {
@@ -554,7 +554,7 @@ function score(text, patternCodes) {
 	return { score: res.score - res.start, start: res.start };
 }
 
-// elephant's common.FuzzyScore: fzf's score minus where the match starts.
+// fzf's score minus where the match starts.
 // `field` is prepare()d text. Returns null when there is no match.
 function search(field, pattern) {
 	if (pattern === "" || pattern.length === 0)

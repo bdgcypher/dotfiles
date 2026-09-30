@@ -1,8 +1,8 @@
 -- Menus
 --
 -- These go through `hayami-menu`, which drives the quickshell launcher over its
--- IPC socket. The flag names came from walker, which the launcher replaced, so
--- the bindings stayed as they were.
+-- IPC socket. The flag names are `hayami-menu`'s own contract and are spelled
+-- exactly as that script documents them.
 
 hl.bind("SUPER + SUPER_L", hl.dsp.exec_cmd("hayami-menu --width 250"), { description = "Launch apps" })
 
@@ -49,8 +49,8 @@ hl.bind(
 -- Notifications
 --
 -- These go through `hayami-notify`, which drives the shell's own notification
--- server over its IPC socket. The flag names came from swaync-client, which the
--- server replaced, so the bindings stayed as they were.
+-- server over its IPC socket. The flag names are `hayami-notify`'s own contract
+-- and are spelled exactly as that script documents them.
 
 hl.bind("SUPER + CTRL + N", hl.dsp.exec_cmd("hayami-notify -t -sw"), { description = "Open notification center" })
 

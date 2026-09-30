@@ -4,8 +4,8 @@
 //
 // Written as UTF-16 escapes rather than literal characters so the file stays
 // plain ASCII and each glyph is traceable to the codepoint shown in the comment.
-// Every one of these was taken from the matching waybar config so the two bars
-// render identically.
+// Every one of these was taken from the matching config, so the bar's glyphs
+// are traceable to the codepoint named in the comment beside each.
 
 // custom/menu
 var menu = "\uDB85\uDDFC" // U+F15FC  nf-md-menu
@@ -88,7 +88,7 @@ var volMuted = "\uEEE8" // U+EEE8   nf-md-volume_off
 var memory = "\uEFC5" // U+EFC5   nf-md-memory
 var cpu = "\uDB80\uDF5B" // U+F035B  nf-md-chip
 
-// custom/notification (swaync alt values)
+// custom/notification (the bell's alt values)
 //
 // The "there are notifications" state uses the plain bell, not bell_badge: the
 // bar now draws its own unread dot on the glyph's corner (see BarItem.dot), and

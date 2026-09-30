@@ -4,7 +4,7 @@
 # up, what to call it, and the one detail worth having -- the address you are
 # reachable at.
 #
-# The shape is still waybar's (text/alt/tooltip/class), with the four fields the
+# The shape is text/alt/tooltip/class, with the four fields the
 # panel needs added on: kind, name, state, detail. The glyph is written as an
 # escape rather than pasted in, so it cannot drift from Icons.js (U+F11A2,
 # nf-md-vpn) the way two copies of the same character can.

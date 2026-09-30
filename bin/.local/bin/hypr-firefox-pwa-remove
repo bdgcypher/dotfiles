@@ -106,7 +106,7 @@ while IFS='	' read -r name safe_name; do
     fi
   fi
 
-  # Elephant keybinds
+  # keybinds menu entry
   if grep -qsF -- "$name" "$KEYBINDS_TOML"; then
     awk -v appname="$name" '
       /^\[\[entries\]\]$/ { block = $0 "\n"; in_block = 1; keep = 1; next }

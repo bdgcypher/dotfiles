@@ -1,6 +1,6 @@
 -- OSD media controls
 
--- hayami-osd takes swayosd-client's flags and draws through the Quickshell
+-- hayami-osd takes these flags and draws through the Quickshell
 -- shell. It draws on the focused monitor by default, so there is no per-press
 -- `hyprctl | jq` here to resolve the monitor -- that substitution ran on every
 -- key press and cost ~50ms before hayami-osd even started. Pass --monitor only

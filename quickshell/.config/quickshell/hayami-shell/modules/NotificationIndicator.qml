@@ -3,15 +3,14 @@ import "Icons.js" as Icons
 
 // custom/notification -- the bell.
 //
-// This used to be driven the way waybar drives it, off `swaync-client -swb` and
-// its "alt" field. Now that the shell owns the notification server there is no
-// swaync to ask: the state object the server lives on is handed down from
-// shell.qml, and alt is read straight off it. The values are still swaync's own
+// The shell owns the notification server, so there is nothing to ask: the state
+// object the server lives on is handed down from
+// shell.qml, and alt is read straight off it. The values are the usual
 // (none / notification / dnd-none / dnd-notification / inhibited-none /
 // inhibited-notification).
 //
-// Where waybar recoloured the whole bell (style.css:
-// #custom-notification.active { color: #a55555 }), the bell here stays in the
+// Recolouring the whole bell (as a stylesheet rule on
+// #custom-notification.active did) is not done; the bell here stays in the
 // bar's own foreground colour and unread notifications are shown by a red dot on
 // its corner instead. The colour is now the plain foreground in every state; the
 // glyph still carries the rest of the meaning (sleeping bell, off bell, cancelled
@@ -33,8 +32,7 @@ BarItem {
 	tint: pal ? pal.foreground : "#c5c4c4"
 	dot: active && !dnd
 
-	// custom/notification: "tooltip": true. waybar reads it out of
-	// swaync-client's JSON; here the same sentence is a property of the state
+	// custom/notification: "tooltip": true. The same sentence is a property of the state
 	// object, so the bell and the client report one wording.
 	tooltipText: state ? state.tooltip : ""
 
@@ -46,7 +44,7 @@ BarItem {
 	marginRight: 6
 
 	// Left click opens the control centre, right click toggles do-not-disturb --
-	// what `swaync-client -t` and `-d` did from waybar's on-click/on-click-right.
+	// matching the two on-click bindings this module has always had.
 	onClicked: {
 		if (root.state)
 			root.state.togglePanel();
@@ -56,10 +54,10 @@ BarItem {
 			root.state.toggleDnd();
 	}
 
-	// The eight alt values, with the glyphs waybar's format-icons picks for them --
+	// The eight alt values and the glyphs picked for them --
 	// including the two combination states, where the *inhibited* glyph is the one
-	// shown. The one exception is the plain "notification" state: waybar used the
-	// bell_badge glyph there, which would double up with the dot this bar draws.
+	// shown. The one exception is the plain "notification" state, which would
+	// otherwise use the bell_badge glyph and double up with the dot this bar draws.
 	function iconFor(state) {
 		if (state === "notification")
 			return Icons.notifActive;

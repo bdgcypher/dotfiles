@@ -3,9 +3,9 @@ import "Theme.js" as Theme
 
 // Shared building block for every bar module.
 //
-// Mirrors waybar's module model so the spacing rules in style.css carry over:
+// The module model the spacing rules were written against:
 // a fixed-height text cell whose width is its glyph plus explicit left/right
-// margins (waybar's `margin: 0 7.5px` and friends), with an optional min-width
+// margins (`margin: 0 7.5px` and friends), with an optional min-width
 // so the bar does not shift when a value gains or loses a digit.
 //
 // It is also where the bar's edge is expressed for the modules, because `edge`
@@ -68,7 +68,7 @@ Item {
 	property string verticalSide: ""
 
 	// The tooltip shown while the pointer rests on this module, or "" for none
-	// -- waybar's `"tooltip": false`, and what the clock and the tray chevron
+	// -- what the clock and the tray chevron
 	// are configured with. Every module that has one sets it, so there is no
 	// separate switch to keep in step with the text.
 	property string tooltipText: ""
@@ -77,7 +77,7 @@ Item {
 	signal rightClicked()
 	signal scrolled(int delta)
 
-	// waybar renders no module whose text is empty: it takes no width, no padding
+	// A module whose text is empty takes no width, no padding
 	// and no margin. That is what keeps the centre section centred while the
 	// update / dictation / recording indicators have nothing to say, so the cell
 	// collapses to nothing here too (minWidth only applies once there is a glyph).
@@ -98,7 +98,7 @@ Item {
 
 	visible: moduleShown && !empty
 
-	// Drives the recording/dictation pulse. waybar animates the colour from
+	// Drives the recording/dictation pulse. The colour is animated from
 	// transparent to #a55555 and back over 1.5s; fading this cell's opacity at
 	// the same rate over the same period reads identically.
 	property real pulseMix: 1.0
