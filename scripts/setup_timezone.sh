@@ -35,9 +35,8 @@ if [[ ! -e "/usr/share/zoneinfo/$DEFAULT_TZ" ]]; then
 fi
 
 # Suggest common timezones or let the user type one
-echo "Enter the timezone you want to set (e.g., America/Denver, UTC, etc.)"
-echo "Type 'list' to see all available timezones."
-echo "Press Enter, or wait 10s, to accept $DEFAULT_TZ."
+echo "Timezone (e.g., America/Denver, UTC, etc.)"
+echo "Type 'list' to see all available timezones or 'Enter' to accept default ($DEFAULT_TZ)."
 
 # 10 second timeout: the prompt you have to sit through is a prompt that will
 # eventually be answered with whatever key was nearest.
@@ -45,7 +44,7 @@ echo "Press Enter, or wait 10s, to accept $DEFAULT_TZ."
 # It also makes this script safe to run without a terminal. `read` on a non-TTY
 # hits EOF and returns immediately instead of blocking forever, so an unattended
 # install no longer hangs here.
-read -t 10 -p "Timezone [$DEFAULT_TZ]: " user_tz
+read -t 10 -p "> " user_tz
 read_status=$?
 if [ "$read_status" -ne 0 ]; then
     # 128+ means the timeout expired, 1 means EOF (no TTY). Either way there is
