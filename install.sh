@@ -72,6 +72,25 @@ echo "8) Exit"
 echo ""
 read -p "Selection [1-8]: " choice
 
+# Start the install clock once a mode is chosen, so it measures the work rather
+# than however long the menu sat waiting for an answer.
+INSTALL_START=$(date +%s)
+
+# Render a duration in seconds as "4m 12s", "1h 2m", or "9s".
+format_duration() {
+    local total=$1 hours minutes seconds
+    hours=$(( total / 3600 ))
+    minutes=$(( (total % 3600) / 60 ))
+    seconds=$(( total % 60 ))
+    if [ "$hours" -gt 0 ]; then
+        printf '%dh %dm %ds' "$hours" "$minutes" "$seconds"
+    elif [ "$minutes" -gt 0 ]; then
+        printf '%dm %ds' "$minutes" "$seconds"
+    else
+        printf '%ds' "$seconds"
+    fi
+}
+
 case $choice in
     1|2)
         # Say up front if this session's Hyprland already cannot load plugins
@@ -199,7 +218,7 @@ if [ "${HYPRLAND_RESTART_NEEDED:-0}" = 1 ]; then
     echo ""
 fi
 echo "=========================================="
-echo "   Installation Complete"
+echo "   Installation Complete in $(format_duration $(( $(date +%s) - INSTALL_START )))"
 echo "=========================================="
 echo ""
 echo "If system hooks or bootloaders were changed, please reboot."
