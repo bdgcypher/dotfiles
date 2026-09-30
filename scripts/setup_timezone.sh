@@ -24,18 +24,57 @@ CURRENT_TZ=$(timedatectl show --property=Timezone --value)
 echo "Current timezone: $CURRENT_TZ"
 echo ""
 
+# Preferred zone for this setup, used whenever the prompt is not answered. A
+# fresh install typically still sits on UTC, so falling back to the *system*
+# value would quietly leave the clock hours off. Anything the user actually types
+# always wins.
+DEFAULT_TZ="America/Denver"
+if [[ ! -e "/usr/share/zoneinfo/$DEFAULT_TZ" ]]; then
+    echo "Warning: $DEFAULT_TZ not found in zoneinfo, using the system timezone as the fallback."
+    DEFAULT_TZ="$CURRENT_TZ"
+fi
+
 # Suggest common timezones or let the user type one
 echo "Enter the timezone you want to set (e.g., America/Denver, UTC, etc.)"
 echo "Type 'list' to see all available timezones."
-read -p "Timezone [$CURRENT_TZ]: " user_tz
+echo "Press Enter, or wait 10s, to accept $DEFAULT_TZ."
 
+# 10 second timeout: the prompt you have to sit through is a prompt that will
+# eventually be answered with whatever key was nearest.
+#
+# It also makes this script safe to run without a terminal. `read` on a non-TTY
+# hits EOF and returns immediately instead of blocking forever, so an unattended
+# install no longer hangs here.
+read -t 10 -p "Timezone [$DEFAULT_TZ]: " user_tz
+read_status=$?
+if [ "$read_status" -ne 0 ]; then
+    # 128+ means the timeout expired, 1 means EOF (no TTY). Either way there is
+    # nothing usable to work with, so discard any partial input.
+    if [ "$read_status" -gt 128 ]; then
+        echo ""
+        echo "No input within 10s - using $DEFAULT_TZ."
+    else
+        echo "No interactive input available - using $DEFAULT_TZ."
+    fi
+    user_tz=""
+fi
+
+# Empty input, a bare Enter, and a timeout all mean "no answer given".
 if [[ -z "$user_tz" ]]; then
-    user_tz=$CURRENT_TZ
+    user_tz=$DEFAULT_TZ
 fi
 
 if [[ "$user_tz" == "list" ]]; then
     timedatectl list-timezones | less
-    read -p "Enter the timezone from the list: " user_tz
+    read -t 10 -p "Enter the timezone from the list: " user_tz
+    list_status=$?
+    if [ "$list_status" -ne 0 ]; then
+        echo ""
+        user_tz=""
+    fi
+    if [[ -z "$user_tz" ]]; then
+        user_tz=$DEFAULT_TZ
+    fi
 fi
 
 echo "Setting timezone to $user_tz..."
