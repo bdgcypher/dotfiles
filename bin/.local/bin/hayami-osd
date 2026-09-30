@@ -260,8 +260,10 @@ playerctl_osd() {
 
 	case "$action" in
 	play-pause | play | pause)
+		# The state just entered, not the action the next press would perform:
+		# the label names the track, and the two should agree.
 		status=$(playerctl_ status)
-		[ "$status" = "Playing" ] && icon="media-playback-pause-symbolic" || icon="media-playback-start-symbolic"
+		[ "$status" = "Playing" ] && icon="media-playback-start-symbolic" || icon="media-playback-pause-symbolic"
 		;;
 	next) icon="media-skip-forward-symbolic" ;;
 	prev) icon="media-skip-backward-symbolic" ;;
@@ -270,16 +272,14 @@ playerctl_osd() {
 	*) icon="media-playback-start-symbolic" ;;
 	esac
 
-	# Show "{artist} - {title}" for the track actions, and only for the ones that
-	# move the track: play/pause is a bare icon.
-	if [ "$action" != "play-pause" ] && [ "$action" != "play" ] && [ "$action" != "pause" ]; then
-		artist=$(playerctl_ metadata artist)
-		title=$(playerctl_ metadata title)
-		if [ -n "$artist" ] && [ -n "$title" ]; then
-			label="$artist - $title"
-		elif [ -n "$title" ]; then
-			label="$title"
-		fi
+	# "{artist} - {title}" for every action, play/pause included: the icon says
+	# what the press did, the label says what it did it to.
+	artist=$(playerctl_ metadata artist)
+	title=$(playerctl_ metadata title)
+	if [ -n "$artist" ] && [ -n "$title" ]; then
+		label="$artist - $title"
+	elif [ -n "$title" ]; then
+		label="$title"
 	fi
 
 	send_spec "playerctl" "$icon" "$label" "" "" ""
