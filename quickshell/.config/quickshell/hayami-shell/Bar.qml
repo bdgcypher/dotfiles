@@ -458,6 +458,9 @@ PanelWindow {
 					moduleShown: bar.shownKey("clock")
 					state: bar.state
 					screenModel: bar.modelData
+					// The calendar's open flag is one per shell, so only the
+					// clock on the focused monitor opens its panel.
+					focused: bar.onFocusedMonitor
 				}
 				Updates {
 					pal: pal
@@ -506,6 +509,18 @@ PanelWindow {
 					edge: bar.edge
 					moduleShown: bar.shownKey("vpn")
 					screenModel: bar.modelData
+				}
+				// The agent sits with the other status readings rather than with
+				// Voxtype and the recorder in the centre: those two exist only while
+				// they are doing something, where this one is always on the bar and
+				// dims when idle.
+				AgentIndicator {
+					pal: pal
+					edge: bar.edge
+					moduleShown: bar.shownKey("agent")
+					state: bar.state
+					screenModel: bar.modelData
+					focused: bar.onFocusedMonitor
 				}
 				VolumeIndicator {
 					pal: pal

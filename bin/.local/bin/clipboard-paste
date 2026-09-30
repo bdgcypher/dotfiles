@@ -2,6 +2,11 @@
 # clipboard-paste - Wait for the launcher to close, then paste the clipboard
 # contents into the focused window. Handles text, image, and file (uri-list)
 # entries - the target app decides how to handle the pasted content.
+#
+# This is what SUPER+V runs, and what every entry in the clipboard history menu
+# (SUPER+CTRL+V) runs, so both paste the same way. The chord is picked here
+# rather than in the keybind because it depends on what the focused window is,
+# and a keybind cannot ask that.
 
 # Elephant appends "-t 'text/uri-list'" for file entries. The hint lands on
 # this script, while wl-copy (first in the chain) copied the URIs as plain
@@ -44,5 +49,36 @@ if wl-paste --list-types 2>/dev/null | grep -qE '^text/|^(TEXT|STRING|UTF8_STRIN
   esac
 fi
 
-# Real paste: send Shift+Insert to the focused window.
-hyprctl dispatch 'hl.dsp.send_shortcut({ mods = "SHIFT", key = "Insert" })'
+# Real paste. The chord is chosen from what the focused window actually is.
+#
+# A terminal gets Ctrl+Shift+V. That is the chord terminal emulators bind as
+# their paste -- ghostty, kitty, foot, alacritty, konsole all do -- and it asks
+# the emulator to paste the clipboard itself. Shift+Insert is the odd one out
+# here: ghostty binds it, but most other emulators do not, and an unbound chord
+# does nothing at all, which is indistinguishable from a broken paste.
+#
+# Everything else gets Shift+Insert, which is the X11 standard paste and is bound
+# by GTK and Qt, so browsers, editors and file managers paste on their own.
+#
+# The test is Hyprland's own `terminal` tag rather than a list of class names,
+# because that tag is what the desktop already uses to decide what a terminal is
+# (see hypr/apps/terminals.lua). A terminal added there later becomes correct
+# here without this file being edited.
+#
+# The trailing "*" is stripped first, and that is not tidiness. Hyprland marks
+# the *current* tag with it, so a focused ghostty reports
+# ["default-opacity*", "terminal*"] and an exact match on "terminal" misses --
+# which sends a terminal paste chord to a browser instead. A fixture with clean
+# tags hid it; only the real window showed it.
+is_terminal=$(hyprctl activewindow -j 2>/dev/null |
+  jq -r '(.tags // []) | map(sub("\\*$"; "")) | index("terminal") != null' 2>/dev/null)
+[ "$is_terminal" = "true" ] || is_terminal=false
+
+if [ "$is_terminal" = true ]; then
+  hyprctl eval "hl.dispatch(hl.dsp.send_shortcut({ window = 'activewindow', mods = 'CTRL SHIFT', key = 'v' }))" \
+    >/dev/null 2>&1
+else
+  # Left as it was, on the string form, because that is the form this chord has
+  # always been sent with and it is the one SUPER+V has been shipping.
+  hyprctl dispatch 'hl.dsp.send_shortcut({ mods = "SHIFT", key = "Insert" })'
+fi

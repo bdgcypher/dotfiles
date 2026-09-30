@@ -29,6 +29,22 @@ hl.bind(
 
 hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("uwsm-app -- slack"), { description = "SLack" })
 
+-- The coding agent. Tiled rather than floating -- an agent session is something
+-- you work in, not a dialog over what you was doing -- and aimed at the home
+-- directory, because freebuff has its own project picker and $HOME is the one
+-- place that is always a sensible start. `hayami agent new` is focus-or-spawn:
+-- pressing this while the agent is already up switches to it rather than
+-- opening a second terminal behind the first.
+--
+-- On the SHIFT because that is the row this desktop launches things from --
+-- SUPER+SHIFT for the file manager, the browser, the editor, Obsidian, Slack --
+-- and an agent session is another thing you launch. It was SUPER+CTRL+A, which
+-- put it in a row of its own for no reason. The bare SUPER+A is the agent
+-- *panel* (utilities.lua): reading what the agent is up to is the frequent half
+-- and starting a session is the occasional one, so the panel gets the
+-- unmodified key and the session gets the modifier its siblings have.
+hl.bind("SUPER + SHIFT + A", hl.dsp.exec_cmd("hayami agent new"), { description = "Coding agent" })
+
 -- The Arch 'bitwarden' package installs /usr/bin/bitwarden-desktop (there is
 -- no 'bitwarden' executable); the window still reports class "Bitwarden",
 -- which is what hypr/.config/hypr/apps/bitwarden.lua matches on.

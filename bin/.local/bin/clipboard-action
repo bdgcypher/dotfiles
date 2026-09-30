@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# clipboard-action - the copy and cut halves of the universal clipboard trio.
+#
+#   clipboard-action copy
+#   clipboard-action cut
+#
+# Paste is SUPER+V and lives in clipboard-paste instead, because it needs the
+# same terminal test this file does and there is no reason to have it twice.
+#
+# Copy and cut have no universal chord, which is why they come through here.
+#
+# Copy is the easy half. Ctrl+Insert is the X11 standard and ghostty binds it,
+# but a web browser does not -- Firefox and Chromium want Ctrl+C -- and Ctrl+C
+# cannot simply be sent everywhere, because in a terminal it is SIGINT and would
+# kill whatever is running. So the chord is chosen from what the focused window
+# actually is: a terminal gets Ctrl+Insert, everything else gets Ctrl+C.
+#
+# Cut is the awkward half, and mostly because a terminal cannot do it. There is
+# no selection to cut from in a terminal, and Ctrl+X is not "cut" there -- it is
+# a key the program in the terminal has probably bound to something else, which
+# this would then press at you for no reason. So a terminal is told there is
+# nothing to cut, and every other window gets Ctrl+X.
+#
+# The test is Hyprland's own `terminal` tag rather than a list of class names,
+# because that tag is what the desktop already uses to decide what a terminal is
+# (see hypr/apps/terminals.lua). A terminal added there later becomes correct
+# here without this file being edited.
+#
+# The trailing "*" is stripped first, and that is not tidiness. Hyprland marks
+# the *current* tag with it, so a focused ghostty reports
+# ["default-opacity*", "terminal*"] and an exact match on "terminal" misses --
+# which sent Ctrl+C into a terminal, i.e. SIGINT to whatever was running, from a
+# shortcut whose whole job is not to do that. A fixture with clean tags hid it;
+# only the real window showed it.
+
+set -uo pipefail
+
+action="${1:-}"
+
+case "$action" in
+  copy | cut) ;;
+  *)
+    echo "usage: clipboard-action {copy|cut}" >&2
+    exit 2
+    ;;
+esac
+
+win=$(hyprctl activewindow -j 2>/dev/null)
+[ -z "$win" ] && exit 0
+
+is_terminal=$(printf '%s' "$win" |
+  jq -r '(.tags // []) | map(sub("\\*$"; "")) | index("terminal") != null' 2>/dev/null)
+[ "$is_terminal" = "true" ] || is_terminal=false
+
+send() {
+  hyprctl eval "hl.dispatch(hl.dsp.send_shortcut({ window = 'activewindow', mods = 'CTRL', key = '$1' }))" \
+    >/dev/null 2>&1
+}
+
+if [ "$action" = "copy" ]; then
+  if [ "$is_terminal" = true ]; then
+    # ghostty binds this one; it is also what GTK and Qt bind, so a terminal is
+    # not the only thing it works in.
+    send "Insert"
+  else
+    send "c"
+  fi
+  exit 0
+fi
+
+# cut
+if [ "$is_terminal" = true ]; then
+  # Said rather than sent. A terminal has no cut, and the alternative is
+  # pressing a key the running program owns.
+  hayami-osd --custom-message "Nothing to cut in a terminal" \
+    --custom-icon "edit-cut" -d 1200 >/dev/null 2>&1 &
+  exit 0
+fi
+
+send "x"

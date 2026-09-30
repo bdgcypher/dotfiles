@@ -12,9 +12,11 @@ hl.bind("XF86Calculator", hl.dsp.exec_cmd(terminal .. " --class=floating.Calcula
 
 hl.bind("SUPER + K", hl.dsp.exec_cmd("hayami-menu -m menus:system/keybinds --theme keybinds --width 780"), { description = "Keybinds Overview" })
 
-hl.bind("SUPER + CTRL + A", hl.dsp.exec_cmd(terminal .. " --class=floating.About -e sh -c 'fastfetch; exec $SHELL'"), { description = "About" })
-
-hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd(terminal .. " --class=floating.Calendar -e aion"), { description = "Calendar" })
+-- The bar's own calendar, not a floating TUI in a terminal: the month, the week
+-- numbers and the year's progress are already drawn by the shell, in the
+-- shell's chrome, off the clock itself -- so this opens the same panel a click
+-- on the clock does rather than a second calendar in another window.
+hl.bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("hayami bar calendar toggle"), { description = "Calendar" })
 
 -- Aesthetics
 
@@ -125,6 +127,20 @@ hl.bind(
 	hl.dsp.exec_cmd(terminal .. " --class=floating.Btop -e btop"),
 	{ description = "Activity monitor" }
 )
+
+-- The agent
+
+-- The agent's popout on the bar: what the agent is doing, what it is spending,
+-- and which of several sessions is waiting for an answer. It is the same panel
+-- the module's own click opens, and the bar state is the single owner of
+-- whether it is up, so the key and the click can never disagree. Closing it is
+-- escape, or another press of this.
+--
+-- It is the bare SUPER+A because it is the thing you want *while* you work: a
+-- glance at what is running and what it has cost, without leaving the terminal
+-- you are reading. Starting a session is the rarer half of the pair and sits on
+-- CTRL+A beside it, where it cannot be hit by accident.
+hl.bind("SUPER + A", hl.dsp.exec_cmd("hayami agent panel"), { description = "Agent panel" })
 
 -- The bar, from the keyboard. The bar takes the keys while the mode is on and
 -- draws a ring around the module they are on: arrows or hjkl move, tab and

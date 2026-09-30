@@ -27,10 +27,37 @@ read_state() {
   head -c 32 "$STATE_FILE" 2>/dev/null | tr -d '\n'
 }
 
+# A muted capture source hands the daemon pure silence, and its voice activity
+# detection then finds no speech in that silence, so the recording transcribes to
+# nothing at all. Nothing about that failure is visible from the outside: the OSD
+# reports started, the bar shows recording, and the text simply never appears --
+# which looks exactly like dictation being broken.
+#
+# So refuse to start and say why, rather than appearing to listen to nothing.
+# Refusing is the right call because the alternative cannot succeed; a user who
+# wants to dictate while muted has to unmute regardless.
+#
+# This assumes voxtype records from the default source, which is what
+# audio.device = "default" in the config means. wpctl rather than pactl because it
+# reads the default source directly and is what the rest of the audio tooling here
+# uses; it reports mute as a "[MUTED]" tag on the volume line.
+#
+# If the check cannot be made -- wpctl missing, no default source, an older
+# wpctl that omits the tag -- this stays quiet and dictation is attempted, which
+# is the old behaviour rather than a new way to fail.
+mic_muted() {
+  wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | grep -q 'MUTED'
+}
+
 before="$(read_state)"
 
 # No state file means the daemon isn't running. Nothing to toggle or report.
 [ -n "$before" ] || exit 1
+
+if mic_muted; then
+  show_osd "Microphone Muted"
+  exit 1
+fi
 
 voxtype record toggle >/dev/null 2>&1 || exit 1
 

@@ -1,4 +1,4 @@
--- Cypher-shell bar
+-- hayami-shell bar
 
 -- The bar is a layer surface whose geometry changes outright when it moves to
 -- another edge: a top bar is 1721x26 and a left one is 32x958, so the size

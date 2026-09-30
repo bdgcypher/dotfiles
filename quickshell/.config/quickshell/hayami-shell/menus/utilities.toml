@@ -14,10 +14,13 @@ icon = " "
 actions = { "default" = "ghostty --class=floating.Calculator --keybind=escape=close_surface -e calculator" }
 weight = 90
 
+# The bar's calendar popout -- the same one SUPER+SHIFT+C and a click on the
+# clock open, reached here through the one flag in BarState rather than a
+# separate window.
 [[entries]]
 text = "Calendar"
 icon = "󰃰 "
-actions = { "default" = "ghostty --class=floating.Calendar -e aion" }
+actions = { "default" = "hayami bar calendar toggle" }
 weight = 85
 
 [[entries]]
@@ -37,6 +40,12 @@ text = "Emoji Picker"
 icon = " "
 actions = { "default" = "hayami-menu -m symbols --width 400" }
 weight = 60
+
+[[entries]]
+text = "Agent: New Session"
+icon = "\U000F06A9 "
+actions = { "default" = "hayami agent new" }
+weight = 52
 
 [[entries]]
 text = "Volume Boost"

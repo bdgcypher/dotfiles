@@ -45,6 +45,12 @@ actions = { "default" = "hayami-bar toggle vpn" }
 weight = 75
 
 [[entries]]
+text = "Agent"
+icon = "\U000F06A9 "
+actions = { "default" = "hayami-bar toggle agent" }
+weight = 72
+
+[[entries]]
 text = "Volume"
 icon = " "
 actions = { "default" = "hayami-bar toggle volume" }

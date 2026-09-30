@@ -1,0 +1,239 @@
+#!/usr/bin/env bash
+# hayami -- one entry point for the desktop.
+#
+#   hayami <group> <args...>   forward to hayami-<group>
+#   hayami status              what is running right now
+#   hayami reload              re-read menus, Hyprland config and the shell
+#   hayami list                the groups, one per line, for scripts and agents
+#   hayami doctor              check the things that silently break
+#
+# The shell is a family of commands -- hayami-shell, hayami-bar, hayami-menu,
+# hayami-osd, hayami-notify, hayami-tray, hayami-agent -- and this only forwards
+# to them. It deliberately holds no logic of its own for what they do: a
+# dispatcher that reimplemented `bar toggle` would be a second copy of it, and
+# the two would drift. The reason to have it at all is that one entry point is
+# what a keybind, a menu, a person and an agent can all be told about.
+#
+# `hayami <group>` is exactly `hayami-<group>`, so nothing here has to be
+# relearned when a group gains a verb: `hayami bar --help` is `hayami-bar --help`.
+
+set -uo pipefail
+
+SHELL_ID="hayami-shell"
+
+# The groups, in the order the help lists them. The description is what the
+# command is *for*, because that is the part that cannot be read off its name.
+#
+# Not named GROUPS: that is a bash special variable holding the user's group IDs,
+# and assigning to it is silently ignored -- the list below would be replaced by
+# the numeric groups of whoever ran it.
+GROUP_LIST=(
+	"shell|start, stop, reload and inspect the whole shell"
+	"bar|the bar: its edge, its modules, its keyboard mode"
+	"menu|the launcher"
+	"osd|the on-screen display (volume, brightness, messages)"
+	"notify|the notification centre, do-not-disturb and actions"
+	"tray|the system tray popout"
+	"agent|the freebuff coding agent: start it, read its usage"
+)
+
+usage() {
+	cat >&2 <<'EOF'
+usage: hayami <group> [args...]
+       hayami {status|reload|list|doctor}
+
+groups:
+EOF
+	local entry group desc
+	for entry in "${GROUP_LIST[@]}"; do
+		group="${entry%%|*}"
+		desc="${entry#*|}"
+		printf '  %-8s %s\n' "$group" "$desc" >&2
+	done
+	cat >&2 <<'EOF'
+
+  hayami <group> --help     the verbs a group takes
+
+shortcuts:
+  status   what is running right now
+  reload   re-read the menu caches, the Hyprland config and the shell
+  list     the groups, one per line (for scripts)
+  doctor   check the things that break quietly
+EOF
+}
+
+die() {
+	echo "hayami: $1" >&2
+	exit "${2:-1}"
+}
+
+# Is the shell answering at all? Cheap, and everything below wants to know.
+shell_up() {
+	command -v hayami-shell >/dev/null 2>&1 || return 1
+	hayami-shell status >/dev/null 2>&1
+}
+
+# The shell's own reading, from the same script the bar module runs, so the
+# answer here and the glyph on the bar cannot disagree.
+agent_status_script() {
+	local home="$HOME/.config/quickshell/$SHELL_ID/scripts/agent-status.sh"
+	local repo="$HOME/.dotfiles/quickshell/.config/quickshell/$SHELL_ID/scripts/agent-status.sh"
+	if [ -x "$home" ]; then
+		printf '%s\n' "$home"
+	elif [ -x "$repo" ]; then
+		printf '%s\n' "$repo"
+	fi
+}
+
+# ── shortcuts ────────────────────────────────────────────────────────────────
+
+do_status() {
+	echo "shell"
+	if command -v hayami-shell >/dev/null 2>&1; then
+		hayami-shell status 2>&1 | sed 's/^/  /'
+	else
+		echo "  hayami-shell not found (is the bin package stowed?)"
+	fi
+
+	echo
+	echo "bar"
+	if command -v hayami-bar >/dev/null 2>&1 && shell_up; then
+		hayami-bar state 2>/dev/null |
+			jq -r '"  position:  \(.position)\n  hidden:    \(if (.hidden|length) == 0 then "(none)" else (.hidden|join(", ")) end)"' 2>/dev/null ||
+			echo "  (could not read the bar state)"
+	else
+		echo "  (bar not answering)"
+	fi
+
+	echo
+	echo "agent"
+	local script
+	script=$(agent_status_script)
+	if [ -n "$script" ]; then
+		"$script" 2>/dev/null | jq -r '
+			"  state:     \(if .live then "running" else "idle" end)"
+			+ (if .modelShort != "" then "\n  model:     \(.modelShort)" else "" end)
+			+ (if .project != "" and .live then "\n  project:   \(.project)" else "" end)
+			+ (if .loggedIn then "\n  freebucks: \(.dailyRemaining)/\(.dailyLimit) today · \(.wallet) wallet · \(.balance) total" else "\n  freebucks: (not logged in)" end)
+		' 2>/dev/null || echo "  (could not read the agent state)"
+	else
+		echo "  (agent-status.sh not found)"
+	fi
+}
+
+do_reload() {
+	local failed=0
+
+	if command -v hayami-menu >/dev/null 2>&1; then
+		hayami-menu --refresh >/dev/null 2>&1 && echo "menu caches refreshed" ||
+			{ echo "note: could not refresh the menu caches"; failed=1; }
+	fi
+
+	# Hyprland before the shell: the bar is a layer surface and should come up
+	# into a session that already has its final reserved strip.
+	if command -v hyprctl >/dev/null 2>&1 && hyprctl version >/dev/null 2>&1; then
+		hyprctl reload >/dev/null 2>&1 && echo "Hyprland config reloaded" ||
+			{ echo "note: could not reload the Hyprland config"; failed=1; }
+	fi
+
+	if command -v hayami-shell >/dev/null 2>&1; then
+		hayami-shell reload >/dev/null 2>&1 && echo "shell reloaded onto the new config" ||
+			{ echo "note: could not reload the shell"; failed=1; }
+	fi
+
+	return "$failed"
+}
+
+do_list() {
+	local entry
+	for entry in "${GROUP_LIST[@]}"; do
+		printf 'hayami-%s\t%s\n' "${entry%%|*}" "${entry#*|}"
+	done
+}
+
+do_doctor() {
+	local problems=0
+
+	check() { # label, ok(0/1), hint
+		if [ "$2" = 0 ]; then
+			printf '  ok    %s\n' "$1"
+		else
+			printf '  FAIL  %s\n' "$1"
+			[ -n "${3:-}" ] && printf '        %s\n' "$3"
+			problems=$((problems + 1))
+		fi
+	}
+
+	echo "commands"
+	local c
+	for c in hayami-shell hayami-bar hayami-menu hayami-osd hayami-notify hayami-tray hayami-agent; do
+		command -v "$c" >/dev/null 2>&1
+		check "$c on PATH" "$?"
+	done
+
+	echo
+	echo "shell"
+	shell_up
+	check "$SHELL_ID is running" "$?" "start it with 'hayami-shell start'"
+
+	# A running shell that does not own the notification name cannot show
+	# notifications at all, and the bar gives no visible clue about it.
+	if shell_up; then
+		local owner
+		owner=$(busctl --user list 2>/dev/null |
+			awk '$1 == "org.freedesktop.Notifications" { print $2 }' |
+			while read -r pid; do ps -o comm= -p "$pid" 2>/dev/null; done)
+		[ "$owner" = "qs" ]
+		check "owns org.freedesktop.Notifications" "$?" "another daemon may be holding it"
+	fi
+
+	echo
+	echo "agent"
+	local script
+	script=$(agent_status_script)
+	if [ -n "$script" ]; then
+		check "agent-status.sh found" 0
+		"$script" >/dev/null 2>&1
+		check "agent-status.sh runs" "$?"
+		if [ -r "${XDG_CONFIG_HOME:-$HOME/.config}/manicode/credentials.json" ]; then
+			"$script" 2>/dev/null | jq -e '.loggedIn == true' >/dev/null 2>&1
+			check "freebuff login accepted" "$?" "run 'freebuff login'"
+		else
+			check "freebuff credentials present" 1 "run 'freebuff login'"
+		fi
+	else
+		check "agent-status.sh found" 1 "restow the quickshell package"
+	fi
+
+	echo
+	if [ "$problems" = 0 ]; then
+		echo "all checks passed"
+	else
+		echo "$problems problem(s)"
+	fi
+	return "$problems"
+}
+
+# ── entry ────────────────────────────────────────────────────────────────────
+
+case "${1:-}" in
+"" | -h | --help | help)
+	usage
+	[ -n "${1:-}" ] || exit 1
+	;;
+status) do_status ;;
+reload) do_reload ;;
+list) do_list ;;
+doctor) do_doctor ;;
+*)
+	group="$1"
+	shift
+	cmd="hayami-$group"
+	if ! command -v "$cmd" >/dev/null 2>&1; then
+		echo "hayami: no such group '$group'" >&2
+		usage
+		exit 2
+	fi
+	exec "$cmd" "$@"
+	;;
+esac

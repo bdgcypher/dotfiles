@@ -316,3 +316,67 @@ var vpnPanelDotSize = 7
 // its focused row with, at the calendar's size.
 var vpnPanelMarkWidth = calendarMarkWidth
 var vpnPanelMarkHeight = calendarMarkHeight
+
+// ── the agent popout ─────────────────────────────────────────────────────────
+//
+// The agent indicator's flyout: what the agent is doing and what it is spending.
+// Same chrome as the calendar and the VPN panel, so the pieces that are shared
+// alias those values rather than repeating the numbers.
+//
+// Wider than the VPN panel: the reading is a small table of label/value rows
+// rather than one name and one line.
+var agentPanelWidth = 268
+var agentPanelRadius = calendarRadius
+var agentPanelBorderWidth = calendarBorderWidth
+var agentPanelPad = calendarPad
+var agentPanelBarGap = calendarBarGap
+var agentPanelGap = vpnPanelGap
+// The headline, at the calendar's date size -- deliberately the same token, so
+// the two popouts that name themselves cannot drift apart. Every other line in
+// this block points somewhere on its own; this one is a decision that the agent
+// card and the calendar share, and it is here rather than in the panel so that
+// changing the type of a popout's heading is still one edit in one place.
+var agentPanelNameSize = calendarHeroSize
+
+// The hairline between a popout's heading and the readings under it. One pixel,
+// spanning the card's inner width.
+//
+// The mix is a share rather than a colour: each panel draws it in *its* own
+// foreground, pulled towards its own background, so a rule over a light palette
+// and a rule over a dark one are the same rule and not the same grey. The air
+// above and below it is the column's own spacing, not a margin here -- a rule
+// with its own margin would sit at a different distance from the heading in each
+// card, which is the thing a shared rule is supposed to prevent.
+var panelDividerWidth = 1
+var panelDividerMix = 0.72
+// The rows and their labels, at the bar's own size.
+var agentPanelStatusSize = vpnPanelStatusSize
+// The provider's name, four pixels above the state beside it. In terms of the
+// status size rather than a number of its own, because the relationship is the
+// point: the name sits above the readings it heads, and saying so as an offset
+// keeps it there if the status size ever moves.
+//
+// The one and two pixel steps were both too small to read as deliberate --
+// they landed between two sizes rather than on either. At four it is 16, which
+// is also vpnPanelNameSize: the size this shell gives the name of a thing in a
+// panel, which is exactly what this is. That is a coincidence worth knowing
+// about rather than a second reason, so it is still written as an offset; say
+// the word and it becomes vpnPanelNameSize outright.
+//
+// It is still the dimmed tone, not the foreground. At this size the brightness
+// would be the loudest thing in the readings, and the session rows are what the
+// card is opened to read.
+var agentPanelProviderSize = agentPanelStatusSize + 4
+var agentPanelLabelSize = 11
+var agentPanelRowHeight = 22
+// The daily-allowance meter: a track with a fill across the panel's width.
+var agentPanelMeterHeight = 6
+var agentPanelMeterRadius = 3
+// The dot that carries live/idle, beside the word for it.
+var agentPanelDotSize = vpnPanelDotSize
+// The air between a session row's waiting badge and the model's name beside it.
+// Reserved whether the badge is there or not, so that a turn ending does not
+// shift the row's own text (the same reason BarItem has a min-width).
+var agentPanelBadgeGap = 6
+var agentPanelMarkWidth = calendarMarkWidth
+var agentPanelMarkHeight = calendarMarkHeight

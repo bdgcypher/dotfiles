@@ -83,7 +83,7 @@ Item {
 	// The switchable modules, gathered into the three sets the launcher offers as
 	// clusters. The names are the ones Bar.qml passes to `moduleShown`.
 	readonly property var clusters: ({
-		"status": ["tray", "bluetooth", "network", "vpn", "volume", "memory", "cpu", "battery", "notifications"],
+		"status": ["tray", "bluetooth", "network", "vpn", "agent", "volume", "memory", "cpu", "battery", "notifications"],
 		"time": ["clock", "updates"],
 		"layout": ["menu", "workspaces", "layout", "tiling"]
 	})
@@ -512,6 +512,54 @@ Item {
 		return setKeyboardMode(!keyboardMode)
 	}
 
+	// ── the agent panel ──────────────────────────────────────────────────────
+	//
+	// Whether the agent popout is up. One flag for the whole shell, like
+	// keyboardMode above, and for the same reason: the module's own click and the
+	// SUPER+A keybind are two ways into one thing, so neither can close a card the
+	// other opened. The bars divide it between themselves -- only the one on the
+	// focused monitor draws it -- so exactly one screen shows the card whatever
+	// opened it.
+	//
+	// Transient, never written to bar.json: which panel happens to be open is not
+	// part of what this machine's bar looks like, and a shell that came back up
+	// with a panel already open would be opening something the user did not ask
+	// for.
+	property bool agentPanel: false
+
+	function setAgentPanel(on) {
+		agentPanel = on
+		return on ? "open" : "closed"
+	}
+
+	function toggleAgentPanel() {
+		return setAgentPanel(!agentPanel)
+	}
+
+	// ── the calendar panel ───────────────────────────────────────────────────
+	//
+	// Whether the clock's popout is up. One flag for the whole shell, for the
+	// same reason as the agent panel above: the clock's own click, the
+	// SUPER+SHIFT+C keybind and the panel's escape / click-off are three ways
+	// into one thing, so none of them can close a card another opened. It used
+	// to be a local property on the panel, which meant the keybind had nowhere
+	// to reach and the panel was reachable only by clicking the clock.
+	//
+	// The bars divide it between themselves -- only the one on the focused
+	// monitor draws it -- so exactly one screen shows the month whatever opened
+	// it. Transient, like the agent panel's: which panel happens to be open is
+	// not part of what this machine's bar looks like.
+	property bool calendarPanel: false
+
+	function setCalendarPanel(on) {
+		calendarPanel = on
+		return on ? "open" : "closed"
+	}
+
+	function toggleCalendarPanel() {
+		return setCalendarPanel(!calendarPanel)
+	}
+
 	// ── reading the pointer while dragging ───────────────────────────────────
 
 	// One process rather than one per frame: the loop below samples at ~30Hz and
@@ -601,6 +649,23 @@ Item {
 			return root.setKeyboardMode(on === "1" || on === "true" || on === "on")
 		}
 
+		// The agent popout, for the SUPER+A keybind and for `hayami agent panel`.
+		// Same both-ways spelling as keyboard(): "toggle" for the key that has to
+		// work either way, and both spellings of true for the rest.
+		function agent(on: string): string {
+			if (on === "toggle")
+				return root.toggleAgentPanel()
+			return root.setAgentPanel(on === "1" || on === "true" || on === "on")
+		}
+
+		// The clock's popout, for the SUPER+SHIFT+C keybind and for
+		// `hayami bar calendar`. Same three roads into the one flag.
+		function calendar(on: string): string {
+			if (on === "toggle")
+				return root.toggleCalendarPanel()
+			return root.setCalendarPanel(on === "1" || on === "true" || on === "on")
+		}
+
 		function state(): string {
 			return root.stateJson()
 		}
@@ -623,6 +688,8 @@ Item {
 				"lifeExpectancy": calendarLifeExpectancy
 			},
 			"keyboard": keyboardMode,
+			"agentPanel": agentPanel,
+			"calendarPanel": calendarPanel,
 			"dragging": dragging,
 			"target": target,
 			"monitor": monitor,

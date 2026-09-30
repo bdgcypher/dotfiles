@@ -50,7 +50,7 @@ case $choice in
             # Keep-alive sudo
             while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-            echo "[1/8] Installing packages..."
+            echo "[1/9] Installing packages..."
             "$SCRIPTS_DIR/install_packages.sh"
             # This step may have just upgraded hyprland; report the restart
             # requirement as soon as it becomes true (once is enough).
@@ -61,23 +61,25 @@ case $choice in
             # by hayami-shell, and stow cannot unlink a package that no longer
             # exists in the repo, so this clears its symlinks out of $HOME first.
             # A no-op on a machine that has already migrated.
-            echo "[2/8] Retiring the pre-Quickshell stack (if present)..."
+            echo "[2/9] Retiring the pre-Quickshell stack (if present)..."
             "$SCRIPTS_DIR/retire_legacy_stack.sh" || echo "WARNING: legacy stack retirement reported a problem, continuing..."
-            echo "[3/8] Stowing dotfile configs..."
+            echo "[3/9] Stowing dotfile configs..."
             "$SCRIPTS_DIR/stow_configs.sh"
-            echo "[4/8] Setting up GPU drivers..."
+            echo "[4/9] Setting default file type handlers..."
+            "$SCRIPTS_DIR/setup_mime_defaults.sh" || echo "WARNING: file type defaults reported a problem, continuing..."
+            echo "[5/9] Setting up GPU drivers..."
             "$SCRIPTS_DIR/setup_gpu.sh" || echo "WARNING: GPU driver setup failed, continuing with remaining steps..."
-            echo "[5/8] Configuring system services..."
+            echo "[6/9] Configuring system services..."
             "$SCRIPTS_DIR/setup_services.sh"
-            echo "[6/8] Setting up timezone..."
+            echo "[7/9] Setting up timezone..."
             "$SCRIPTS_DIR/setup_timezone.sh"
-            echo "[7/8] Restarting the launcher and shell..."
+            echo "[8/9] Restarting the launcher and shell..."
             "$SCRIPTS_DIR/restart_launcher.sh"
-            echo "[8/8] Enabling Hyprland plugins..."
+            echo "[9/9] Enabling Hyprland plugins..."
             "$SCRIPTS_DIR/setup_plugins.sh"
         else
             echo "Starting Update..."
-            echo "[1/5] Installing/updating packages..."
+            echo "[1/6] Installing/updating packages..."
             "$SCRIPTS_DIR/install_packages.sh"
             # install_packages.sh may upgrade hyprland mid-session; if so, its
             # plugins cannot load until the compositor restarts.
@@ -86,13 +88,15 @@ case $choice in
             fi
             # See the note in the full install: this is what converts a machine
             # still running waybar/swaync/swayosd/walker to hayami-shell alone.
-            echo "[2/5] Retiring the pre-Quickshell stack (if present)..."
+            echo "[2/6] Retiring the pre-Quickshell stack (if present)..."
             "$SCRIPTS_DIR/retire_legacy_stack.sh" || echo "WARNING: legacy stack retirement reported a problem, continuing..."
-            echo "[3/5] Stowing dotfile configs..."
+            echo "[3/6] Stowing dotfile configs..."
             "$SCRIPTS_DIR/stow_configs.sh"
-            echo "[4/5] Restarting the launcher and shell..."
+            echo "[4/6] Setting default file type handlers..."
+            "$SCRIPTS_DIR/setup_mime_defaults.sh" || echo "WARNING: file type defaults reported a problem, continuing..."
+            echo "[5/6] Restarting the launcher and shell..."
             "$SCRIPTS_DIR/restart_launcher.sh"
-            echo "[5/5] Enabling Hyprland plugins..."
+            echo "[6/6] Enabling Hyprland plugins..."
             "$SCRIPTS_DIR/setup_plugins.sh"
         fi
         ;;

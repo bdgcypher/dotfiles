@@ -7,6 +7,7 @@
 #   hayami-shell reload    re-read the config (see below)
 #   hayami-shell status    report what is running (exit 1 when stopped)
 #   hayami-shell logs      follow the running instance's log
+
 #
 # The shell is the whole desktop chrome: the bar, the launcher, notifications and
 # the OSD. There is no second stack to hand over to any more, so stopping it

@@ -8,6 +8,8 @@
 #   hayami-bar cluster status off   a whole cluster (status, time, layout)
 #   hayami-bar all                  show every module again
 #   hayami-bar keyboard toggle      drive the bar from the keyboard
+#   hayami-bar agent toggle         open the agent popout on the bar
+#   hayami-bar calendar toggle      open the clock's calendar on the bar
 #   hayami-bar state                print the bar's state as JSON
 #
 # The bar belongs to hayami-shell; this only speaks to it over the same IPC
@@ -57,7 +59,7 @@ SHELL_ID="hayami-shell"
 IPC_TARGET="bar"
 
 # Every switchable module, and what to call it on screen.
-KEYS="tray bluetooth network vpn volume memory cpu battery notifications clock updates menu workspaces layout tiling"
+KEYS="tray bluetooth network vpn agent volume memory cpu battery notifications clock updates menu workspaces layout tiling"
 
 label_for() {
 	case "$1" in
@@ -65,6 +67,7 @@ label_for() {
 	bluetooth) echo "Bluetooth" ;;
 	network) echo "Network" ;;
 	vpn) echo "VPN" ;;
+	agent) echo "Agent" ;;
 	volume) echo "Volume" ;;
 	memory) echo "Memory" ;;
 	cpu) echo "CPU" ;;
@@ -141,6 +144,8 @@ usage:
   hayami-bar cluster {status|time|layout} {on|off}
   hayami-bar all
   hayami-bar keyboard [on|off|toggle]
+  hayami-bar agent [on|off|toggle]
+  hayami-bar calendar [on|off|toggle]
   hayami-bar state
 
   keys: $KEYS
@@ -234,6 +239,45 @@ do_all() {
 	tell "All bar modules: shown" "view-visible"
 }
 
+# The agent popout. Quiet, like `keyboard`: the card appearing is the bar saying
+# it opened, and an OSD over the top of it would only be a second, smaller
+# version of the thing that just happened -- and would sit on the card itself.
+#
+# The state lives in BarState, so this verb, the module's own click and the
+# SUPER+A keybind are three roads into one flag and cannot disagree.
+do_agent() {
+	local on="${1:-toggle}"
+	case "$on" in
+	on | off | toggle) ;;
+	*)
+		echo "hayami-bar: agent needs on, off or toggle" >&2
+		usage
+		exit 2
+		;;
+	esac
+
+	ipc agent "$on" >/dev/null || no_shell
+}
+
+# The clock's calendar, the same shape as `agent` and for the same reasons: the
+# panel replaced a floating TUI (aion) that had its own window and its own
+# colours, and it is opened by the clock's click as much as by the keybind, so
+# both have to land on BarState's one flag. Quiet for the same reason -- the
+# month appearing is the bar saying it opened.
+do_calendar() {
+	local on="${1:-toggle}"
+	case "$on" in
+	on | off | toggle) ;;
+	*)
+		echo "hayami-bar: calendar needs on, off or toggle" >&2
+		usage
+		exit 2
+		;;
+	esac
+
+	ipc calendar "$on" >/dev/null || no_shell
+}
+
 do_keyboard() {
 	local on="${1:-toggle}"
 	case "$on" in
@@ -259,6 +303,8 @@ toggle | show | hide) do_switch "$1" "${2:-}" ;;
 cluster) do_cluster "${2:-}" "${3:-}" ;;
 all) do_all ;;
 keyboard) do_keyboard "${2:-toggle}" ;;
+agent) do_agent "${2:-toggle}" ;;
+calendar) do_calendar "${2:-toggle}" ;;
 state) ipc state || no_shell ;;
 "" | -h | --help) usage ;;
 *)

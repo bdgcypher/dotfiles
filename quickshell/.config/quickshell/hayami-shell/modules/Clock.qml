@@ -14,7 +14,8 @@ import "Theme.js" as Theme
 // is the date?" is what clicking a clock means, and the month, the week numbers
 // and the year's progress all want to be read in one place rather than in a
 // terminal window. Root-clicking it again closes the panel, which is what the
-// pointer that opened it reaches for first.
+// pointer that opened it reaches for first. The panel is the shell's own and is
+// bound to BarState, so SUPER+SHIFT+C reaches the same month from the keyboard.
 BarItem {
 	id: root
 
@@ -23,6 +24,11 @@ BarItem {
 	property var state: null
 	// The screen the bar is on, so the panel opens on the same monitor.
 	property var screenModel: null
+	// Whether this is the bar on the monitor with the focus. The calendar's open
+	// flag is one per shell and the panel is one per bar, so the panel asks
+	// whether it is the one that may answer it -- the same gate the agent
+	// popout uses, for the same reason.
+	property bool focused: false
 
 	// Assembled from formats rather than written as one strftime string: the day's
 	// ordinal suffix is not something any format specifier produces, so Qt gives
@@ -80,7 +86,12 @@ BarItem {
 	// rather than hang off its leading edge -- the same sum, one axis over.
 	readonly property size calendarAnchorSize: Qt.size(width, height)
 
-	onClicked: panel.open = !panel.open
+	onClicked: {
+		// The click and the keybind are two ways into BarState's one flag; neither
+		// writes the panel's own `open`, which is a binding of that flag.
+		if (state)
+			state.toggleCalendarPanel()
+	}
 
 	// The panel is this module's child, not the bar's: it anchors to where the
 	// clock is, and it closes with the module that owns it when the clock is
@@ -92,6 +103,7 @@ BarItem {
 		edge: root.edge
 		screenModel: root.screenModel
 		state: root.state
+		focused: root.focused
 		anchor: root.calendarAnchor
 		anchorSize: root.calendarAnchorSize
 	}

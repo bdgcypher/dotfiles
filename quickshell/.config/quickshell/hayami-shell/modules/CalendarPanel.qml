@@ -46,9 +46,22 @@ Item {
 	property point anchor: Qt.point(0, 0)
 	property size anchorSize: Qt.size(0, 0)
 
-	// Whether the panel is up. The clock toggles it; the panel closes itself on
-	// escape, so both write the one property.
-	property bool open: false
+	// Whether the panel is up. This is BarState's flag, not this object's own:
+	// the clock's click, the SUPER+SHIFT+C keybind and the panel's own escape /
+	// click-off all have to be roads into one thing, or the keybind can open a
+	// month the click then cannot close. `focused` is the other half -- the flag
+	// is one per shell and the panels are one per bar, so only the clock on the
+	// focused monitor answers it and exactly one screen shows a month.
+	property bool open: (state ? state.calendarPanel : false) && focused
+	property bool focused: false
+
+	// The one way the panel closes itself. Escape and a click off the card both
+	// come here, and both go through the state rather than writing `open`, which
+	// is a binding and would be silently overwritten on the next state change.
+	function close() {
+		if (state)
+			state.setCalendarPanel(false)
+	}
 
 	// ── the palette ──────────────────────────────────────────────────────────
 
@@ -397,7 +410,7 @@ Item {
 		// card's own controls clickable.
 		MouseArea {
 			anchors.fill: parent
-			onClicked: root.open = false
+			onClicked: root.close()
 		}
 
 		// Inside this window rather than beside the root object, because a
@@ -410,7 +423,7 @@ Item {
 			anchors.fill: parent
 			focus: root.open
 
-			Keys.onEscapePressed: root.open = false
+			Keys.onEscapePressed: root.close()
 			Keys.onPressed: (event) => keymap.handleKey(event)
 		}
 
@@ -501,6 +514,24 @@ Item {
 						hovered: heroMouse.containsMouse
 					}
 				}
+			}
+
+			// ── the rule under the date ──────────────────────────────────────
+			//
+			// Same rule the agent card draws, from the same two Theme tokens,
+			// because both cards open by naming themselves and then start
+			// listing: the date says which day this is, the grid below says what
+			// is on it, and one line says where the first stops.
+			//
+			// The year rail sits below this rather than instead of it. It reads
+			// as a rule too -- it is a dense band of days where a line would go
+			// -- so the two together are a heading, a line, and then the year's
+			// own edge. Removing the rail and keeping this would be a different
+			// card; keeping both is the one that has a memento mori in it.
+			Rectangle {
+				width: parent.width
+				height: Theme.panelDividerWidth
+				color: root.shade(root.foreground, Theme.panelDividerMix)
 			}
 
 			// ── the year rail ────────────────────────────────────────────────

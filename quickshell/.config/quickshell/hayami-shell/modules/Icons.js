@@ -70,6 +70,13 @@ var netOff = "\uDB82\uDD2E" // U+F092E  nf-md-wifi_off
 // custom/vpn
 var vpn = "\uDB84\uDDA2" // U+F11A2  nf-md-vpn
 
+// custom/agent
+//
+// The agent module, whose reading comes from scripts/agent-status.sh. The script
+// writes the same glyph as an escape of its own, the way vpn-status.sh does, so
+// the two can only ever show the same character.
+var agent = "\uDB81\uDEA9" // U+F06A9  nf-md-robot
+
 // pulseaudio
 var volLow = "\uF027" // U+F027   nf-fa-volume_down
 var volHigh = "\uF028" // U+F028   nf-fa-volume_up

@@ -36,6 +36,11 @@ icon = ""
 actions = { "default" = "hayami-menu --close" }
 
 [[entries]]
+text = "Coding Agent                               →          SUPER + SHIFT + A"
+icon = ""
+actions = { "default" = "hayami-menu --close" }
+
+[[entries]]
 text = "Passwords (Bitwarden)                      →          SUPER + SHIFT + /"
 icon = ""
 actions = { "default" = "hayami-menu --close" }
@@ -406,7 +411,7 @@ icon = ""
 actions = { "default" = "hayami-menu --close" }
 
 [[entries]]
-text = "Paste                                      →          SUPER + V"
+text = "Paste                                              →          SUPER + V"
 icon = ""
 actions = { "default" = "hayami-menu --close" }
 
@@ -416,14 +421,14 @@ icon = ""
 actions = { "default" = "hayami-menu --close" }
 
 [[entries]]
-text = "About                                      →          SUPER + CTRL + A"
+text = "Agent Panel                                →          SUPER + A"
 icon = ""
 actions = { "default" = "hayami-menu --close" }
 
 [[entries]]
 text = "Calendar                                    →          SUPER + SHIFT + C"
 icon = ""
-actions = { "default" = "true" }
+actions = { "default" = "hayami-menu --close" }
 
 [[entries]]
 text = "Start/Stop Dictation                       →          SUPER + D"

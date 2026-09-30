@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# hayami-agent -- the freebuff coding agent: start it, and read what it is doing.
+#
+#   hayami-agent new        open the agent terminal (or focus the one already up)
+#   hayami-agent panel      toggle the bar's agent popout
+#   hayami-agent status     the merged reading (session + Freebucks)
+#   hayami-agent refresh    re-read it, bypassing the API cache
+#   hayami-agent session    the raw Freebucks/session payload
+#   hayami-agent streak     the raw daily-streak payload
+#
+# `new` is focus-or-spawn rather than spawn. The keybind is a toggle in the only
+# sense that matters: pressing it while the agent is already up should put you in
+# that terminal, not stack a second one behind it -- which is what a plain
+# exec would do, once per press.
+#
+# The window is found by `initialTitle`, not `title`: ghostty is launched with
+# `--title=Freebuff`, and the title at map time is the one thing the program
+# inside cannot rewrite afterwards. Matching `title` would lose the window the
+# moment the TUI set its own.
+#
+# The API verbs are read-only. Do not add one that spends or reserves anything
+# (see AGENTS.md).
+
+set -uo pipefail
+
+SHELL_ID="hayami-shell"
+SHELL_DIR="$HOME/.config/quickshell/$SHELL_ID"
+# bin/.local/bin/<this> is three levels under the repo root.
+REPO_DIR="$(cd "$(dirname "$(realpath "$0")")/../../.." 2>/dev/null && pwd || echo "$HOME/.dotfiles")"
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/manicode"
+API="https://www.codebuff.com"
+WINDOW_TITLE="Freebuff"
+
+# The shell's own script, looked up in $HOME first and in the repo second --
+# `hayami-agent new` can be called before a restow has run, and the repo copy is
+# the same file.
+status_script() {
+	if [ -x "$SHELL_DIR/scripts/agent-status.sh" ]; then
+		printf '%s\n' "$SHELL_DIR/scripts/agent-status.sh"
+	elif [ -x "$REPO_DIR/quickshell/.config/quickshell/$SHELL_ID/scripts/agent-status.sh" ]; then
+		printf '%s\n' "$REPO_DIR/quickshell/.config/quickshell/$SHELL_ID/scripts/agent-status.sh"
+	fi
+}
+
+die() {
+	echo "hayami-agent: $1" >&2
+	exit "${2:-1}"
+}
+
+usage() {
+	cat >&2 <<'EOF'
+usage: hayami-agent <verb>
+
+  new        open the agent terminal, or focus the one already running
+  panel      toggle the bar's agent popout
+  status     the merged reading (local session + Freebucks)
+  refresh    re-read it, bypassing the 60s API cache
+  session    the raw Freebucks/session payload
+  streak     the raw daily-streak payload
+EOF
+}
+
+# ── starting it ──────────────────────────────────────────────────────────────
+
+# The address of the agent terminal Hyprland already has, or nothing. `clients -j`
+# is the compositor's own list, so a window on another workspace is found too --
+# which is the case this exists for.
+existing_window() {
+	command -v hyprctl >/dev/null 2>&1 || return 0
+	command -v jq >/dev/null 2>&1 || return 0
+	hyprctl clients -j 2>/dev/null |
+		jq -r --arg t "$WINDOW_TITLE" \
+			'.[] | select((.initialTitle // "") | contains($t)) | .address' 2>/dev/null |
+		head -n1
+}
+
+do_new() {
+	local addr
+	addr=$(existing_window)
+
+	if [ -n "$addr" ]; then
+		# Through `hyprctl eval`, because this Hyprland reads the dispatch
+		# argument as Lua: the older `dispatch focuswindow address:...` string
+		# is a syntax error rather than a focus. `hl.dsp.focus` takes a window,
+		# and `address:` is the selector it wants -- the call hypr-firefox-pwa
+		# makes for its popups.
+		#
+		# The check is on what hyprctl said and not on its status: a selector
+		# that matched nothing is a warning and still exits 0, which would look
+		# like a focus that never happened.
+		if hyprctl eval "hl.dispatch(hl.dsp.focus({ window = 'address:$addr' }))" 2>/dev/null | grep -qx ok; then
+			return 0
+		fi
+		# The window went away between the listing and the focus. Falling through
+		# to a spawn is right: the user pressed the key to get an agent.
+	fi
+
+	# Tile, not float: an agent session is something you work in, not a dialog
+	# over what you were doing. The class is left alone so the window keeps the
+	# terminal rules in hypr/apps/terminals.lua; `--title` is only what finds it
+	# again.
+	#
+	# It opens in the home directory rather than a project, because freebuff has
+	# its own project picker and $HOME is the one directory that is always a
+	# sensible place for it to start from.
+	uwsm-app -- ghostty --title="$WINDOW_TITLE" --working-directory="$HOME" -e freebuff \
+		>/dev/null 2>&1 &
+}
+
+# ── the panel ────────────────────────────────────────────────────────────────
+
+do_panel() {
+	local on="${1:-toggle}"
+	command -v hayami-bar >/dev/null 2>&1 || die "hayami-bar not found (is the bin package stowed?)"
+	hayami-bar agent "$on"
+}
+
+# ── the reading ──────────────────────────────────────────────────────────────
+
+run_status() {
+	local script
+	script=$(status_script)
+	[ -n "$script" ] || die "agent-status.sh not found"
+	"$script" "$@"
+}
+
+# The payloads are one long line; pretty-print them for a human, and fall back to
+# the raw text when jq is not there rather than printing nothing.
+pretty() {
+	if command -v jq >/dev/null 2>&1; then
+		jq . 2>/dev/null || cat
+	else
+		cat
+	fi
+}
+
+# One authenticated read-only GET. The token is read at call time and never
+# echoed; a 401 is reported as what it is rather than as an empty account.
+api_get() {
+	local path="$1" token
+	token=$(jq -r '.default.authToken // empty' "$CONFIG/credentials.json" 2>/dev/null)
+	[ -n "$token" ] || die "not logged in to freebuff (run 'freebuff login')"
+
+	local body
+	body=$(curl -sS --max-time 10 -H "Authorization: Bearer $token" "$API$path" 2>/dev/null) ||
+		die "could not reach $API"
+
+	if jq -e '.error == "unauthorized"' >/dev/null 2>&1 <<<"$body"; then
+		die "the stored freebuff token was rejected (run 'freebuff login')"
+	fi
+
+	printf '%s\n' "$body"
+}
+
+# ── entry ────────────────────────────────────────────────────────────────────
+
+case "${1:-}" in
+new) do_new ;;
+panel) do_panel "${2:-toggle}" ;;
+status) run_status | pretty ;;
+refresh) run_status --refresh | pretty ;;
+session) api_get "/api/v1/freebuff/session" | pretty ;;
+streak) api_get "/api/v1/freebuff/streak" | pretty ;;
+"") usage; exit 1 ;;
+-h | --help) usage ;;
+*)
+	echo "hayami-agent: unknown command '$1'" >&2
+	usage
+	exit 2
+	;;
+esac
