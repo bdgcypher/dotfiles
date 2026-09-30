@@ -31,7 +31,9 @@ fi
 if ! grep -q "^\[multilib\]" /etc/pacman.conf; then
     echo "Enabling multilib repository..."
     sudo sed -i '/#\[multilib\]/,/Include = \/etc\/pacman.d\/mirrorlist/ s/^#//' /etc/pacman.conf
-    sudo pacman -Syu --noconfirm
+    # No upgrade here: the unconditional `pacman -Syu` below runs seconds later
+    # and picks up the freshly enabled repository. Running it twice meant a
+    # fresh machine downloaded and resolved the whole graph an extra time.
 fi
 
 # Aesthetic and Performance enhancements for pacman
@@ -67,28 +69,113 @@ if [ -n "$INSTALLED_KERNELS" ]; then
     done
 fi
 
-echo "Updating AUR packages..."
-# We allow AUR update to fail without stopping the whole script
-# as it often contains non-critical build failures.
-yay -Sua --noconfirm || echo "Warning: AUR update encountered some errors. Continuing..."
+# ── the package lists ─────────────────────────────────────────────────────────
+# Comments and blank lines are dropped so these files can be annotated without
+# turning a note into a "package not found" warning.
+WANTED=$(cat "$PKGLIST" "$AUR_PKGLIST" |
+    grep -vE '^[[:space:]]*(#|$)' | sort -u)
 
-# Combine lists and remove duplicates
-echo "Consolidating package lists..."
-COMBINED_LIST=$(cat "$PKGLIST" "$AUR_PKGLIST" | sort -u)
+if [ -z "$WANTED" ]; then
+    echo "ERROR: no packages found in $PKGLIST / $AUR_PKGLIST" >&2
+    exit 1
+fi
 
-echo "Installing packages..."
-# We use yay for everything because it handles repo vs aur automatically.
-# We try to install in one go first for speed.
-# If it fails, we fall back to a loop to ensure we install as much as possible.
+# Split the list into "in a repository" and "AUR only" with one call.
+#
+# pacman -Slq lists every package the sync databases know about; comm against
+# the wanted list splits it. This is the whole reason the two groups can be
+# installed separately, and it costs a single ~0.5s query rather than a
+# `pacman -Si` per package (~22ms each, which would be ~5s for 223 of them).
+#
+# Splitting matters because the two groups fail for completely different
+# reasons. Repository packages are downloaded and unpacked, and essentially
+# never fail. AUR packages are built from source against a rolling set of
+# dependencies, and a single one of them failing (a deleted upstream repo, a
+# new required dependency) is routine. Keeping them in one transaction meant
+# that one routine AUR failure took all 194 repository packages down with it
+# and triggered the fallback below.
+REPO_SET=$(pacman -Slq 2>/dev/null | sort -u)
+mapfile -t REPO_PKGS < <(comm -12 <(printf '%s\n' "$REPO_SET") <(printf '%s\n' "$WANTED"))
+mapfile -t AUR_PKGS  < <(comm -13 <(printf '%s\n' "$REPO_SET") <(printf '%s\n' "$WANTED"))
 
-if echo "$COMBINED_LIST" | yay -S --needed --noconfirm -; then
-    echo "All packages installed successfully."
-else
-    echo "Bulk installation failed. Retrying packages individually to skip errors..."
-    for pkg in $COMBINED_LIST; do
-        echo "Installing $pkg..."
-        yay -S --needed --noconfirm "$pkg" || echo "Warning: Failed to install $pkg, skipping..."
+# ── installing them ───────────────────────────────────────────────────────────
+# One transaction per group, and on failure a retry that is bounded by the size
+# of the group that actually failed.
+#
+# The fallback used to re-run every package in the combined list, one `yay -S`
+# each, which turned any single failure into a very long install: 223 separate
+# invocations, each re-syncing the databases and re-resolving the graph, nearly
+# all of them for packages that were already installed. Now the worst case is
+# one retry loop over the 29 AUR packages, and the repository group is not
+# retried at all unless the repository group is what failed.
+#
+# A group that cannot be fully installed is reported and the install continues,
+# exactly as before: an optional AUR package failing to build must not abort
+# the whole run.
+INSTALL_FAILURES=()
+
+install_group() {
+    local -n _pkgs=$1
+    local label=$2
+    local pkg
+    local -a failed=()
+
+    [ "${#_pkgs[@]}" -eq 0 ] && return 0
+
+    echo "Installing ${#_pkgs[@]} ${label} packages..."
+
+    # The bulk attempt is an `if` condition rather than a `&&` chain so that a
+    # failure here is an ordinary false, never a `set -e` exit: this script runs
+    # with `set -e` and a failed package must fall through to the retry below.
+    if [ "$label" = "repository" ]; then
+        # pacman, not yay: every one of these is in the sync databases, so yay's
+        # AUR machinery is pure overhead on the largest group.
+        if sudo pacman -S --needed --noconfirm "${_pkgs[@]}"; then
+            return 0
+        fi
+    else
+        if yay -S --needed --noconfirm "${_pkgs[@]}"; then
+            return 0
+        fi
+    fi
+
+    echo "  Bulk install of ${label} packages failed; retrying them one at a time..."
+    for pkg in "${_pkgs[@]}"; do
+        echo "    $pkg"
+        if [ "$label" = "repository" ]; then
+            if sudo pacman -S --needed --noconfirm "$pkg"; then
+                echo "      ok"
+            else
+                echo "      FAILED"
+                failed+=("$pkg")
+            fi
+        else
+            if yay -S --needed --noconfirm "$pkg"; then
+                echo "      ok"
+            else
+                echo "      FAILED"
+                failed+=("$pkg")
+            fi
+        fi
     done
+
+    if [ "${#failed[@]}" -gt 0 ]; then
+        INSTALL_FAILURES+=("${label}: ${failed[*]}")
+    fi
+    return 0
+}
+
+install_group REPO_PKGS repository
+install_group AUR_PKGS AUR
+
+if [ "${#INSTALL_FAILURES[@]}" -gt 0 ]; then
+    echo ""
+    echo "Warning: some packages could not be installed:"
+    for line in "${INSTALL_FAILURES[@]}"; do
+        echo "  - $line"
+    done
+    echo "  Re-run 'yay -S <package>' for any of these to retry."
+    echo ""
 fi
 
 echo "Package installation complete."

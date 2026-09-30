@@ -42,8 +42,12 @@ fi
 # 0.1 GPU Specific Configuration
 GPU_CMDLINE=""
 
+# lspci costs ~300ms per invocation and this script consults it several times,
+# so probe once and reuse the output.
+LSPCI_OUT="$(lspci 2>/dev/null || true)"
+
 # Intel
-if lspci | grep -iE "vga.*intel" &> /dev/null; then
+if grep -iE "vga.*intel" <<< "$LSPCI_OUT" &> /dev/null; then
     echo "Intel GPU detected. Adding i915 for early KMS..."
     if ! grep -qE "^MODULES=.*\bi915\b" /etc/mkinitcpio.conf; then
         sudo sed -i "s/^MODULES=(/MODULES=(i915 /" /etc/mkinitcpio.conf
@@ -53,7 +57,7 @@ if lspci | grep -iE "vga.*intel" &> /dev/null; then
 fi
 
 # AMD
-if lspci | grep -iE "vga.*(amd|radeon)" &> /dev/null; then
+if grep -iE "vga.*(amd|radeon)" <<< "$LSPCI_OUT" &> /dev/null; then
     echo "AMD GPU detected. Adding amdgpu for early KMS..."
     if ! grep -qE "^MODULES=.*\bamdgpu\b" /etc/mkinitcpio.conf; then
         sudo sed -i "s/^MODULES=(/MODULES=(amdgpu /" /etc/mkinitcpio.conf
@@ -63,7 +67,7 @@ if lspci | grep -iE "vga.*(amd|radeon)" &> /dev/null; then
 fi
 
 # NVIDIA
-if lspci | grep -i "nvidia" &> /dev/null; then
+if grep -i "nvidia" <<< "$LSPCI_OUT" &> /dev/null; then
     echo "NVIDIA GPU detected. Configuring KMS..."
     # Packages are handled in setup_gpu.sh
     
@@ -123,8 +127,23 @@ if ! grep -q "resume" /etc/mkinitcpio.conf; then
     REBUILD_NEEDED=true
 fi
 
-echo "Setting Plymouth theme to arch-charge..."
-sudo plymouth-set-default-theme -R arch-charge || echo "Plymouth theme setup skipped — will apply after reboot"
+# Plymouth theme. Rebuilding the initramfs is by far the most expensive thing
+# this script can do, so only do it when the theme actually differs from what is
+# already configured. We deliberately pass no -R here: the rebuild is requested
+# via REBUILD_NEEDED instead, so a theme change and a hook change still share a
+# single initramfs rebuild at the end of this script.
+PLYMOUTH_THEME=arch-charge
+CURRENT_PLYMOUTH_THEME="$(sed -n 's/^Theme=//p' /etc/plymouth/plymouthd.conf 2>/dev/null | head -n1)"
+if [ "$CURRENT_PLYMOUTH_THEME" = "$PLYMOUTH_THEME" ]; then
+    echo "Plymouth theme already set to $PLYMOUTH_THEME, skipping initramfs rebuild."
+else
+    echo "Setting Plymouth theme to $PLYMOUTH_THEME..."
+    if sudo plymouth-set-default-theme "$PLYMOUTH_THEME"; then
+        REBUILD_NEEDED=true
+    else
+        echo "Plymouth theme setup skipped — will apply after reboot"
+    fi
+fi
 
 # Enable Plymouth boot services. The shutdown services (plymouth-halt/reboot/
 # poweroff/kexec) are STATIC units without an [Install] section - they are
@@ -214,7 +233,7 @@ fi
 
 # Final Rebuild if needed
 if [ "$REBUILD_NEEDED" = true ]; then
-    echo "Changes detected in mkinitcpio.conf. Rebuilding initramfs..."
+    echo "Changes detected in mkinitcpio.conf or Plymouth theme. Rebuilding initramfs..."
     sudo mkinitcpio -P
 fi
 
@@ -288,7 +307,7 @@ echo "Iriunwebcam v4l2loopback setup complete."
 # transcription runs on the GPU. It auto-detects the best backend and a failure
 # is non-fatal - voxtype simply stays on the CPU variant.
 if command -v voxtype &> /dev/null; then
-    if lspci 2>/dev/null | grep -qiE "vga|3d|display"; then
+    if grep -qiE "vga|3d|display" <<< "$LSPCI_OUT"; then
         echo "Enabling Voxtype GPU acceleration (Vulkan)..."
         if sudo voxtype setup gpu --enable >/dev/null 2>&1; then
             echo "Voxtype GPU variant enabled (verify with 'voxtype info accel')."

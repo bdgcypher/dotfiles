@@ -15,8 +15,12 @@ fi
 
 echo "Detecting GPU..."
 
+# lspci costs ~300ms per invocation and is consulted several times below,
+# so probe once and reuse the output.
+LSPCI_OUT="$(lspci 2>/dev/null || true)"
+
 # Detect GPU type
-if lspci | grep -qi "nvidia"; then
+if grep -qi "nvidia" <<< "$LSPCI_OUT"; then
     GPU_TYPE="nvidia"
     echo "NVIDIA GPU detected."
     
@@ -63,10 +67,10 @@ if lspci | grep -qi "nvidia"; then
             DRIVERS=("nvidia-dkms" "nvidia-utils" "nvidia-settings" "lib32-nvidia-utils")
         fi
     fi
-elif lspci | grep -qi "amd"; then
+elif grep -qi "amd" <<< "$LSPCI_OUT"; then
     GPU_TYPE="amd"
     DRIVERS=("xf86-video-amdgpu" "vulkan-radeon" "lib32-vulkan-radeon" "lib32-mesa")
-elif lspci | grep -qi "intel"; then
+elif grep -qi "intel" <<< "$LSPCI_OUT"; then
     GPU_TYPE="intel"
     DRIVERS=("mesa" "vulkan-intel" "lib32-mesa" "lib32-vulkan-intel" "intel-media-driver")
 else
