@@ -152,43 +152,53 @@ The agent bar module reads local session state, then a **read-only** Freebuff AP
   several can be live at once, each in its own directory. `agent-status.sh`
   reads them all, and matches each to its Hyprland window by walking the process
   chain (`hl.dsp.focus` needs an address; the window's pid is an *ancestor* of
-  the CLI's, since the CLI runs under a terminal).
-- Turn state: `projects/<basename of the session's cwd>/chats/*/run-state.json`
-  → `output.type`. `lastMessage` is the **only** value a completed run leaves
-  behind — `error` is written mid-run too — so it, and only it, is what the bar's
-  dot badge and the reading's `anyWaiting` mean by "waiting". The project
-  directory is named after the last segment of the working directory and the
-  most recently written state in it belongs to the session that is up; the lease
-  file names neither. Only that one field is ever read (with `grep`, not `jq` —
-  the file is megabytes of message history), and it is the one exception to the
-  "no conversation content" rule above: the field is a state enum, the messages
-  beside it in that file are never touched.
-- `GET https://www.codebuff.com/api/v1/freebuff/session` →
-  `freebucks.balance`, `freebucks.daily{limit,spent,remaining,resetAt}`,
-  `freebucks.wallet.balance`, `accessTier`, `freebucks.prices` (per-model
-  Freebucks/hour), `freebucks.offPeak`.
-- `GET /api/v1/freebuff/streak` → `streak`, `todayUsed`, `freebucksDailyBonus`.
-- Auth: `Authorization: Bearer <token>`, where the token is
-  `~/.config/manicode/credentials.json` → `.default.authToken`.
+  the CLI's, since the CLI runs under a terminal).- Turn state: `projects/<basename of the session's cwd>/chats/*/run-state.json`,
+  read for two things, both structural:
+  - `output.type` — `lastMessage` is the **only** value a completed run leaves
+    behind, so it is what a finished turn is read from. `error` is written
+    mid-run too, which is why it is not.
 
-Rules for this API:
+  That is the whole of the turn state. There is deliberately **no** "blocked on
+  a question" state, because nothing the CLI writes can carry one: while a
+  question is open `run-state.json` is frozen between steps, so the tool call and
+  its answer land in a single write and an unanswered call is never visible.
+  Measured, not assumed — a 68-second wait produced *no writes at all*, and
+  `calls`/`answered` then both went 2→3 together. Nor is a tool call the last
+  entry while a question is open (emitting it is followed by a `user` message
+  carrying the question), and nothing else distinguishes the two: `log.jsonl` gets
+  no record until the step ends, the window title is static, `wchan` is
+  `do_epoll_wait` throughout, CPU time keeps climbing while blocked, and there is
+  no CLI status command or IPC socket. A workaround that had the agent declare it
+  was built and then removed — it depended on the agent cooperating, which does
+  not hold in every project.
 
-1. **Read-only.** Do not call `POST /api/v1/freebuff/session/admission` — it
-   reserves credits.
-2. **Never print, log, echo or commit the token.** Read it at call time.
-3. It is **undocumented and may change**. Keep all access in
-   `hayami-shell/scripts/agent-status.sh`, handle `401` as "not logged in", and
-   never let a failed call break the bar.
-4. Cache responses (~60s) so polling does not hammer it.
+Every session is in one of **two** states, derived in `agent-status.sh` and
+carried on each session as `status`:
 
-The bar's agent popout lists every live session: **hjkl / arrows** move the
-mark, **space / enter** (or a click on the row) focuses that session's terminal,
-and escape or a click off the card puts it away. Selection lives in
-`AgentPanel.qml`; the open/closed flag is `BarState.agentPanel` (`hayami-bar
-agent toggle`), so the keybind, the module's click and the IPC verb agree. The
-bar's badge (`AgentIndicator` → BarItem's `dot`, the same one the notification
-bell uses) means *a session is waiting for you* — any one of them, since the
-glyph stands for all of them — and the count beside the glyph is how many.
+| status | means | colour |
+| --- | --- | --- |
+| `working` | a run is in progress | `pal.working` |
+| `finished` | turn over, waiting to be read | `pal.finished` |
+
+Both roles are **fixed** in `BarPalette.qml`, not pywal's, for the same reason
+`alert` is: each carries a fixed meaning, so a wallpaper must not be able to
+repaint one state as the other — a warm image putting its own hue where "finished"
+goes would make a turn waiting to be read look like something else.
+
+The bar's badge (`AgentIndicator` → BarItem's `dot`) reports the **most urgent**
+state any session is in, in the order **working → finished**: a run under way
+first, then a turn that is merely over. Idle wears no badge.
+
+The **same order sorts `sessions`** in the reading, so the top row of the card's
+list is always the one the badge is reporting, and opening the card marks it.
+Each row carries its model, its directory and a dot in that session's colour,
+and the selected session's state is spelled out again in the readings below as a
+`Status` row. Under the heading the card names only the provider: the state is
+carried by the badge and the row dots, not restated in the heading. The sort is
+stable, so sessions sharing a state keep the order they were read in.
+
+The notification bell's own dot is a different signal in the same colour as
+`alert`; it is not the agent's.
 
 ## Do not
 

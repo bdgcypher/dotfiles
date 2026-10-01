@@ -23,6 +23,15 @@ QtObject {
     // The colour style.css animates the recording and dictation indicators to.
     readonly property color alert: "#a55555"
 
+    // The badge colour for "this is running", which the agent module wears
+    // while a session is working, and for "this is done", which it wears while
+    // a finished turn waits to be read. Both fixed rather than pywal-derived for
+    // the same reason alert is: they carry a fixed meaning, so a wallpaper that
+    // happened to put its own hue in the slot -- a red image turning "finished"
+    // into the colour that means "stuck" -- must not be able to.
+    readonly property color working: "#88b667"
+    readonly property color finished: "#7a8085"
+
     property FileView file: FileView {
         path: Quickshell.env("HOME") + "/.cache/wal/colors-quickshell.json"
         watchChanges: true

@@ -43,8 +43,9 @@ Item {
 	// disagree about what they are looking at.
 	property string provider: ""
 
-	// Every live session, in the order the script read them. What the card shows
-	// is the one under the mark; the rest are the rows waiting for it.
+	// Every live session, in the order the script read them -- most urgent
+	// first. What the card shows is the one under the mark; the rest are the
+	// rows waiting for it.
 	property var sessions: []
 	property bool loggedIn: false
 	property int balance: 0
@@ -105,10 +106,29 @@ Item {
 	// The accent every list in this shell marks focus with.
 	readonly property color accent: pal && pal.colors && pal.colors.length > 3
 		? pal.colors[3] : (pal && pal.accent ? pal.accent : "#CEA56A")
-	// The colour of a row's waiting badge, which is the bar's own badge colour
-	// (BarItem's dotColor): the dot on the glyph and the dot on a row mean one
-	// thing between them, so they are one colour.
-	readonly property color waitingColor: pal && pal.alert ? pal.alert : "#a55555"
+	// A row's badge, in the same two colours the bar's own badge uses and for the
+	// same reasons: the dot on the glyph and the dot on a row are one signal in
+	// two places, so they take their colour from one function rather than each
+	// carrying a copy of the rule.
+	readonly property color finishedColor: pal && pal.finished ? pal.finished : "#7a8085"
+	readonly property color workingColor: pal && pal.working ? pal.working : "#8aa875"
+
+	function statusColor(status) {
+		if (status === "finished")
+			return finishedColor
+		return workingColor
+	}
+
+	// The same two states in words. A colour is a glance and not a reading, and
+	// this is the one place on the card that can afford to spell it out.
+	function statusWord(status) {
+		if (status === "finished")
+			return "finished"
+		if (status === "working")
+			return "working"
+		return ""
+	}
+
 	readonly property string fontFamily: Theme.fontFamily
 
 	// Dimmed text as a mix towards the panel's own background rather than
@@ -158,12 +178,6 @@ Item {
 		return "in " + fmtAge(diff)
 	}
 
-	// What is running, in the words the bar's own glyph would use: how many
-	// when there are several, since "2" is the one thing a single session's row
-	// cannot say and the list below assumes it is known.
-	readonly property string stateWord: !live ? "idle"
-		: (count > 1 ? count + " running" : "running")
-
 	// The heading says what this card is *about*, not what one session is doing:
 	// "Agents", always, whatever is up. A heading that changed with the state
 	// made the card a different card each time you opened it, and it had no room
@@ -206,6 +220,12 @@ Item {
 		if (!current)
 			return []
 		var out = []
+		// First, because it is the answer to "why am I looking at this" and
+		// everything under it is detail. Carries its own colour so the row says
+		// the same thing twice over.
+		var word = statusWord(current.status)
+		if (word !== "")
+			out.push({ label: "Status", value: word, color: statusColor(current.status) })
 		if (current.price > 0) {
 			var rate = current.price + " FB/hr"
 			if (current.offPeak)
@@ -500,45 +520,20 @@ Item {
 					color: root.shade(root.foreground, Theme.panelDividerMix)
 				}
 
-				// The subheading: the provider, and what it is doing, as two Texts
-				// in a row rather than one line. The name is bold because it is
-				// the thing you are looking for when you open the card; the
-				// state is not, because it is the half that changes -- a
-				// session starting turns "idle" into "running" under your
-				// cursor, and neither of those deserves to be shouted.
-				//
-				// Both stay in the dimmed tone. Bold is enough to pick the name
-				// out of the line, and brightening it as well would put it
-				// above the session rows in the list, which is where the actual
-				// readings live.
-				//
-				// The state takes the width the name leaves and elides inside
-				// it, so a provider long enough to crowd the card costs the
-				// ellipsis on the state rather than pushing the line off the
-				// edge. The name itself is not capped: it is a product name
-				// from a one-line setting, and truncating the thing you opened
-				// the card to read would be the worse failure.
-				Row {
+				// The provider, alone, while there is only one. What it is *doing*
+				// is not said here: the dot on the bar's glyph, and the
+				// coloured dot on each row below, already carry that, and
+				// the selected session spells its own state out in the
+				// readings. The card names itself "Agents" above this, so
+				// this line is only ever the product.
+				Text {
 					width: parent.width
-
-					Text {
-						id: providerText
-
-						text: root.providerName
-						color: root.dimText
-						font.family: root.fontFamily
-						font.pixelSize: Theme.agentPanelProviderSize
-						font.bold: true
-					}
-
-					Text {
-						width: Math.max(0, parent.width - providerText.width)
-						text: "  ·  " + root.stateWord
-						color: root.dimText
-						font.family: root.fontFamily
-						font.pixelSize: Theme.agentPanelStatusSize
-						elide: Text.ElideRight
-					}
+					text: root.providerName
+					color: root.dimText
+					font.family: root.fontFamily
+					font.pixelSize: Theme.agentPanelProviderSize
+					font.bold: true
+					elide: Text.ElideRight
 				}
 
 				// ── the session list ─────────────────────────────────────────
@@ -596,23 +591,28 @@ Item {
 								elide: Text.ElideMiddle
 							}
 
-							// The waiting badge: the same dot the bar puts on its
-							// glyph, in the same colour, for the same reason -- this
-							// one has finished its turn and is waiting for an answer.
-							// It goes at the row's far right, down the same edge as
-							// every other row's, so the badges line up into a column
-							// rather than trailing their own text.
-							Rectangle {
-								id: waitingDot
+						// The status badge: the same dot the bar puts on its
+						// glyph, in the same three colours, for the same reason
+						// -- one signal in two places. It goes at the row's far
+						// right, down the same edge as every other row's, so the
+						// badges line up into a column rather than trailing
+						// their own text.
+						//
+						// Every live row wears one. With the states told apart by
+						// colour, a row with no dot at all would read as "idle"
+						// rather than as "nothing to add here".
+						Rectangle {
+							id: waitingDot
 
-								anchors.right: parent.right
-								anchors.verticalCenter: parent.verticalCenter
-								width: Theme.agentPanelDotSize
-								height: Theme.agentPanelDotSize
-								radius: width / 2
-								color: root.waitingColor
-								visible: sessionRow.modelData.waiting === true
-							}
+							anchors.right: parent.right
+							anchors.verticalCenter: parent.verticalCenter
+							width: Theme.agentPanelDotSize
+							height: Theme.agentPanelDotSize
+							radius: width / 2
+							color: root.statusColor(sessionRow.modelData.status)
+							visible: sessionRow.modelData.status !== undefined
+								&& sessionRow.modelData.status !== ""
+						}
 
 							Text {
 								id: sessionModel
@@ -733,18 +733,19 @@ Item {
 								font.pixelSize: Theme.agentPanelLabelSize
 							}
 
-							Text {
-								anchors.right: parent.right
-								anchors.verticalCenter: parent.verticalCenter
-								anchors.left: parent.left
-								anchors.leftMargin: 88
-								text: parent.modelData.value
-								color: root.foreground
-								font.family: root.fontFamily
-								font.pixelSize: Theme.agentPanelStatusSize
-								horizontalAlignment: Text.AlignRight
-								elide: Text.ElideMiddle
-							}
+						Text {
+							anchors.right: parent.right
+							anchors.verticalCenter: parent.verticalCenter
+							anchors.left: parent.left
+							anchors.leftMargin: 88
+							text: parent.modelData.value
+							color: parent.modelData.color
+								? parent.modelData.color : root.foreground
+							font.family: root.fontFamily
+							font.pixelSize: Theme.agentPanelStatusSize
+							horizontalAlignment: Text.AlignRight
+							elide: Text.ElideMiddle
+						}
 						}
 					}
 				}
@@ -856,8 +857,9 @@ Item {
 				}
 
 				// What the list does with the keyboard, said once at the foot of
-				// the card -- and only while there is more than one session to
-				// move between, which is when it is worth saying.
+				// the card. Only the keys that currently do something appear:
+				// a footer listing a key that has one row to move through is
+				// telling the reader about a control that is not there.
 				Text {
 					width: parent.width
 					visible: root.count > 1

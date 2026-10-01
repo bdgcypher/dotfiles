@@ -115,6 +115,7 @@ do_panel() {
 	hayami-bar agent "$on"
 }
 
+
 # ── the reading ──────────────────────────────────────────────────────────────
 
 run_status() {

@@ -64,11 +64,20 @@ BarItem {
 	// How many that is, for the glyph's own count.
 	readonly property int count: sessions.length
 
-	// Whether a session has finished its turn and is waiting for an answer. The
-	// script decides it (see agent-status.sh: the run's last output, and
-	// `lastMessage` is the only value a *completed* run leaves behind), so the
-	// module never has to guess at it from timing.
-	property bool waiting: false
+	// The badge's two states, as the script sees them: `working` is a run in
+	// progress, `finished` a turn over and waiting to be read. The script decides
+	// both (see agent-status.sh) so the module never has to guess at either from
+	// timing.
+	property bool finished: false
+	property bool working: false
+
+	// Which of them the badge is reporting. One glyph stands for every session,
+	// so this is the most urgent state any of them is in, not a count. A live run
+	// outranks a finished one because it is the state still moving. "none" is the
+	// idle shell, which wears no badge at all.
+	readonly property string badgeState: working ? "working"
+		: finished ? "finished"
+		: "none"
 
 	property bool loggedIn: false
 	property int balance: 0
@@ -101,12 +110,25 @@ BarItem {
 	// where a vertical bar puts every module's value.
 	suffix: count > 1 ? " " + count : ""
 
-	// The badge, on the same terms as the notification bell's: a session has
-	// stopped and wants something from you. It is the bell's own dot, in the
-	// bar's own alert colour, and one glyph stands for every session -- so any
-	// one of them waiting is enough to put it up, and the panel's list is where
-	// the answer is about which one.
-	dot: waiting
+	// The badge, on the same terms as the notification bell's -- same dot, same
+	// slot -- but saying which of the three states it is rather than only that
+	// something wants you. The panel's list is where the answer to "which one"
+	// is; the colour here is the answer to "how badly".
+	dot: badgeState !== "none"// The badge's colour, set with a Binding rather than by redeclaring
+		// BarItem's own dotColor: a redeclaration of an inherited property does not
+		// take here, and the badge silently keeps the base's alert default -- a red
+		// dot on every state.
+		//
+		// Green for a run under way, a flat gray for a turn that is merely over.
+		// Both are fixed roles rather than pywal's, so no wallpaper can repaint one
+		// state as the other.
+		Binding {
+			target: root
+			property: "dotColor"
+			value: !root.pal ? "#7a8085"
+				: root.badgeState === "working" ? root.pal.working
+				: root.pal.finished
+		}
 
 	tooltipText: tooltipLine
 
@@ -219,7 +241,8 @@ BarItem {
 					return;
 				root.live = data.live === true;
 				root.provider = data.provider ? String(data.provider) : "";
-				root.waiting = data.anyWaiting === true;
+			root.finished = data.anyFinished === true;
+				root.working = data.anyWorking === true;
 				// Read as an array or not at all: the panel iterates this, and a
 				// payload that arrived without one must not empty the list.
 				root.sessions = Array.isArray(data.sessions) ? data.sessions : [];
