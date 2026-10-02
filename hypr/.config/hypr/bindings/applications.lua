@@ -76,3 +76,10 @@ hl.bind(
 	hl.dsp.exec_cmd("hypr-firefox-pwa \"https://music.youtube.com/\" \"Youtube Music\""),
 	{ description = "Youtube Music" }
 )
+
+-- Web App Keybind: Zoom
+hl.bind(
+	"SUPER + SHIFT + Z",
+	hl.dsp.exec_cmd("hypr-firefox-pwa \"https://app.zoom.us/wc/home\" \"Zoom\""),
+	{ description = "Zoom" }
+)

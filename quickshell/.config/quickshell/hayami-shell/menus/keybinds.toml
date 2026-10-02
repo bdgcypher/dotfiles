@@ -456,3 +456,8 @@ actions = { "default" = "hayami-menu --close" }
 text = "Bar keyboard                               →          SUPER + B"
 icon = ""
 actions = { "default" = "hayami-bar keyboard on" }
+
+[[entries]]
+text = "Zoom                                       →          SUPER + SHIFT + Z"
+icon = ""
+actions = { "default" = "hayami-menu --close" }

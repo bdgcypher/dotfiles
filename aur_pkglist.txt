@@ -25,4 +25,3 @@ vesktop-bin
 voxtype-bin
 xdg-desktop-portal-termfilechooser
 yay
-zoom

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Zoom
+Comment=Web app (firefox)
+Exec=hypr-firefox-pwa "https://app.zoom.us/wc/home" "Zoom"
+Icon=/home/benjamingoddard/.local/share/icons/Zoom.png
+StartupWMClass=firefox
+Terminal=false
+Categories=Network;

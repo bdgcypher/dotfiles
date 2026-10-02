@@ -232,3 +232,9 @@ hl.window_rule({
   match = { class = "firefox", title = ".*Gospel Library.*" },
   tile = true,
 })
+
+-- Web App: Zoom
+hl.window_rule({
+  match = { class = "firefox", title = ".*Zoom.*" },
+  tile = true,
+})
