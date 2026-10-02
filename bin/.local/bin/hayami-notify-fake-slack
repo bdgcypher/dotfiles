@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+# hayami-notify-fake-slack -- Slack-shaped notifications, for exercising the
+# popup stack and the panel without waiting for somebody to actually message you.
+#
+#   hayami-notify-fake-slack              five notifications, 1.5s apart
+#   hayami-notify-fake-slack 3            three of them
+#   hayami-notify-fake-slack 3 4          three of them, 4s apart
+#   hayami-notify-fake-slack 4 1 --sticky four that never expire
+#
+# They are shaped after what the real Slack client puts on the wire, which is
+# the part that matters for testing rather than the wording:
+#
+#   app name    "Slack", so they collect under one group in the panel the way
+#               Slack's own do, instead of arriving as loose rows
+#   an action    one action whose identifier is "default", which is what
+#               clicking the card body -- or Enter on a focused popup -- runs.
+#               Slack does send one, so a fake that omitted it would test a path
+#               that real notifications never take
+#   urgency     normal, which the shell gives 5s, exactly what Slack uses
+#
+# --sticky sends them as critical instead, whose timeout is 0 -- "stay until
+# dismissed". That is the one worth reaching for when testing the popup stack's
+# keyboard cursor: at normal urgency the oldest card has expired and closed the
+# gap before you have walked down to it.
+#
+# ── why busctl and not notify-send ────────────────────────────────────────────
+# notify-send's --action implies --wait, which does not return until an action
+# is activated. Sending N of them from a script would mean sending the first and
+# then sitting on it until you pressed Enter -- the opposite of what this is for
+# -- and backgrounding them leaves a process alive for as long as the
+# notification lives, which for a sticky one is forever.
+#
+# busctl calls org.freedesktop.Notifications.Notify directly, which is the same
+# message notify-send sends, and returns the notification id as soon as it has
+# been delivered. The action is registered on the way through; nobody is
+# listening for ActionInvoked afterwards, which does not matter here because
+# what is being tested is the shell offering the action, not a client reacting
+# to it.
+#
+# Nothing is cleaned up afterwards. There is no close-all in the notification
+# centre's IPC, so these stay in the panel until dismissed by hand.
+
+set -uo pipefail
+
+usage() {
+	cat >&2 <<'EOF'
+usage: hayami-notify-fake-slack [count] [gap-seconds] [--sticky]
+
+  count          how many to send, cycling the samples (default 5)
+  gap-seconds    pause between each one (default 1.5)
+  --sticky       send them as critical, so they do not expire on their own
+EOF
+}
+
+count=5
+gap=1.5
+sticky=0
+
+while (( $# )); do
+	case "$1" in
+		--sticky) sticky=1 ;;
+		-h | --help)
+			usage
+			exit 0
+			;;
+		-*)
+			printf 'hayami-notify-fake-slack: unknown option: %s\n' "$1" >&2
+			usage
+			exit 2
+			;;
+		*)
+			# First bare number is the count, the second the gap; anything
+			# past that is a typo rather than a third thing to configure.
+			if [[ "$count" == 5 && "$gap" == 1.5 ]]; then
+				count="$1"
+			elif [[ "$gap" == 1.5 ]]; then
+				gap="$1"
+			else
+				printf 'hayami-notify-fake-slack: unexpected argument: %s\n' "$1" >&2
+				usage
+				exit 2
+			fi
+			;;
+	esac
+	shift
+done
+
+if ! [[ "$count" =~ ^[0-9]+$ ]] || (( count < 1 )); then
+	printf 'hayami-notify-fake-slack: count must be a positive number\n' >&2
+	usage
+	exit 2
+fi
+
+if ! [[ "$gap" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+	printf 'hayami-notify-fake-slack: gap must be a number of seconds\n' >&2
+	usage
+	exit 2
+fi
+
+# The urgency hint, as busctl wants an a{sv}: an entry count, then the key, then
+# the variant's type signature and its value. "y" is the D-Bus type for a byte,
+# and 2 is critical -- 1 would be normal, which is the same as sending no hint
+# at all, so it is left off.
+if (( sticky )); then
+	hints=(1 urgency y 2)
+else
+	hints=(0)
+fi
+
+# sender|summary|body. Slack puts the channel in the summary and the speaker in
+# the body, which is the opposite of most clients and worth reproducing so the
+# card's own text wrapping is exercised honestly.
+samples=(
+	"Carrigan Holt|[suu] in web-services-dev-team|Lemme try getting rid of the background images…"
+	"Priya Raman|[suu] in web-services-dev-team|That was the deploy, finally ✅"
+	"Tomasz Nowak|[suu] in #infra-alerts|node-7 is not draining — 12 connections left"
+	"Dani Okonkwo|[suu] in DM|Re: lunch — 1pm still good?"
+	"Marta Silva|[suu] in #design-review|New deck is up, would love a read before Thursday"
+	"Priya Raman|[suu] in web-services-dev-team|thread · 4 replies"
+)
+
+printf 'sending %d fake Slack notification(s), %ss apart, urgency=%s\n' \
+	"$count" "$gap" "$( (( sticky )) && printf critical || printf normal )" >&2
+
+# The Notify signature, in order:
+#   s  app_name        "Slack", so the panel groups them together
+#   u  replaces_id     0, never replace an existing one
+#   s  app_icon        empty; Slack is not installed here and there is no slack
+#                      icon for the card to find, so naming one would only
+#                      dress the gap up. The real thing draws an icon because
+#                      Slack itself ships one.
+#   s  summary         the channel
+#   s  body            the speaker and what they said
+#   as actions         one key/label pair, "default" being the identifier the
+#                      card body runs
+#   a{sv} hints        urgency, see above
+#   i  expire_timeout  0 for the server's own default; the shell picks the
+#                      popup's lifetime from urgency instead, so this one does
+#                      not matter
+for (( i = 0; i < count; i++ )); do
+	entry="${samples[$(( i % ${#samples[@]} ))]}"
+	IFS='|' read -r sender summary body <<<"$entry"
+
+	# The reply is the notification id, which nothing here needs; it is
+	# dropped so a successful send prints nothing and the terminal stays clear.
+	if ! busctl --user call org.freedesktop.Notifications \
+		/org/freedesktop/Notifications \
+		org.freedesktop.Notifications \
+		Notify susssasa{sv}i \
+		"Slack" 0 "" \
+		"$summary" \
+		"$sender: $body" \
+		2 "default" "View message" \
+		"${hints[@]}" \
+		0 >/dev/null; then
+		printf 'hayami-notify-fake-slack: failed to send %s\n' "$summary" >&2
+	fi
+
+	# No trailing sleep: the last one's popup is the one you want still up
+	# when the script returns, and it is on screen the moment it is sent.
+	(( i + 1 < count )) && sleep "$gap"
+done
+
+printf "done -- Enter or Space runs a popup's default action, d dismisses it, Escape gives your keyboard back\n" >&2

@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Io
 import "../modules"
 import "NotifTheme.js" as Theme
+import "NotifActions.js" as Actions
 
 // The control centre.
 //
@@ -932,13 +933,14 @@ PanelWindow {
 		if (!notification)
 			return;
 
-		var actions = notification.actions ? notification.actions : [];
-		for (var i = 0; i < actions.length; i++) {
-			if (actions[i].identifier === "default") {
-				actions[i].invoke();
-				return;
-			}
-		}
+		// The same rule the card body and the command line use, so a
+		// notification that `hayami-notify -a` can act on is one this cursor can
+		// act on too. It used to scan for a "default" action alone, and fall off
+		// the end for everything else -- a keypress that did nothing at all, on
+		// a row the user had deliberately walked onto.
+		var action = Actions.pick(notification.actions);
+		if (action)
+			action.invoke();
 	}
 
 	// Delete / Backspace / c / d: the notification under the cursor, or the

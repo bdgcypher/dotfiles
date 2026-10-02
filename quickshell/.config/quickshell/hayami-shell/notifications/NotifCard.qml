@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Services.Notifications
 import "../modules"
 import "NotifTheme.js" as Theme
+import "NotifActions.js" as Actions
 
 // One notification.
 //
@@ -13,12 +14,15 @@ import "NotifTheme.js" as Theme
 //   popup  .floating-notifications .notification-background: border 2px
 //          @border-alt, radius 8, `alpha(@background,.95)`; the inner
 //          .notification adds padding 6, and .notification-content margin 14 --
-//          20 inside the border, and a *second* 2px @urgent border inset by 2
-//          when the notification is critical.
+//          20 inside the border. The theme drew a *second* 2px @urgent border
+//          inset by 2 when the notification was critical. That is gone: a
+//          critical popup now wears the card's own accent outline, the same one
+//          the pointer and the keyboard cursor wear, so it is still the only
+//          card that reads differently without being the only one drawn twice.
 //   centre .control-center .notification-background: the same border and radius,
 //          but padding 4 and .notification-content margin 6 padding 4/6/2/2 --
-//          10 inside the border, and the critical border is not drawn (there the
-//          whole card is tinted instead).
+//          10 inside the border, and no critical marker of any kind (the theme
+//          tinted the whole card there, and that tint was never ported).
 //
 // Both share `.notification > *:last-child > * { min-height: 3.4em }`, which is
 // what makes a text-only card the height it is: measured 93 tall with no icon,
@@ -51,20 +55,31 @@ Item {
 
 	readonly property bool critical: n ? n.urgency === NotificationUrgency.Critical : false
 
+	// Whether this card shows the critical marker, which is popups only. The
+	// centre has never carried one: the theme it came from tinted the whole
+	// card there, and that tint was never ported, so a critical notification in
+	// the panel is marked by nothing. Deliberately left that way rather than
+	// fixed here -- it is a change to how panel rows read, and this is about
+	// the popups.
+	readonly property bool criticalPopup: card.popup && card.critical
+
 	// Paused while the pointer is over the card, so a notification you are
 	// reading does not vanish.
 	readonly property bool hovered: hover.hovered
 
 	// The card is showing its outline cue: the panel's keyboard cursor is on it,
-	// or the pointer is over it. Both the border's colour and its weight key off
-	// this, so a card lit by the cursor and one lit by the pointer read the same
-	// way -- and a card can be both at once.
+	// the pointer is over it, or it is a critical popup. All three take the same
+	// border -- the accent colour, at the focus weight -- so "this needs you"
+	// looks like one thing wherever it comes from. There used to be a fourth
+	// look for critical: a second 2px @urgent ring drawn inside the border,
+	// which made an urgent popup the only card in the stack wearing two
+	// outlines and read as a rendering fault rather than as a priority.
 	//
 	// Hover is not conditioned on the card being clickable, nor on it being a
 	// panel card: a popup answers the pointer the same way. Being pointable is
 	// what the outline describes, and a notification with no default action is
 	// still something the pointer is on.
-	readonly property bool outlined: keyFocused || hovered
+	readonly property bool outlined: keyFocused || hovered || criticalPopup
 
 	// The inset from the card's own border to its content. The two variants
 	// differ, and the centre's is not even symmetric -- see NotifTheme.js for
@@ -125,20 +140,15 @@ Item {
 
 	readonly property var actions: n ? (n.actions ? n.actions : []) : []
 
-	// The action a click on the card runs: the freedesktop "default" one, which is
-	// what a client's own "View" button maps to. That used to be a button of
-	// its own inside the panel; here the whole card is the target instead, so no
-	// button is drawn there. Popups keep their buttons -- they are gone in five
-	// seconds and the choices are worth having on screen.
-	readonly property var defaultAction: {
-		for (var i = 0; i < card.actions.length; i++) {
-			if (card.actions[i].identifier === "default")
-				return card.actions[i];
-		}
-		return null;
-	}
+	// The action a click on the card runs, and the whole card is the target --
+	// there are no action buttons drawn anywhere now, on either surface.
+	//
+	// Which action counts as "the" one is NotifActions.js's business, because
+	// the panel's cursor and the command line have to answer the same question
+	// the same way -- and used to answer it differently.
+	readonly property var primaryAction: Actions.pick(card.actions)
 
-	readonly property bool clickable: expandOnClick || defaultAction !== null
+	readonly property bool clickable: expandOnClick || primaryAction !== null
 
 	implicitWidth: 200
 	implicitHeight: frame.height
@@ -369,18 +379,6 @@ Item {
 		border.width: card.outlined ? Theme.focusBorderWidth : Theme.controlBorderWidth
 		border.color: card.outlined ? card.notifColors.selected : card.notifColors.border
 
-		// The critical border. In a popup it is a second border inset by the
-		// background's own 2px; in the centre the card's text is tinted
-		// instead, which bodyText does below.
-		Rectangle {
-			anchors.fill: parent
-			anchors.margins: Theme.cardBorderWidth
-			radius: Theme.cardRadius - Theme.cardBorderWidth
-			color: "transparent"
-			border.width: (card.popup && card.critical) ? 2 : 0
-			border.color: card.notifColors.urgent
-		}
-
 		ColumnLayout {
 			id: layout
 
@@ -442,69 +440,19 @@ Item {
 				}
 			}
 
-			// ── action buttons ───────────────────────────────────────────────
-			// Popups only: in the panel the whole card is the click target, so the
-			// buttons there are left out. Hidden rather than left empty
-			// when there are none: an empty layout still contributes its margins,
-			// which made every actionless card 12px too tall.
-			RowLayout {
-				visible: card.popup && card.actions.length > 0
-				Layout.fillWidth: true
-				Layout.leftMargin: Theme.actionMargin
-				Layout.rightMargin: Theme.actionMargin
-				Layout.topMargin: Theme.actionMargin
-				Layout.bottomMargin: Theme.actionMargin
-				spacing: Theme.actionMargin * 2
-
-				Repeater {
-					model: card.actions
-
-					delegate: Rectangle {
-						id: action
-
-						required property var modelData
-
-						// GTK sizes an action to its label rather than filling the row,
-						// and gives every action the 3.4em minimum height.
-						Layout.minimumHeight: Theme.actionRowHeight
-						Layout.preferredWidth: actionLabel.implicitWidth + Theme.actionPadding * 2
-						Layout.alignment: Qt.AlignLeft
-						implicitWidth: Layout.preferredWidth
-						implicitHeight: Theme.actionRowHeight
-						radius: Theme.actionRadius
-						color: actionArea.containsMouse
-							? (card.popup ? card.notifColors.hover : card.notifColors.selected)
-							: (card.popup ? card.notifColors.backgroundAlt : card.notifColors.actionBackground)
-						// A popup's action wears the accent outline at rest (a centre
-						// action is a filled pill with no border), and thickens it under
-						// the pointer like every other outline in the stack.
-						border.width: card.popup
-							? (actionArea.containsMouse ? Theme.focusBorderWidth : Theme.controlBorderWidth)
-							: 0
-						border.color: card.notifColors.selected
-
-						Text {
-							id: actionLabel
-
-							anchors.centerIn: parent
-							text: action.modelData.text
-							textFormat: Text.PlainText
-							font.family: Theme.fontFamily
-							font.pixelSize: Theme.fontSize
-							color: card.notifColors.text
-						}
-
-						MouseArea {
-							id: actionArea
-
-							anchors.fill: parent
-							hoverEnabled: true
-							cursorShape: Qt.PointingHandCursor
-							onClicked: action.modelData.invoke()
-						}
-					}
-				}
-			}
+			// ── no action buttons ────────────────────────────────────────────
+			// There used to be a row of them here, drawn for popups only. They
+			// are gone from both surfaces now, and the card is the whole target:
+			// `bodyArea` below runs `primaryAction`, so the action is still
+			// reachable -- it is just the card that reaches it, rather than a
+			// labelled pill in the corner of it.
+			//
+			// What that buys is that a card looks like a card. The row was the
+			// only thing that made an actionable notification a different shape
+			// from one that merely had text in it, so the same notification was
+			// drawn two different heights depending on what the sending app
+			// happened to offer -- and the taller version is what arrived in the
+			// corner, where it pushes the rest of the stack down.
 		}
 
 		// ── the close button ─────────────────────────────────────────────────
@@ -564,8 +512,8 @@ Item {
 			onClicked: {
 				if (card.expandOnClick)
 					card.expandRequested();
-				else if (card.defaultAction)
-					card.defaultAction.invoke();
+				else if (card.primaryAction)
+					card.primaryAction.invoke();
 			}
 		}
 

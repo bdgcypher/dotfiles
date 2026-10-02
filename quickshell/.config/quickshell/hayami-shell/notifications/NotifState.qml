@@ -4,6 +4,7 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Notifications
 import "NotifTheme.js" as Theme
+import "NotifActions.js" as Actions
 
 // The notification server, and the state everything else draws from.
 //
@@ -257,14 +258,11 @@ Item {
 			var at = parseInt(String(index), 10);
 			chosen = (at >= 0 && at < actions.length) ? actions[at] : null;
 		} else {
-			for (var i = 0; i < actions.length; i++) {
-				if (actions[i].identifier === "default") {
-					chosen = actions[i];
-					break;
-				}
-			}
-			if (chosen === null && actions.length > 0)
-				chosen = actions[0];
+			// This is the rule NotifActions.js holds, and the reason it lives
+			// there: this branch used to be the only place that had the
+			// fallback, which made the command line able to activate a
+			// notification the panel's cursor could not.
+			chosen = Actions.pick(actions);
 		}
 
 		if (chosen === null)

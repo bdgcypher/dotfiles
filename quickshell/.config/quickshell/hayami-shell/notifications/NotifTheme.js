@@ -88,14 +88,9 @@ var closeSize = 22
 var closeMargin = 6
 var closeRadius = 6
 
-// The action row: .notification > *:last-child > * { min-height: 3.4em } with
-// .notification-action { border-radius: 8px; margin: 6px; border: 1px solid
-// transparent }, so 3.4 * 14 rounded to a whole number of pixels.
-var actionRowHeight = 48
-var actionRadius = 8
-var actionMargin = 6
-// GTK's default button padding, so an action is as wide as its label plus this.
-var actionPadding = 12
+// The action row's measurements lived here once, for the row of action buttons
+// that popups used to draw. Nothing sets them now that the card is the whole
+// click target -- see NotifCard's primaryAction.
 
 // ── timeouts ─────────────────────────────────────────────────────────────────
 
