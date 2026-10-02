@@ -64,19 +64,47 @@ BarItem {
 	// How many that is, for the glyph's own count.
 	readonly property int count: sessions.length
 
-	// The badge's two states, as the script sees them: `working` is a run in
-	// progress, `finished` a turn over and waiting to be read. The script decides
-	// both (see agent-status.sh) so the module never has to guess at either from
-	// timing.
+	// The badge's states, as the script sees them: `waiting` is the agent stopped
+	// on a question from you (or on an error) and going nowhere until you
+	// answer, `finished` a turn over and waiting to be read, `working` a run in
+	// progress, and `idle` a session that is up but has nothing started or
+	// finished -- it is sitting at its prompt. The script decides all four (see
+	// agent-status.sh) so the module never has to guess at any of them.
+	property bool waiting: false
 	property bool finished: false
 	property bool working: false
+	property bool idle: false
+
+	// BarPalette.qml's own values, for the frames before the palette has
+	// loaded. Written here rather than inline in the Binding below because the
+	// badge needs one *per state*, and a single fallback would paint them all
+	// the same colour.
+	readonly property string fallbackWorking: "#88b667"
+	readonly property string fallbackFinished: "#e5c07b"
+	readonly property string fallbackWaiting: "#e06c9f"
 
 	// Which of them the badge is reporting. One glyph stands for every session,
-	// so this is the most urgent state any of them is in, not a count. A live run
-	// outranks a finished one because it is the state still moving. "none" is the
-	// idle shell, which wears no badge at all.
-	readonly property string badgeState: working ? "working"
+	// so this is the most urgent state any of them is in, not a count.
+	//
+	// The order is what the dot is asking of you, loudest first:
+	//
+	//   waiting    stopped on you, going nowhere until you answer it
+	//   finished   stopped because it is done, with something for you to read
+	//   working    going, and needs nothing from you
+	//   idle       up, but nothing started and nothing finished
+	//   none       no session at all
+	//
+	// `finished` deliberately outranks `working`. Both mean the agent is not
+	// moving right now, so the question is which one has something for you:
+	// finished does, working does not. Ranking working higher would put the
+	// green "ignore me" dot on top of a yellow "come and read this" one.
+	//
+	// idle and none are the same tier of urgency and differ only in brightness
+	// (see `dim` below), so neither takes a dot: there is nothing to report.
+	readonly property string badgeState: waiting ? "waiting"
 		: finished ? "finished"
+		: working ? "working"
+		: idle ? "idle"
 		: "none"
 
 	property bool loggedIn: false
@@ -111,35 +139,57 @@ BarItem {
 	suffix: count > 1 ? " " + count : ""
 
 	// The badge, on the same terms as the notification bell's -- same dot, same
-	// slot -- but saying which of the three states it is rather than only that
-	// something wants you. The panel's list is where the answer to "which one"
-	// is; the colour here is the answer to "how badly".
-	dot: badgeState !== "none"// The badge's colour, set with a Binding rather than by redeclaring
+	// slot -- but saying which state it is rather than only that something wants
+	// you. The panel's list is where the answer to "which one" is; the colour
+	// here is the answer to "how badly".
+	//
+	// No dot for idle or none. Both mean "nothing to tell you", and a dot that
+	// carries no meaning is the one thing a badge must never be -- it would put
+	// a coloured mark on a quiet shell and train you to ignore it.
+	dot: badgeState !== "none" && badgeState !== "idle"// The badge's colour, set with a Binding rather than by redeclaring
 		// BarItem's own dotColor: a redeclaration of an inherited property does not
 		// take here, and the badge silently keeps the base's alert default -- a red
 		// dot on every state.
 		//
-		// Green for a run under way, a flat gray for a turn that is merely over.
-		// Both are fixed roles rather than pywal's, so no wallpaper can repaint one
-		// state as the other.
+		// Green for a run under way, pink-red for the one state that is blocked
+		// on you, and yellow for a turn that is merely over and waiting to be
+		// read. All fixed roles rather than pywal's, so no wallpaper can repaint
+		// one state as the other.
+		//
+		// The fallbacks are BarPalette.qml's own three values, repeated exactly
+		// and per-state -- the same arrangement the panel's copies use. They were
+		// one colour for all three states, which meant that on the one frame
+		// before the palette arrived every state drew pink, including a working
+		// one. Resolved through the properties below rather than inline, so each
+		// state keeps its own value when there is no palette to read.
 		Binding {
 			target: root
 			property: "dotColor"
-			value: !root.pal ? "#7a8085"
-				: root.badgeState === "working" ? root.pal.working
-				: root.pal.finished
+			value: {
+				var p = root.pal
+				var working = p ? p.working : root.fallbackWorking
+				var finished = p ? p.finished : root.fallbackFinished
+				var waiting = p ? p.waiting : root.fallbackWaiting
+				return root.badgeState === "working" ? working
+					: root.badgeState === "waiting" ? waiting
+					: finished
+			}
 		}
 
 	tooltipText: tooltipLine
 
-	// No colour of its own: the glyph is drawn in the bar's base foreground,
-	// the way most of the modules are, and the two states are told apart by
-	// strength rather than by hue -- full while a session is live, dimmed to
-	// near-grey while it is not. That is the shell's own way of saying "not
-	// doing anything" (the tiling direction and the workspaces do the same),
-	// and it suits a module that spends most of its time idle: an accent would
-	// spend itself on a glyph that is almost never running, and would leave the
-	// count beside it competing with the module's own reading.
+	// No colour of its own: the glyph is drawn in the bar's base foreground, the
+	// way most of the modules are, and brightness -- not hue -- is what
+	// separates the two quiet states from the rest.
+	//
+	//   full     a session is live, whether or not it has anything to report,
+	//            so `idle` (up, doing nothing) still reads as "it is here"
+	//   dimmed   no session at all -- the muted grey the user calls "none"
+	//
+	// That is the shell's own way of saying "not doing anything" (the tiling
+	// direction and the workspaces do the same), and it suits a module that
+	// spends most of its time quiet: an accent would spend itself on a glyph
+	// that is almost never busy.
 	dim: live ? 1.0 : 0.45
 
 	// The module's own corner inside the bar's surface, and how much of the bar
@@ -241,8 +291,10 @@ BarItem {
 					return;
 				root.live = data.live === true;
 				root.provider = data.provider ? String(data.provider) : "";
+		root.waiting = data.anyWaiting === true;
 			root.finished = data.anyFinished === true;
-				root.working = data.anyWorking === true;
+			root.working = data.anyWorking === true;
+			root.idle = data.anyIdle === true;
 				// Read as an array or not at all: the panel iterates this, and a
 				// payload that arrived without one must not empty the list.
 				root.sessions = Array.isArray(data.sessions) ? data.sessions : [];

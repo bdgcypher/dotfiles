@@ -106,26 +106,58 @@ Item {
 	// The accent every list in this shell marks focus with.
 	readonly property color accent: pal && pal.colors && pal.colors.length > 3
 		? pal.colors[3] : (pal && pal.accent ? pal.accent : "#CEA56A")
-	// A row's badge, in the same two colours the bar's own badge uses and for the
+	// A row's badge, in the same three colours the bar's own badge uses and for the
 	// same reasons: the dot on the glyph and the dot on a row are one signal in
 	// two places, so they take their colour from one function rather than each
 	// carrying a copy of the rule.
-	readonly property color finishedColor: pal && pal.finished ? pal.finished : "#7a8085"
-	readonly property color workingColor: pal && pal.working ? pal.working : "#8aa875"
+	//
+	// The fallbacks are BarPalette.qml's own values, repeated exactly. They were
+	// drifting -- the working one here was a different green from the palette's,
+	// so a card opened before the palette loaded would have shown a badge the
+	// bar had never drawn. Same string in both places, on purpose.
+	readonly property color waitingColor: pal && pal.waiting ? pal.waiting : "#e06c9f"
+	readonly property color finishedColor: pal && pal.finished ? pal.finished : "#e5c07b"
+	readonly property color workingColor: pal && pal.working ? pal.working : "#88b667"
+	readonly property color idleColor: pal && pal.idle ? pal.idle : "#7a7a7a"
 
 	function statusColor(status) {
+		if (status === "waiting")
+			return waitingColor
 		if (status === "finished")
 			return finishedColor
+		if (status === "idle")
+			return idleColor
 		return workingColor
 	}
 
-	// The same two states in words. A colour is a glance and not a reading, and
-	// this is the one place on the card that can afford to spell it out.
+	// Whether a row's state earns a dot at all. Every state does, including
+	// idle: the bar's badge withholds one from idle because a badge claims
+	// something needs you, but a row in a list is not claiming that. A session
+	// with no dot read as a gap in the list rather than as a state, and the
+	// list is exactly where you go to find out what every session is doing.
+	// Only a status the script did not supply at all goes undotted.
+	function hasDot(status) {
+		return status !== undefined && status !== ""
+	}
+
+	// The same states in words. A colour is a glance and not a reading, and this is
+	// the one place on the card that can afford to spell it out.
+	//
+	// `waiting` is spelled "needs input" rather than "waiting" because that is what
+	// it is asking: nothing is happening until you answer, and a row that says
+	// only "waiting" could be read as waiting *with* you. `idle` is spelled with
+	// the same word the script uses, so the reading here and the state in
+	// agent-status.sh cannot drift apart -- it was "at the prompt" for a while,
+	// which described the cause rather than the state.
 	function statusWord(status) {
+		if (status === "waiting")
+			return "needs input"
 		if (status === "finished")
 			return "finished"
 		if (status === "working")
 			return "working"
+		if (status === "idle")
+			return "idle"
 		return ""
 	}
 
@@ -369,12 +401,36 @@ Item {
 		if (!current || !current.address)
 			return
 		going.address = current.address
-		going.running = true
+		// The card is closed *before* the focus is asked for, and not after.
+		//
+		// While this card is up it holds the keyboard exclusively, which is
+		// deliberate -- it was opened to be read. But that is exactly what stops
+		// a window focus from landing: with a layer surface owning the keyboard
+		// the compositor will not move the focused window at all. Measured, not
+		// guessed: the same `hl.dsp.focus` moves focus with the card closed and
+		// does not move it with the card open, and `focus = true` does not get
+		// past it either.
+		//
+		// The symptom was a focus that looked half-done -- `focuswindow` still
+		// warps the cursor to the right window, so the mouse arrived and the
+		// keyboard did not. On this machine that is doubly true, because
+		// `follow_mouse = 2` detaches the cursor from focus anyway, so the warp
+		// never carried focus with it to begin with.
+		//
+		// So the card closes on the way out after all, which is what the note
+		// below used to argue against: it worried that a card vanishing before
+		// the focus landed would make the keypress look like it did nothing. A
+		// card that closes *and* leaves the focus where it was is the thing that
+		// looks like nothing, and that was the bug. The dispatch waits a beat
+		// (handOverDelay) for the surface to actually go, since the close and
+		// the dispatch are two separate clients of the compositor and nothing
+		// orders them.
+		dismissed()
+		handOverDelay.restart()
 	}
 
-	// The card closes on the way out and not on the way in: hyprctl is a fork,
-	// and a card that vanished before the focus landed would leave the keypress
-	// looking like it did nothing.
+	// The card is already closed by the time this runs -- focusSession closes it
+	// before asking for the focus, because an open card cannot be focused past.
 	//
 	// Through `hyprctl eval`, not `hyprctl dispatch`: this Hyprland reads the
 	// dispatch argument as Lua, so the older `dispatch focuswindow address:...`
@@ -389,10 +445,20 @@ Item {
 		command: ["hyprctl", "eval",
 			"hl.dispatch(hl.dsp.focus({ window = 'address:" + address + "' }))"]
 
-		onExited: {
-			address = ""
-			root.dismissed()
-		}
+		onExited: address = ""
+	}
+
+	// How long after the card closes the focus is asked for. It only has to cover
+	// the compositor taking the surface down, which is a frame or two; the rest
+	// is margin, and it is not felt -- the card is already gone by the time this
+	// starts. It exists because the close and the dispatch are two separate
+	// clients of the compositor and nothing orders them, so the focus would
+	// otherwise race the card's own unmap and lose.
+	Timer {
+		id: handOverDelay
+
+		interval: 250
+		onTriggered: going.running = true
 	}
 
 	// ── the panel ────────────────────────────────────────────────────────────
@@ -420,6 +486,8 @@ Item {
 		WlrLayershell.namespace: "quickshell:agent"
 		// Exclusive while it is up: the panel was opened to be read, so the keys
 		// belong to it until escape or a click off the card takes them back.
+		// This is also why a row has to close the card before asking for a
+		// window focus -- see focusSession.
 		WlrLayershell.keyboardFocus: root.open
 			? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
@@ -434,6 +502,7 @@ Item {
 			id: keys
 
 			anchors.fill: parent
+			// The same keys the card keeps while it is up.
 			focus: root.open
 
 			Keys.onEscapePressed: root.dismissed()
@@ -597,10 +666,11 @@ Item {
 						// right, down the same edge as every other row's, so the
 						// badges line up into a column rather than trailing
 						// their own text.
-						//
-						// Every live row wears one. With the states told apart by
-						// colour, a row with no dot at all would read as "idle"
-						// rather than as "nothing to add here".
+						//							// Every live row wears one, idle included, in its own colour:
+							// gray for idle, which is the point of it. The dot is the
+							// row's whole state report at a glance, and "at the prompt"
+							// has to be as visible as "needs input" -- it is the same
+							// list, read the same way.
 						Rectangle {
 							id: waitingDot
 
@@ -610,8 +680,7 @@ Item {
 							height: Theme.agentPanelDotSize
 							radius: width / 2
 							color: root.statusColor(sessionRow.modelData.status)
-							visible: sessionRow.modelData.status !== undefined
-								&& sessionRow.modelData.status !== ""
+							visible: root.hasDot(sessionRow.modelData.status)
 						}
 
 							Text {

@@ -1,22 +1,36 @@
 #!/usr/bin/env bash
 # hayami-agent -- the freebuff coding agent: start it, and read what it is doing.
 #
-#   hayami-agent new        open the agent terminal (or focus the one already up)
+#   hayami-agent new        open a new agent window
 #   hayami-agent panel      toggle the bar's agent popout
 #   hayami-agent status     the merged reading (session + Freebucks)
 #   hayami-agent refresh    re-read it, bypassing the API cache
 #   hayami-agent session    the raw Freebucks/session payload
 #   hayami-agent streak     the raw daily-streak payload
 #
-# `new` is focus-or-spawn rather than spawn. The keybind is a toggle in the only
-# sense that matters: pressing it while the agent is already up should put you in
-# that terminal, not stack a second one behind it -- which is what a plain
-# exec would do, once per press.
+# `new` always spawns a new window. It used to be focus-or-spawn, but a second
+# agent session is a thing you want to be able to open *while* one is already
+# running -- two directories, two conversations -- and a toggle cannot do both
+# jobs at once. Focus still happens, from the panel: each session's row carries
+# the window agent-status.sh matched to it, so the window you want is one click
+# away without costing the key its ability to open another.
 #
-# The window is found by `initialTitle`, not `title`: ghostty is launched with
-# `--title=Freebuff`, and the title at map time is the one thing the program
-# inside cannot rewrite afterwards. Matching `title` would lose the window the
-# moment the TUI set its own.
+# `--title` is not for finding the window from here -- that lookup is gone -- it
+# is how `agent-status.sh` recognises an agent window and matches it to a
+# session, so the panel can hand the focus to it. That script matches on
+# `initialTitle`, so the flag has to keep setting it.
+#
+# Ghostty's `title` is a *forced* title: it pins the window to that value and
+# ignores the OSC escapes a program inside would otherwise send. Measured, both
+# directions, with a script that rewrites its own title from within:
+#
+#   with --title=Freebuff    title=Freebuff  initialTitle=Freebuff  (rewrite ignored)
+#   without --title          title=<the program's>  initialTitle=Ghostty
+#
+# Which is why `initialTitle` holds `Freebuff` for the life of the window: the
+# freebuff TUI setting its own title cannot take the window out from under the
+# panel's match either. Dropping `--title` would not merely rename the window, it
+# would cost every session its focus target.
 #
 # The API verbs are read-only. Do not add one that spends or reserves anything
 # (see AGENTS.md).
@@ -51,7 +65,7 @@ usage() {
 	cat >&2 <<'EOF'
 usage: hayami-agent <verb>
 
-  new        open the agent terminal, or focus the one already running
+  new        open a new agent window
   panel      toggle the bar's agent popout
   status     the merged reading (local session + Freebucks)
   refresh    re-read it, bypassing the 60s API cache
@@ -62,43 +76,16 @@ EOF
 
 # ── starting it ──────────────────────────────────────────────────────────────
 
-# The address of the agent terminal Hyprland already has, or nothing. `clients -j`
-# is the compositor's own list, so a window on another workspace is found too --
-# which is the case this exists for.
-existing_window() {
-	command -v hyprctl >/dev/null 2>&1 || return 0
-	command -v jq >/dev/null 2>&1 || return 0
-	hyprctl clients -j 2>/dev/null |
-		jq -r --arg t "$WINDOW_TITLE" \
-			'.[] | select((.initialTitle // "") | contains($t)) | .address' 2>/dev/null |
-		head -n1
-}
-
 do_new() {
-	local addr
-	addr=$(existing_window)
-
-	if [ -n "$addr" ]; then
-		# Through `hyprctl eval`, because this Hyprland reads the dispatch
-		# argument as Lua: the older `dispatch focuswindow address:...` string
-		# is a syntax error rather than a focus. `hl.dsp.focus` takes a window,
-		# and `address:` is the selector it wants -- the call hypr-firefox-pwa
-		# makes for its popups.
-		#
-		# The check is on what hyprctl said and not on its status: a selector
-		# that matched nothing is a warning and still exits 0, which would look
-		# like a focus that never happened.
-		if hyprctl eval "hl.dispatch(hl.dsp.focus({ window = 'address:$addr' }))" 2>/dev/null | grep -qx ok; then
-			return 0
-		fi
-		# The window went away between the listing and the focus. Falling through
-		# to a spawn is right: the user pressed the key to get an agent.
-	fi
-
+	# Always a new window: no lookup, no focus-or-spawn. The key's whole job is
+	# to open another session, and a second one is a normal thing to want while
+	# the first is still running -- see the note at the top of this file.
+	#
 	# Tile, not float: an agent session is something you work in, not a dialog
 	# over what you were doing. The class is left alone so the window keeps the
-	# terminal rules in hypr/apps/terminals.lua; `--title` is only what finds it
-	# again.
+	# terminal rules in hypr/apps/terminals.lua; `--title` is what lets
+	# agent-status.sh match the window to this session afterwards, so the panel
+	# can focus it -- not something for this script to find it by.
 	#
 	# It opens in the home directory rather than a project, because freebuff has
 	# its own project picker and $HOME is the one directory that is always a
