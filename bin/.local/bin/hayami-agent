@@ -122,11 +122,32 @@ pretty() {
 	fi
 }
 
-# One authenticated read-only GET. The token is read at call time and never
-# echoed; a 401 is reported as what it is rather than as an empty account.
+# The CLI's bearer token, wherever this version of it keeps one -- read the same
+# way agent-status.sh reads it, deliberately, so the bar cannot say "logged in"
+# while this says to run `freebuff login`.
+#
+# The file is tried first because older builds wrote the token into it as
+# `authToken`. 0.2.27 does not: credentials.json keeps only
+# `tokenStore: "keychain"`, and the token itself goes to the Secret Service
+# under `service=freebuff-cli account=<the credentials file>`, which is what the
+# entry's own label spells. Read at call time and never echoed.
+#
+# `timeout` bounds a *locked* keyring, which answers by putting a prompt on
+# screen rather than by failing -- a plain `session` read should not hang there.
+read_token() {
+	local token
+	token=$(jq -r '.default.authToken // empty' "$CONFIG/credentials.json" 2>/dev/null)
+	if [ -z "$token" ] && command -v secret-tool >/dev/null 2>&1; then
+		token=$(timeout 3 secret-tool lookup service freebuff-cli account "$CONFIG/credentials.json" 2>/dev/null)
+	fi
+	printf '%s' "$token"
+}
+
+# One authenticated read-only GET. A 401 is reported as what it is rather than
+# as an empty account.
 api_get() {
 	local path="$1" token
-	token=$(jq -r '.default.authToken // empty' "$CONFIG/credentials.json" 2>/dev/null)
+	token=$(read_token)
 	[ -n "$token" ] || die "not logged in to freebuff (run 'freebuff login')"
 
 	local body

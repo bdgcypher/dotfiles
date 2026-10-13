@@ -26,8 +26,9 @@
 #          asked. See question_state() for what is read out of it.
 #
 #   remote www.codebuff.com/api/v1/freebuff/{session,streak}
-#          the wallet. Bearer auth with the CLI's own token from
-#          ~/.config/manicode/credentials.json. Read-only, and cached below.
+#          the wallet. Bearer auth with the CLI's own token, read the way that
+#          CLI stores it -- see read_token() below, because it is no longer
+#          only credentials.json. Read-only, and cached below.
 #
 # The shape is text/alt/tooltip/class with the panel's own fields
 # added on, the way vpn-status.sh does it, so the module reads it the same way.
@@ -673,9 +674,10 @@ done
 # gate that removes false positives it cannot have, at the price of false
 # negatives it does, is the wrong way round for a badge.
 #
-# The model is taken from the newest conversation's log where the log records
-# it, and left empty when it does not -- the panel draws the row either way, and
-# an empty model is better than a wrong one.
+# The model is taken from the newest conversation's log where the log records a
+# usable one, and left empty when it does not -- the panel draws the row either
+# way, and an empty model is better than a wrong one. What counts as usable is
+# settled at the read itself, because the log's own `model` field usually is not.
 
 for pid in $(pgrep -x freebuff 2>/dev/null); do
 	[ -n "${found_by_lease[$pid]:-}" ] && continue
@@ -684,8 +686,25 @@ for pid in $(pgrep -x freebuff 2>/dev/null); do
 	# agent's behalf. That one is a tool helper, not a session: it is short
 	# lived, it shares the session's directory, and counting it would put a
 	# phantom second row in the panel every time a command ran. Only a bare
-	# `freebuff` is a session.
-	[ "$(tr '\0' ' ' < "/proc/$pid/cmdline" 2>/dev/null)" = "freebuff " ] || continue
+	# `freebuff` is a session -- and "bare" is about the arguments, not about
+	# how it was invoked.
+	#
+	# Which matters here, because it is invoked by absolute path: the CLI
+	# installs itself as ~/.config/manicode/freebuff and that is the file a
+	# session runs, so argv[0] is the whole path. Comparing the command line
+	# against the bare word `freebuff` therefore matched nothing on this machine,
+	# and every session came from its lease or not at all -- so one whose lease
+	# had lapsed, which is the exact case this loop exists for, stayed invisible
+	# while it worked. Measured: a 15-hour session with an expired lease was
+	# missing from the panel beside a fresh one whose lease was still live.
+	#
+	# So the basename is compared, and the no-arguments rule that keeps the
+	# broker out is kept: the broker has argv[1], a session has none.
+	argv=$(tr '\0' '\n' < "/proc/$pid/cmdline" 2>/dev/null)
+	case "$argv" in
+	*$'\n'*) continue ;;
+	esac
+	[ "${argv##*/}" = "freebuff" ] || continue
 	cwd=$(readlink -f "/proc/$pid/cwd" 2>/dev/null)
 	[ -n "$cwd" ] || continue
 
@@ -693,7 +712,14 @@ for pid in $(pgrep -x freebuff 2>/dev/null); do
 	# never held a conversation is not a session, and there is nothing to read.
 	resolve_session "$cwd" || continue
 
-	model=$(grep -o '"model":"[^"]*"' "$CHAT/log.jsonl" 2>/dev/null |
+	# Only a `provider/model` slug counts, because the only thing the log
+	# records on *every* step is not a model: `data.model` carries an opaque
+	# `fbm1.<base64>` token on the ordinary step, and a real slug on some of the
+	# rest. Reading any value at all therefore handed the row a 95-character
+	# blob -- which is not a name, and would have been spent on the row and the
+	# tooltip in full. A blob is indistinguishable from "this log does not say",
+	# and that answer is already allowed to leave the model empty.
+	model=$(grep -oE '"model":"[a-z0-9._-]+/[a-z0-9._-]+"' "$CHAT/log.jsonl" 2>/dev/null |
 		tail -1 | cut -d'"' -f4)
 
 	add_session "$pid" "$model" "$(project_of "$cwd")" \
@@ -710,7 +736,35 @@ if [ "$REFRESH" = 0 ] && [ -f "$CACHE" ]; then
 	[ "$age" -lt "$CACHE_TTL" ] && fresh=1
 fi
 
-token=$(jq -r '.default.authToken // empty' "$CRED" 2>/dev/null)
+# The CLI's bearer token, wherever this version of it keeps one.
+#
+# Older builds wrote `authToken` into credentials.json and it could be read
+# straight out of the file. 0.2.27 writes no token there at all: the file records
+# `tokenStore: "keychain"` and the token itself goes to the Secret Service, under
+# `service=freebuff-cli account=<this very file>`, which is what the entry's own
+# label spells (`freebuff-cli//…/credentials.json`). That it is the token and not
+# some lookup key is measured, not assumed: the lease files carry sha256 of that
+# secret as their `tokenKey`.
+#
+# Missing it is the whole of "not logged in", and the symptom is a wallet card
+# replaced by that note on a machine that is logged in and spending Freebucks
+# while you look at it. So the file is tried first and the keyring second, rather
+# than either alone.
+#
+# `timeout`, because a *locked* keyring answers by putting a prompt on screen and
+# this runs every five seconds: the bar must not sit waiting on a question that
+# was never really asked of anyone. A keyring that cannot be read in three
+# seconds reads as no token, which is the same "not logged in" as before.
+read_token() {
+	local token
+	token=$(jq -r '.default.authToken // empty' "$CRED" 2>/dev/null)
+	if [ -z "$token" ] && command -v secret-tool >/dev/null 2>&1; then
+		token=$(timeout 3 secret-tool lookup service freebuff-cli account "$CRED" 2>/dev/null)
+	fi
+	printf '%s' "$token"
+}
+
+token=$(read_token)
 logged_in=0
 [ -n "$token" ] && logged_in=1
 
