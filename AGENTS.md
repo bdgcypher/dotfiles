@@ -379,10 +379,13 @@ Green and pink-red because those are the two things the badge asks you to act on
 "it is going" and "it is your turn". `finished` was a flat gray, which read as
 *idle* rather than *done* — and it is the state most worth looking at. That is
 also why the same gray is now *right* for `idle` in the panel: the state it read
-as by accident is the one it now means. It is deliberately **not** `alert`
-(`#a55555`), which is the notification bell's own dot; sharing it would make
-"the agent is waiting" and "you have an unread notification" the same mark. The
-same values are repeated as fallbacks in `AgentPanel.qml` and
+as by accident is the one it now means. Its value **is** `alert` (`#a55555`), the
+notification bell's own dot, and deliberately so: both dots make the same claim —
+something has stopped and wants you — and the shell says that in one colour. It
+was a lighter pink of its own (`#e06c9f`) while the two marks were kept apart;
+what that trade costs is that `waiting` is now the quietest of the three rather
+than the loudest, `alert` reaching 3.1:1 against the bar where that pink reached
+5.2:1. The same values are repeated as fallbacks in `AgentPanel.qml` and
 `AgentIndicator.qml` — three each, since the bar never draws `idle`; keep those
 strings identical to the palette's.
 

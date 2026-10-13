@@ -81,7 +81,7 @@ BarItem {
 	// the same colour.
 	readonly property string fallbackWorking: "#88b667"
 	readonly property string fallbackFinished: "#e5c07b"
-	readonly property string fallbackWaiting: "#e06c9f"
+	readonly property string fallbackWaiting: "#a55555"
 
 	// Which of them the badge is reporting. One glyph stands for every session,
 	// so this is the most urgent state any of them is in, not a count.
@@ -146,35 +146,37 @@ BarItem {
 	// No dot for idle or none. Both mean "nothing to tell you", and a dot that
 	// carries no meaning is the one thing a badge must never be -- it would put
 	// a coloured mark on a quiet shell and train you to ignore it.
-	dot: badgeState !== "none" && badgeState !== "idle"// The badge's colour, set with a Binding rather than by redeclaring
-		// BarItem's own dotColor: a redeclaration of an inherited property does not
-		// take here, and the badge silently keeps the base's alert default -- a red
-		// dot on every state.
-		//
-		// Green for a run under way, pink-red for the one state that is blocked
-		// on you, and yellow for a turn that is merely over and waiting to be
-		// read. All fixed roles rather than pywal's, so no wallpaper can repaint
-		// one state as the other.
-		//
-		// The fallbacks are BarPalette.qml's own three values, repeated exactly
-		// and per-state -- the same arrangement the panel's copies use. They were
-		// one colour for all three states, which meant that on the one frame
-		// before the palette arrived every state drew pink, including a working
-		// one. Resolved through the properties below rather than inline, so each
-		// state keeps its own value when there is no palette to read.
-		Binding {
-			target: root
-			property: "dotColor"
-			value: {
-				var p = root.pal
-				var working = p ? p.working : root.fallbackWorking
-				var finished = p ? p.finished : root.fallbackFinished
-				var waiting = p ? p.waiting : root.fallbackWaiting
-				return root.badgeState === "working" ? working
-					: root.badgeState === "waiting" ? waiting
-					: finished
-			}
+	dot: badgeState !== "none" && badgeState !== "idle"
+
+	// The badge's colour, set with a Binding rather than by redeclaring
+	// BarItem's own dotColor: a redeclaration of an inherited property does not
+	// take here, and the badge silently keeps the base's alert default -- a red
+	// dot on every state.
+	//
+	// Green for a run under way, pink-red for the one state that is blocked
+	// on you, and yellow for a turn that is merely over and waiting to be
+	// read. All fixed roles rather than pywal's, so no wallpaper can repaint
+	// one state as the other.
+	//
+	// The fallbacks are BarPalette.qml's own three values, repeated exactly
+	// and per-state -- the same arrangement the panel's copies use. They were
+	// one colour for all three states, which meant that on the one frame
+	// before the palette arrived every state drew pink, including a working
+	// one. Resolved through the properties below rather than inline, so each
+	// state keeps its own value when there is no palette to read.
+	Binding {
+		target: root
+		property: "dotColor"
+		value: {
+			var p = root.pal
+			var working = p ? p.working : root.fallbackWorking
+			var finished = p ? p.finished : root.fallbackFinished
+			var waiting = p ? p.waiting : root.fallbackWaiting
+			return root.badgeState === "working" ? working
+				: root.badgeState === "waiting" ? waiting
+				: finished
 		}
+	}
 
 	tooltipText: tooltipLine
 

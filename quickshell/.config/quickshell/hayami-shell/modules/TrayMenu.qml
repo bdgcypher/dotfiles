@@ -53,14 +53,14 @@ import "Theme.js" as Theme
 // surface and offset by the bar's margins.
 //
 // ── one window, a column per level ───────────────────────────────────────────
-//	// A submenu is not a window of its own here. A QML component cannot instantiate
-	// itself -- Quickshell rejects that outright -- so a menu that opened submenus as
-	// nested windows would have to be a chain of files with a hard depth, each one
-	// spawning the next. Instead the whole cascade is drawn in this one surface, a
-	// column per open level, laid out side by side -- leftwards, except from a
-	// left-edge bar (see growsLeft): the same thing a GTK menu shows, and it keeps
-	// the submenu's columns from being pushed around by the screen edge
-	// independently of the menu they belong to -- across the screen, at least. Down
+// A submenu is not a window of its own here. A QML component cannot instantiate
+// itself -- Quickshell rejects that outright -- so a menu that opened submenus as
+// nested windows would have to be a chain of files with a hard depth, each one
+// spawning the next. Instead the whole cascade is drawn in this one surface, a
+// column per open level, laid out side by side -- leftwards, except from a
+// left-edge bar (see growsLeft): the same thing a GTK menu shows, and it keeps
+// the submenu's columns from being pushed around by the screen edge
+// independently of the menu they belong to -- across the screen, at least. Down
 // the screen each column is placed on its own, one row into the page from the row
 // that opened it (see columnTopOffset), rather than the whole cascade being
 // lifted to fit: a cascade longer than the space beside the icon has to give

@@ -39,16 +39,19 @@ QtObject {
     // and there is simply a reply to collect. Yellow sits between them and is
     // the only one of the three that means "done, go and look".
     //
-    // Pink-red for waiting: the one state that is *blocked on you*. It has to be
-    // the loudest of the three, because it is the only one where the agent has
-    // stopped and will not start again until you answer. Deliberately not alert
-    // (#a55555): that is the notification bell's own dot, and reusing it here
-    // would make "the agent is waiting on you" and "you have an unread
-    // notification" the same mark. This is pinker and lighter for that reason.
+    // Pink-red for waiting: the one state that is *blocked on you*, and the same
+    // value as `alert` on purpose. The dot on the agent badge and the dot on the
+    // notification bell make the same claim -- something has stopped and wants
+    // you -- so one colour for both is the point rather than a collision. It had
+    // a lighter pink of its own (#e06c9f) while the two marks were kept apart,
+    // which made waiting the loudest of the three at 5.2:1 where alert reaches
+    // 3.1:1; this trades the louder badge for the two "needs you" marks
+    // agreeing. Still legible at 9px, and still far enough in hue from working's
+    // green and finished's yellow to be told apart without reading anything.
     //
     // All three come from the same family as the shell's other defaults, and
     // each is far enough from the others to be told apart on a 9px dot --
-    // 6.8:1, 9.3:1 and 5.2:1 against the bar background.
+    // 6.8:1, 9.3:1 and 3.1:1 against the bar background.
     //
     // `error` deliberately wears waiting's colour rather than one of its own.
     // An errored turn and a question both want the same thing from you and
@@ -56,7 +59,7 @@ QtObject {
     // stopped and is waiting on you" is also one less thing to learn at a glance.
     readonly property color working: "#88b667"
     readonly property color finished: "#e5c07b"
-    readonly property color waiting: "#e06c9f"
+    readonly property color waiting: "#a55555"
 
     // `idle` is the fourth agent state, and the only one the *panel* draws: the
     // bar's badge deliberately stays empty for it, because a badge is a claim

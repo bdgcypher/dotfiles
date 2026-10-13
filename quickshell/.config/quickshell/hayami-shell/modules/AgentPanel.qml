@@ -76,26 +76,75 @@ Item {
 	// ── which of them ────────────────────────────────────────────────────────
 	//
 	// Several agents can be live at once, so the card shows one reading and a row
-	// per session: this is the index of the row under the mark. It stays here and
-	// not in the bar state because it means nothing outside the card -- the flag
-	// that says whether the card is up is the only thing the keybind and the
-	// module's own click have to agree on.
+	// per session: `selected` is the index of the row under the mark. It stays
+	// here and not in the bar state because it means nothing outside the card --
+	// the flag that says whether the card is up is the only thing the keybind and
+	// the module's own click have to agree on.
+	//
+	// The mark belongs to a *session*, though, and not to a row number, which is
+	// what `markedPid` is for. The reading is re-read every five seconds and sorts
+	// the list by urgency, so a session whose state changes moves up or down under
+	// an open card -- and a bare row number would silently slide onto whichever
+	// session landed in that slot. Measured, not guessed, with the card left open
+	// on `~/.dotfiles`: one poll later the mark read
+	// `selected=1 marked=~/Projects/table-for-two`, and the space after it went to
+	// that window instead of the one the reader had picked. The pid is the
+	// session's own, so it is the one thing about it that cannot move.
 	property int selected: 0
+	property int markedPid: -1
 
 	readonly property int count: sessions.length
 
 	readonly property var current: selected >= 0 && selected < count
 		? sessions[selected] : null
 
-	// A session can end while the card is up, and the list is re-read every five
-	// seconds: the mark follows the list rather than pointing past its end.
-	onSessionsChanged: if (selected > count - 1)
-		selected = Math.max(0, count - 1)
+	// Put the mark on a session and remember which one it is. Every road that
+	// moves the mark comes through here -- the keys, a click, opening the card,
+	// and the re-read below -- so none of them can move it without also saying
+	// which session it now means.
+	//
+	// It, and the re-read below, index the list itself and never read `count` or
+	// `current`, the two derived properties over it. Measured, not guessed:
+	// inside the list's own change handler those are still the *previous* values,
+	// so `count` read 0 against a three-session list, this clamp took the
+	// empty-list road, and the mark bounced between two sessions on every poll.
+	// The property that changed is the only one certain to be current while its
+	// own handler runs.
+	function markSession(index) {
+		var list = sessions || []
+		if (list.length === 0) {
+			selected = 0
+			markedPid = -1
+			return
+		}
+		selected = Math.max(0, Math.min(list.length - 1, index))
+		markedPid = Number(list[selected].pid)
+	}
 
 	function moveSelection(delta) {
-		if (count === 0)
+		if (sessions.length === 0)
 			return
-		selected = Math.max(0, Math.min(count - 1, selected + delta))
+		markSession(selected + delta)
+	}
+
+	// The list is *replaced*, not edited, on every poll: send the mark back to
+	// wherever the new sort put the session it was on. Only a session that has
+	// ended -- it finished while the card was up, which is the one thing the list
+	// cannot keep for you -- leaves the mark to the clamp, which is also what
+	// keeps it inside a list that just got shorter.
+	onSessionsChanged: {
+		var list = sessions || []
+		var at = -1
+		for (var i = 0; i < list.length; i++) {
+			if (Number(list[i].pid) === markedPid) {
+				at = i
+				break
+			}
+		}
+		if (at >= 0)
+			selected = at
+		else
+			markSession(selected)
 	}
 
 	// ── the palette ──────────────────────────────────────────────────────────
@@ -115,7 +164,7 @@ Item {
 	// drifting -- the working one here was a different green from the palette's,
 	// so a card opened before the palette loaded would have shown a badge the
 	// bar had never drawn. Same string in both places, on purpose.
-	readonly property color waitingColor: pal && pal.waiting ? pal.waiting : "#e06c9f"
+	readonly property color waitingColor: pal && pal.waiting ? pal.waiting : "#a55555"
 	readonly property color finishedColor: pal && pal.finished ? pal.finished : "#e5c07b"
 	readonly property color workingColor: pal && pal.working ? pal.working : "#88b667"
 	readonly property color idleColor: pal && pal.idle ? pal.idle : "#7a7a7a"
@@ -334,7 +383,7 @@ Item {
 			return
 		// The mark starts on the first session every time the card comes up,
 		// rather than on whatever was selected the last time it was open.
-		selected = 0
+		markSession(0)
 		takePlace()
 		keys.forceActiveFocus()
 	}
@@ -397,7 +446,7 @@ Item {
 		}
 		if (count === 0)
 			return
-		selected = Math.max(0, Math.min(count - 1, index))
+		markSession(index)
 		if (!current || !current.address)
 			return
 		going.address = current.address
@@ -660,28 +709,29 @@ Item {
 								elide: Text.ElideMiddle
 							}
 
-						// The status badge: the same dot the bar puts on its
-						// glyph, in the same three colours, for the same reason
-						// -- one signal in two places. It goes at the row's far
-						// right, down the same edge as every other row's, so the
-						// badges line up into a column rather than trailing
-						// their own text.
-						//							// Every live row wears one, idle included, in its own colour:
+							// The status badge: the same dot the bar puts on its
+							// glyph, in the same three colours, for the same reason
+							// -- one signal in two places. It goes at the row's far
+							// right, down the same edge as every other row's, so the
+							// badges line up into a column rather than trailing
+							// their own text.
+							//
+							// Every live row wears one, idle included, in its own colour:
 							// gray for idle, which is the point of it. The dot is the
 							// row's whole state report at a glance, and "at the prompt"
 							// has to be as visible as "needs input" -- it is the same
 							// list, read the same way.
-						Rectangle {
-							id: waitingDot
+							Rectangle {
+								id: waitingDot
 
-							anchors.right: parent.right
-							anchors.verticalCenter: parent.verticalCenter
-							width: Theme.agentPanelDotSize
-							height: Theme.agentPanelDotSize
-							radius: width / 2
-							color: root.statusColor(sessionRow.modelData.status)
-							visible: root.hasDot(sessionRow.modelData.status)
-						}
+								anchors.right: parent.right
+								anchors.verticalCenter: parent.verticalCenter
+								width: Theme.agentPanelDotSize
+								height: Theme.agentPanelDotSize
+								radius: width / 2
+								color: root.statusColor(sessionRow.modelData.status)
+								visible: root.hasDot(sessionRow.modelData.status)
+							}
 
 							Text {
 								id: sessionModel

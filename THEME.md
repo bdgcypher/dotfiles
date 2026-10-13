@@ -78,7 +78,7 @@ It maps the palette to four roles and exposes all sixteen:
 | `accent` | `cursor` | the shell's accent |
 | `muted` | `color8` | quiet text |
 | `colors[i]` | `color0`..`color15` | anything wanting a specific slot |
-| `alert` | *(hardcoded `#a55555`)* | recording, dictation, "needs you" — **not** the wallpaper |
+| `alert` | *(hardcoded `#a55555`)* | recording, dictation, the notification bell's dot and the agents' `waiting` badge — **not** the wallpaper |
 
 `Bar.qml`'s `accent` is `pal.colors[3]`, and it is the one colour every list in
 the shell marks focus with. The fallback colours in `BarPalette.qml` exist only
