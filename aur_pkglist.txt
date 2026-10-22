@@ -1,3 +1,4 @@
+blipnet
 breezex-cursor-theme
 clocktemp
 freebuff-bin
