@@ -1,5 +1,10 @@
 [mgr]
 prepend_keymap = [
+    # Enter picks the highlighted directory for `hayami agent new` and quits;
+    # everywhere else it opens what it always opened, which the plugin has to
+    # decide at run time because a keymap cannot be added for one launch only.
+    { on = "<Enter>", run = "plugin hayami-pick", desc = "Choose this directory (agent picker), or open" },
+
     # Mount
     # { on = [ "M", "m" ], run = "plugin gvfs -- select-then-mount", desc = "Select device then mount" },
     # or this if you want to jump to mountpoint after mounted

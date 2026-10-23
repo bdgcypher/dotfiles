@@ -30,12 +30,13 @@ hl.bind(
 hl.bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("uwsm-app -- slack"), { description = "SLack" })
 
 -- The coding agent. Tiled rather than floating -- an agent session is something
--- you work in, not a dialog over what you was doing -- and aimed at the home
--- directory, because freebuff has its own project picker and $HOME is the one
--- place that is always a sensible start. `hayami agent new` always opens a new
--- window rather than switching to one that is already up: a second session
--- alongside a running one is a normal thing to want, and each existing session
--- gets its focus from its own row in the panel.
+-- you work in, not a dialog over what you was doing. It asks where first: the
+-- key opens a floating yazi, and the directory you leave it in is where the
+-- session starts. That is the picker's window and not the agent's, which is why
+-- the answer is a tiled window opening after the floating one goes away.
+-- `hayami agent new` always opens a new window rather than switching to one that
+-- is already up: a second session alongside a running one is a normal thing to
+-- want, and each existing session gets its focus from its own row in the panel.
 --
 -- On the SHIFT because that is the row this desktop launches things from --
 -- SUPER+SHIFT for the file manager, the browser, the editor, Obsidian, Slack --

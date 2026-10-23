@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # hayami-agent -- the freebuff coding agent: start it, and read what it is doing.
 #
-#   hayami-agent new        open a new agent window
+#   hayami-agent new        open a new agent window (asks for the directory)
+#   hayami-agent new <dir>  open one in <dir>, without asking
 #   hayami-agent panel      toggle the bar's agent popout
 #   hayami-agent status     the merged reading (session + Freebucks)
 #   hayami-agent refresh    re-read it, bypassing the API cache
@@ -14,6 +15,11 @@
 # jobs at once. Focus still happens, from the panel: each session's row carries
 # the window agent-status.sh matched to it, so the window you want is one click
 # away without costing the key its ability to open another.
+#
+# `new` also asks *where* before it starts, in a floating yazi, because the
+# directory is the thing the session is about: freebuff names its conversation
+# after it, and the panel's row shows it. pick_directory() below says why that
+# is a window of its own and how the answer gets back out of it.
 #
 # `--title` is not for finding the window from here -- that lookup is gone -- it
 # is how `agent-status.sh` recognises an agent window and matches it to a
@@ -65,7 +71,8 @@ usage() {
 	cat >&2 <<'EOF'
 usage: hayami-agent <verb>
 
-  new        open a new agent window
+  new [dir]  open a new agent window; asks for the directory with yazi when
+             none is given
   panel      toggle the bar's agent popout
   status     the merged reading (local session + Freebucks)
   refresh    re-read it, bypassing the 60s API cache
@@ -75,22 +82,77 @@ EOF
 }
 
 # ── starting it ──────────────────────────────────────────────────────────────
+#
+# A floating yazi, the same window the desktop's own file chooser is (class
+# `floating.FilePicker`, so it inherits the float/centre/size rule in
+# hypr/windows.lua instead of needing a rule of its own).
+#
+# **Enter is the answer**, and a yazi plugin is what gives it:
+# yazi/.config/yazi/plugins/hayami-pick.yazi, bound to `<Enter>` in keymap.toml.
+# It writes the directory under the cursor here and quits, and falls back to the
+# stock `open` whenever HAYAMI_AGENT_PICK is unset -- so a yazi opened by hand
+# still opens things on Enter rather than quitting at them.
+#
+# The plugin writes this file and nothing else does. yazi's own `--cwd-file`
+# cannot be the answer: measured, it is written when yazi is killed too, so a
+# closed picker window would read as "they chose whatever directory they
+# happened to be in" and start a session nobody asked for. A closed window, or
+# `q`, leaves the file empty and starts nothing -- which is the cancel it should
+# be.
+#
+# The title carries no provider name on purpose. agent-status.sh finds a
+# session's window by its title, and a picker called "Freebuff" would be read as
+# an agent window that has not run a step yet -- a tier-0 focus target for an
+# idle session.
+#
+# `-e` forces ghostty to be its own instance and to quit when the command does,
+# so this blocks until the window is gone; that is what makes reading the result
+# afterwards possible at all.
+
+pick_directory() {
+	local pick_dir result dir=""
+
+	pick_dir=$(mktemp -d "${XDG_RUNTIME_DIR:-/tmp}/hayami-agent-pick.XXXXXX") || return 1
+	result="$pick_dir/result"
+
+	HAYAMI_AGENT_PICK="$result" ghostty --class=floating.FilePicker \
+		--title="Agent: choose a directory (Enter = start, q = cancel)" \
+		--working-directory="$HOME" \
+		-e yazi >/dev/null 2>&1
+
+	[ -s "$result" ] && dir=$(cat "$result")
+	rm -rf "$pick_dir"
+
+	[ -n "$dir" ] || return 1
+	printf '%s' "$dir"
+}
 
 do_new() {
+	local dir="${1:-}"
+
 	# Always a new window: no lookup, no focus-or-spawn. The key's whole job is
 	# to open another session, and a second one is a normal thing to want while
 	# the first is still running -- see the note at the top of this file.
 	#
+	# Where it starts is the picker's answer. No argument is the normal path,
+	# shared by the menu entry and SUPER+SHIFT+A; a directory argument is the
+	# scripted one, which is also how this file starts a session without the
+	# floating step in the way.
+	if [ -z "$dir" ]; then
+		command -v ghostty >/dev/null 2>&1 || die "ghostty not found"
+		command -v yazi >/dev/null 2>&1 || die "yazi not found"
+		# Cancelled, not failed: the picker closes itself either way, and
+		# nothing here should print at someone who changed their mind.
+		dir=$(pick_directory) || return 0
+	fi
+	[ -d "$dir" ] || die "not a directory: $dir"
+
 	# Tile, not float: an agent session is something you work in, not a dialog
 	# over what you were doing. The class is left alone so the window keeps the
 	# terminal rules in hypr/apps/terminals.lua; `--title` is what lets
 	# agent-status.sh match the window to this session afterwards, so the panel
 	# can focus it -- not something for this script to find it by.
-	#
-	# It opens in the home directory rather than a project, because freebuff has
-	# its own project picker and $HOME is the one directory that is always a
-	# sensible place for it to start from.
-	uwsm-app -- ghostty --title="$WINDOW_TITLE" --working-directory="$HOME" -e freebuff \
+	uwsm-app -- ghostty --title="$WINDOW_TITLE" --working-directory="$dir" -e freebuff \
 		>/dev/null 2>&1 &
 }
 
@@ -164,7 +226,7 @@ api_get() {
 # ── entry ────────────────────────────────────────────────────────────────────
 
 case "${1:-}" in
-new) do_new ;;
+new) do_new "${2:-}" ;;
 panel) do_panel "${2:-toggle}" ;;
 status) run_status | pretty ;;
 refresh) run_status --refresh | pretty ;;

@@ -57,7 +57,8 @@ hl.window_rule({
   size = "800 800",
 })
 
--- File picker (floating, termfilechooser via yazi)
+-- File picker (floating, termfilechooser via yazi -- also the window
+-- `hayami agent new` asks for a directory in)
 hl.window_rule({
   match = { initial_class = "floating.FilePicker" },
   float = true,
