@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# xdg-portal-restart - restart the XDG desktop portal in every live session
+#
+#   xdg-portal-restart      # called by the pacman hook, as root
+#   xdg-portal-restart -n   # say which sessions it would touch, change nothing
+#
+# Pacman replaces binaries on disk and leaves running processes alone, so
+# upgrading a portal package leaves each session running the old backend
+# against the new files beside it. The mismatch is not cosmetic: when
+# xdg-desktop-portal-termfilechooser went 1.4.3 -> 1.5.0, the still-running
+# 1.4.3 backend called the freshly installed yazi-wrapper.sh the old way, the
+# wrapper was handed no terminal command at all, it ran a bare `yazi` with no
+# tty, and every Save dialog in every app came back "cancelled" with nothing on
+# screen to explain it.
+#
+# A pacman hook runs as root, but the units that need restarting belong to each
+# session's own user manager, so that manager is the only way in. Hence runuser
+# plus an explicit XDG_RUNTIME_DIR: `systemctl --user` started by root with no
+# runtime dir looks at the root session and fails.
+#
+# try-restart, never restart: a session that never started a portal must not
+# have one started for it by an unrelated upgrade. The backend is restarted
+# before the front-end because the front-end re-activates the impl name, and it
+# should find the new binary already answering.
+
+set -uo pipefail
+
+DRY_RUN=0
+
+usage() {
+	cat >&2 <<-EOF
+		usage: xdg-portal-restart [-n]
+
+		  -n    print the sessions that would be restarted, change nothing
+	EOF
+}
+
+# The leading colon keeps getopts quiet: its own message goes to stdout-ish and
+# leaves OPTARG unset on an unknown flag, which is fatal under `set -u`.
+while getopts ':nh' opt; do
+	case "$opt" in
+		n) DRY_RUN=1 ;;
+		h) usage; exit 0 ;;
+		*) printf 'xdg-portal-restart: unknown option -%s\n' "${OPTARG:-$opt}" >&2; usage; exit 2 ;;
+	esac
+done
+
+if [ "$(id -u)" -ne 0 ]; then
+	printf 'xdg-portal-restart: must run as root, it is a pacman hook\n' >&2
+	exit 1
+fi
+
+# Backend first; see the header.
+SERVICES=(xdg-desktop-portal-termfilechooser xdg-desktop-portal)
+
+found=0
+
+for bus in /run/user/*/bus; do
+	# The glob is literal when nothing is logged in, and a stale directory can
+	# outlive its bus socket, so the socket is what makes a session real.
+	[ -S "$bus" ] || continue
+
+	uid="${bus#/run/user/}"
+	uid="${uid%/bus}"
+	user="$(id -un "$uid" 2>/dev/null)" || continue
+	found=$((found + 1))
+
+	if [ "$DRY_RUN" -eq 1 ]; then
+		printf 'would restart portals for %s (uid %s)\n' "$user" "$uid"
+		continue
+	fi
+
+	for service in "${SERVICES[@]}"; do
+		runuser -u "$user" -- env XDG_RUNTIME_DIR="/run/user/$uid" \
+			DBUS_SESSION_BUS_ADDRESS="unix:path=$bus" \
+			systemctl --user try-restart "$service.service" ||
+			printf 'xdg-portal-restart: %s did not restart for %s\n' \
+				"$service" "$user" >&2
+	done
+
+	printf 'xdg-portal-restart: restarted portals for %s (uid %s)\n' "$user" "$uid"
+done
+
+if [ "$found" -eq 0 ]; then
+	printf 'xdg-portal-restart: no logged-in session to restart portals in\n' >&2
+fi
+
+exit 0

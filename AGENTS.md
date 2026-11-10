@@ -33,7 +33,7 @@ The top-level directory name **is** the stow package name (`hypr/`, `quickshell/
 | `quickshell/.config/quickshell/hayami-shell/` | the shell — `shell.qml`, `Bar*.qml`, `modules/`, `launcher/`, `notifications/`, `osd/`, `scripts/`, `menus/` |
 | `hypr/.config/hypr/` | `hyprland.lua`, `bindings/`, `apps/`, `looknfeel.lua`, `default-apps.lua` |
 | `scripts/` | installer and tooling — **not stowed** |
-| `system/` | files copied into `/etc` by `setup_services.sh` — **not stowed** |
+| `system/` | files copied into `/etc` and `/usr/local/bin` by `setup_services.sh` — **not stowed** |
 | `rust/` | Cargo workspace, built into `~/.local/bin` — **not stowed** |
 
 `stow_configs.sh` excludes: `scripts`, `system`, `rust`, `mouseless`, `yay`,

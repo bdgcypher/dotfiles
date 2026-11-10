@@ -319,4 +319,17 @@ if command -v voxtype &> /dev/null; then
     fi
 fi
 
+# 12. Portal restart hook
+echo "Installing the portal restart pacman hook..."
+# An upgrade of the file chooser backend replaces its binaries while the
+# previous backend is still running in the session, and the old process then
+# calls the new helpers the old way - every Save dialog comes back cancelled.
+# The hook restarts the portal in each logged-in session after such an upgrade,
+# through the user's own manager, because these are user units. It lives in
+# /usr/local/bin rather than /etc so pacman's hook config stays a one-line Exec.
+sudo install -Dm644 "$SYSTEM_DIR/etc/pacman.d/hooks/95-xdg-desktop-portal.hook" \
+    /etc/pacman.d/hooks/95-xdg-desktop-portal.hook
+sudo install -Dm755 "$SYSTEM_DIR/usr/local/bin/xdg-portal-restart" \
+    /usr/local/bin/xdg-portal-restart
+
 echo "System services configuration complete."

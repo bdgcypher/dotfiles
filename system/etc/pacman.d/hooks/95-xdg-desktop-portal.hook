@@ -1,0 +1,16 @@
+# Restart the desktop portal in live sessions after the file chooser backend is
+# upgraded. Pacman replaces the binaries; the running process keeps executing the
+# old code against the new helpers beside it, which is what silently broke every
+# Save dialog on the 1.4.3 -> 1.5.0 upgrade. /usr/local/bin/xdg-portal-restart
+# explains the failure in full.
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Downgrade
+Type = Package
+Target = xdg-desktop-portal-termfilechooser
+
+[Action]
+Description = Restarting xdg-desktop-portal for logged-in sessions...
+When = PostTransaction
+Exec = /usr/local/bin/xdg-portal-restart
