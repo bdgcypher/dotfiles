@@ -1,26 +1,30 @@
 import QtQuick
 import Quickshell
-import Quickshell.Io
 import "Icons.js" as Icons
 
 // custom/voxtype -- dictation state (idle / recording / transcribing).
 //
-// `voxtype status --format json --follow --extended`
-// streaming one JSON object per state change. The object's "alt" field is mapped
-// through a format-icons table; so do we.
+// The reading is the shell's, not the module's: DictationState.qml owns the one
+// `voxtype status --format json --follow --extended` stream and the glow reads
+// the same one. That is why this module no longer runs the process itself -- a
+// second stream would be a second clock for the glyph and the glow to disagree
+// over, and the glow would never know the glyph had gone quiet.
 //
 // style.css pulses both the recording and transcribing states with the shared
 // blink animation, so both get the pulse here too -- the glyphs tell them apart.
 BarItem {
 	id: root
 
+	// The shell's shared dictation reading; see DictationState.qml.
+	property var dictation: null
+
 	// Not named `state`: Item already has a `state` property (QML states).
-	property string dictationState: "idle"
+	readonly property string dictationState: dictation ? dictation.dictationState : "idle"
 
 	// custom/voxtype: "tooltip": true. voxtype's status JSON carries the text
 	// show -- "Voxtype ready - hold hotkey to record", the model, the
 	// device and the backend -- so it is passed straight through.
-	property string statusTooltip: ""
+	readonly property string statusTooltip: dictation ? dictation.tooltip : ""
 
 	glyph: dictationState === "recording" ? Icons.voxtypeRecord : (dictationState === "transcribing" ? Icons.voxtypeTranscribe : "")
 	pulse: dictationState === "recording" || dictationState === "transcribing"
@@ -33,38 +37,4 @@ BarItem {
 
 	onClicked: Quickshell.execDetached(["voxtype-dictate"])
 	onRightClicked: Quickshell.execDetached(["voxtype-configure-launcher"])
-
-	Process {
-		id: follow
-
-		command: ["voxtype", "status", "--format", "json", "--follow", "--extended"]
-		running: true
-
-		stdout: SplitParser {
-			onRead: function(line) {
-				var data = null;
-				try {
-					data = JSON.parse(line);
-				} catch (e) {
-					return;
-				}
-				if (data && data.alt)
-					root.dictationState = String(data.alt);
-				root.statusTooltip = data && data.tooltip ? String(data.tooltip) : "";
-			}
-		}
-
-		// The status stream ends if voxtype restarts; pick it back up.
-		onRunningChanged: {
-			if (!running)
-				restart.start();
-		}
-	}
-
-	Timer {
-		id: restart
-		interval: 2000
-
-		onTriggered: follow.running = true
-	}
 }

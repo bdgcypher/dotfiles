@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import "launcher"
+import "modules"
 import "notifications"
 import "osd"
 
@@ -36,6 +37,14 @@ ShellRoot {
 		id: barState
 	}
 
+	// What dictation is doing and how loud the microphone is. One reading for
+	// the whole shell: the bar's module and the glow are two views of it, and
+	// the microphone analyser behind it is one process rather than one per
+	// monitor.
+	DictationState {
+		id: dictationState
+	}
+
 	// The one thing about the tray that is not per-monitor: a request to pop its
 	// panel out, which the launcher's System -> Setup -> System Tray entry makes.
 	// See TrayState for why it cannot live on the panel itself.
@@ -50,6 +59,7 @@ ShellRoot {
 				state: barState
 				tray: trayState
 				notifications: notifState
+				dictation: dictationState
 			}
 		}
 	}
@@ -67,6 +77,7 @@ ShellRoot {
 	}
 
 	Launcher {
+		id: launcher
 		palette: sharedPalette
 	}
 
@@ -108,6 +119,25 @@ ShellRoot {
 			Osd {
 				state: osdState
 				pal: sharedPalette
+			}
+		}
+	}
+
+	// The dictation glow. One surface per monitor, like the bar, because a layer
+	// surface cannot be moved between outputs; each instance works out whether
+	// the focused window is on its monitor and stays unmapped if it is not.
+	//
+	// The panels are passed in so the ring can stand down while one of them is
+	// over the window it would be drawn around -- see DictationGlow.qml.
+	Variants {
+		model: Quickshell.screens
+		delegate: Component {
+			DictationGlow {
+				pal: sharedPalette
+				dictation: dictationState
+				bar: barState
+				notifications: notifState
+				launcherOpen: launcher.open
 			}
 		}
 	}

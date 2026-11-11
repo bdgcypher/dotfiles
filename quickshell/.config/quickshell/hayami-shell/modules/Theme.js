@@ -379,3 +379,28 @@ var agentPanelDotSize = vpnPanelDotSize
 var agentPanelBadgeGap = 6
 var agentPanelMarkWidth = calendarMarkWidth
 var agentPanelMarkHeight = calendarMarkHeight
+
+// ── the dictation glow ───────────────────────────────────────────────────────
+//
+// The bloom inside the focused window while the microphone is open. Its colour
+// is the palette's accent, read where it is drawn -- the glow owns no colour of
+// its own. These are the shape and the cadence.
+//
+// Reach is how far the light reaches *into* the frame. The surface is exactly
+// the window, so a deeper bloom paints more of the same buffer rather than a
+// larger one. A hundred and forty is a wash rather than an outline -- the glow
+// in the reference is a soft spill several centimetres wide, not a border.
+var dictationGlowReach = 140
+// The bloom's alpha at the window's edge, once a band is at full. The gradient
+// fades it to nothing over `reach`; this is the bright end only.
+var dictationGlowAlpha = 0.55
+// Transcribing is dimmer: the microphone is closed, and the glow is saying
+// "still working" rather than "listening".
+var dictationGlowTranscribe = 0.32
+// 60ms, about 17fps. The wave is a crest travelling along the frame, not a
+// surface breathing in place, so 10fps stepped it: the crest jumped roughly
+// 23px every 100ms. At 60ms the same travel is about 14px a frame, which reads
+// as motion rather than as updates. The phase increment in DictationGlow is
+// scaled with this interval so the wave keeps its speed; if this number
+// changes, it has to move with it.
+var dictationGlowFrameMs = 60

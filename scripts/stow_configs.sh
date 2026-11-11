@@ -302,8 +302,9 @@ if command -v voxtype &> /dev/null; then
     voxtype config set vad.backend whisper >/dev/null 2>&1 || true
 
     # Waveform OSD off. The floating panel duplicates what the bar's dictation
-    # module already shows, and the bar reads the daemon's state file directly, so
-    # recording state lives in the bar only and nothing overlays the screen.
+    # module and the shell's own dictation glow already show, and it is the
+    # daemon's own artwork rather than the theme's -- the glow reads the
+    # microphone itself and draws only inside the focused window.
     voxtype config set osd.enabled false >/dev/null 2>&1 || true
 
     # Desktop notifications off, so dictation is silent apart from the bar's

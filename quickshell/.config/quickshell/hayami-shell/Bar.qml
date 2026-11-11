@@ -46,6 +46,10 @@ PanelWindow {
 	// Where the bar is and what it shows, shared by every monitor's bar.
 	property var state: null
 
+	// The shell's dictation reading, shared with the window glow so the glyph
+	// and the ring cannot disagree about whether the microphone is open.
+	property var dictation: null
+
 	// The tray popout's shared request, so the launcher can ask for the tray by
 	// name and have it come out of this bar rather than of all of them at once.
 	property var tray: null
@@ -470,6 +474,7 @@ PanelWindow {
 				Voxtype {
 					pal: pal
 					edge: bar.edge
+					dictation: bar.dictation
 				}
 				RecordingIndicator {
 					pal: pal

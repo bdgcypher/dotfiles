@@ -186,7 +186,19 @@ palette to the four roles the shell uses and exposes all 16 as `pal.colors[i]`:
 | `accent` | `cursor` | the shell's accent, the focus colour |
 | `muted` | `color8` | secondary/quiet text |
 | `colors[i]` | `color0`..`color15` | anything that wants a specific palette slot |
-| `alert` | *(hardcoded)* | recording / dictation / "needs you" — deliberately not the wallpaper |
+| `alert` | *(hardcoded)* | the bar's recording/dictation dot / "needs you" — deliberately not the wallpaper |
+
+The **dictation glow** is the one recording cue drawn in the window border's
+colour rather than `alert`: it decorates the focused window rather than
+reporting a state on the bar, and the bar's dot keeps the fixed meaning. Do not
+move the dot to the border colour with it.
+
+That colour is `pal.colors[6]`, the border's own slot: the pywal template writes
+`border_active` from color6, so `general:col.active_border` and the glow share
+one value and a wallpaper re-tints both together. It is deliberately not
+`pal.accent` (pywal's cursor, which is the foreground, so the glow read as
+off-white) and not `colors[3]`, the shell's list accent: the glow is a
+continuation of the border, not a list mark.
 
 `Bar.qml`'s `accent` is `pal.colors[3]` when the palette has it. **Rules:**
 

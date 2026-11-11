@@ -3,6 +3,7 @@
 require("apps.bar")
 require("apps.bitwarden")
 require("apps.browser")
+require("apps.dictation")
 require("apps.hyprshot")
 require("apps.jetbrains")
 require("apps.launcher")
