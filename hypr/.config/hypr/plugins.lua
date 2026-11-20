@@ -23,10 +23,22 @@ hl.config({
 -- 3-finger swipe up/down toggles the overview.
 -- The plugin loads via `hyprpm reload` in autostart (after this config runs),
 -- so wait until it is available before registering the gestures.
-local gesture_timer = hl.timer(function()
+--
+-- The timer is declared before it is assigned: `local x = ...` does not put x
+-- in scope inside its own initializer, so the callback below used to read a nil
+-- global and die on `set_enabled`, leaving the timer to re-register the same
+-- gestures every 500ms behind it.
+local gesture_timer
+gesture_timer = hl.timer(function()
   if not hl.plugin.scrolloverview then
     return
   end
+
+  -- No de-duplication here, deliberately. A reload empties Hyprland's gesture
+  -- list before this file is re-run, so these two calls cannot collide with a
+  -- previous pass. Clearing a direction first instead puts
+  -- "Can't remove a non-existent gesture" on every save, because after the
+  -- reload there is nothing left to remove.
   hl.plugin.scrolloverview.gesture({ fingers = 3, direction = "up", action = "overview" })
   hl.plugin.scrolloverview.gesture({ fingers = 3, direction = "down", action = "overview" })
   gesture_timer:set_enabled(false)
