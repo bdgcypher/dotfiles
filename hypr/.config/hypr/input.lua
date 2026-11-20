@@ -13,11 +13,12 @@ hl.config({
     -- Start with numlock on by default
     numlock_by_default          = true,
 
-    -- Focus doesn't follow cursor movement, only a window
-    -- being clicked or focused with keybinds
-    follow_mouse                = 0,
+    -- Window focus doesn't follow the mouse cursor unless a window is clicked
+    -- Hover and Scroll still work in non-focused windows
+    follow_mouse                = 2,
     float_switch_override_focus = 0,
 
+    -- Touchpad scroll rules
     touchpad                    = {
       -- Use natural (inverse) scrolling
       natural_scroll = true,
