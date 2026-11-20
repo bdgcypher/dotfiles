@@ -30,6 +30,12 @@ actions = { "default" = "hayami-menu -m menus:utilities/capture --width 250" }
 weight = 80
 
 [[entries]]
+text = "Toggle Workspace Layout"
+icon = "\U000F056E "
+actions = { "default" = "hypr-toggle-layout" }
+weight = 75
+
+[[entries]]
 text = "Color Picker"
 icon = " "
 actions = { "default" = "pkill hyprpicker || hyprpicker -a -f hex && hayami-osd --custom-message \"Color copied to clipboard\" --custom-icon \"edit-copy\"" }

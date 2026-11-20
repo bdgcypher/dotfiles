@@ -14,6 +14,7 @@ show_osd() {
 }
 
 ws="$(hyprctl activeworkspace -j 2>/dev/null)"
+id="$(printf '%s' "$ws" | jq -r '.id')"
 name="$(printf '%s' "$ws" | jq -r '.name')"
 current="$(printf '%s' "$ws" | jq -r '.tiledLayout')"
 
@@ -22,13 +23,31 @@ case "$current" in
   *)       new="dwindle" ;;
 esac
 
-hyprctl eval "hl.workspace_rule({ workspace = 'name:$name', layout = '$new' })"
+# Address the workspace by id, and only by name when it has no usable id. A
+# numbered workspace is id 1, not `name:1`: a `name:` rule is stored, the eval
+# still prints `ok`, and no workspace ever adopts the layout -- which is how
+# this toggle used to do nothing at all. Named and special workspaces have a
+# zero or negative id, and their name is their selector (`special:minimized`).
+case "$id" in
+  ''|null|0|-*) selector="$name" ;;
+  *)            selector="$id" ;;
+esac
+
+hyprctl eval "hl.workspace_rule({ workspace = '$selector', layout = '$new' })"
+
+# Read the layout back rather than reporting what was asked for: `hyprctl eval`
+# prints `ok` for a rule that matched nothing, so the request is no evidence of
+# what happened. The OSD and the bar both get the state Hyprland reports, which
+# is what makes a silent failure visible instead of indistinguishable from a
+# successful toggle.
+actual="$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.tiledLayout')"
+[ -n "$actual" ] && [ "$actual" != "null" ] || actual="unknown"
 
 # Poke the bar. It watches this file because Hyprland publishes no event when a
 # workspace's layout changes (verified against its event socket -- a toggle emits
 # nothing at all, so there is no event for the bar to subscribe to). The file's
 # contents are only there to make the last change legible when debugging;
 # FileView fires on any change, including the same value written again.
-printf '%s\n' "$new" > /tmp/hypr-bar.signal 2>/dev/null || true
+printf '%s\n' "$actual" > /tmp/hypr-bar.signal 2>/dev/null || true
 
-show_osd "Workspace $name layout: $new"
+show_osd "Workspace $name layout: $actual"
