@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# 50-xdg-portal-restart - restart the desktop portals after resuming
+#
+# systemd-sleep runs this as root with two arguments:
+#   $1  pre|post                          (post is the resume)
+#   $2  suspend|hibernate|hybrid-sleep|suspend-then-hibernate
+#
+# Why a resume hook is needed on top of Restart=: suspending does not stop a
+# process, it stops time for it. A portal backend wakes up still holding what it
+# had before - a Wayland connection, a pty to a terminal, a GPU context - and
+# some of that does not survive the trip. The process is then alive but useless:
+# on the bus, answering method calls, never drawing a window, so the next Save
+# dialog in any app hangs or comes back "cancelled" with nothing on screen to
+# explain it. systemd cannot see any of this, because the service never exited
+# and Restart= only ever fires on an exit.
+#
+# A process started after the resume has nothing stale to reuse, so the cheapest
+# reliable answer is to discard the ones from before it. /usr/local/bin/
+# xdg-portal-restart already restarts the portals in every logged-in session and
+# is reused here rather than reimplemented, so there is a single description of
+# how a session's portals get restarted (the pacman hook is the other caller).
+#
+# Only post acts. The pre half is the wrong moment to be stopping services, and
+# a session that could not be reached then would only hold up the suspend.
+#
+# The helper exits 0 even when a session cannot be reached, so a resume is never
+# blocked by a portal problem; what it could not do it reports on stderr, which
+# systemd-sleep forwards to the journal.
+
+set -uo pipefail
+
+[ "${1:-}" = post ] || exit 0
+
+exec /usr/local/bin/xdg-portal-restart

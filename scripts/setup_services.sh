@@ -332,4 +332,18 @@ sudo install -Dm644 "$SYSTEM_DIR/etc/pacman.d/hooks/95-xdg-desktop-portal.hook" 
 sudo install -Dm755 "$SYSTEM_DIR/usr/local/bin/xdg-portal-restart" \
     /usr/local/bin/xdg-portal-restart
 
+# 13. Restart the portals on resume
+#
+# A suspend does not kill the portal backend, it leaves it holding a Wayland
+# connection and a terminal that no longer work, so it comes back answering on
+# the bus and unable to draw a picker - while Restart= never fires, because
+# nothing exited. The hook throws the pre-suspend processes away on resume and
+# reuses the same helper the pacman hook calls, so both paths are described once.
+# It is installed into /usr/lib/systemd/system-sleep because that is the only
+# directory systemd-sleep scans (verified against systemd 262 on this machine;
+# there is no /etc/systemd/system-sleep by default).
+echo "Installing the portal restart sleep hook..."
+sudo install -Dm755 "$SYSTEM_DIR/usr/lib/systemd/system-sleep/50-xdg-portal-restart" \
+    /usr/lib/systemd/system-sleep/50-xdg-portal-restart
+
 echo "System services configuration complete."
