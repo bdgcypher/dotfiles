@@ -5,9 +5,6 @@ freebuff-bin
 gazelle-tui
 iriunwebcam-bin
 jellyfin-tui
-piper-tts-bin
-piper-voices-common
-piper-voices-en-us
 plymouth-theme-arch-charge
 plymouth-theme-chain
 plymouth-theme-cuts-alt-git
